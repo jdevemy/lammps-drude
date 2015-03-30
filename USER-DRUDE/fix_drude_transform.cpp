@@ -198,8 +198,8 @@ void FixDrudeTransform<inverse>::reduced_to_real()
   double * rmass = atom->rmass, * mass = atom->mass;
   double mcore, mdrude, coeff;
   int icore, idrude;
-  int * drudeid = atom->ivector[index_ref];
-  int * drudetype = atom->ivector[index_drude];
+  int * drudeid = atom->ivector[index_drudeid];
+  int * drudetype = atom->ivector[index_drudetype];
 
   if (!rmass) {
     for (int itype=0; itype<ntypes; itype++)

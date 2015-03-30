@@ -175,7 +175,7 @@ void FixLangevinDrude::setup(int vflag)
   int nlocal = atom->nlocal;
   int fix_dof = 0;
   int *drudetype = atom->ivector[index_drudetype];
-  int *drudeid = atom->ivector[index_drudeid];
+  //int *drudeid = atom->ivector[index_drudeid];
   int dim = domain->dimension;
 
   for (int i = 0; i < modify->nfix; i++)
@@ -213,7 +213,7 @@ void FixLangevinDrude::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixLangevinDrude::langevin(int vflag, bool thermalize=true)
+void FixLangevinDrude::langevin(int /*vflag*/, bool thermalize=true)
 { 
   // Compute the kinetic energy and temperature of the reduced degrees of
   // freedom. Thermalize by adding the langevin force if thermalize=true.
