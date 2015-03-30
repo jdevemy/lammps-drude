@@ -118,15 +118,17 @@ thermostating.
 
 The status of the atoms (core or Drude particle or non-polarizable atom) must 
 be specified by a "fix property/atom"_fix_property_atom.html.
-Two integer properties are required, which must be called {ref} and {drude}.
-If {ref} is 0, the atom is a non-polarizable atom. Otherwise, the atom is either
-a Drude particle or the core of a polarizable atom. Then, {ref} must the id
-(tag) of the partner of the atom. For cores, {ref} must be the id of the
-corresponding Drude particle. For Drude particles {ref} must be the id of the
+Two integer properties are required, which must be called {drudeid} and {drudetype}.
+If {drudeid} is 0, the atom is a non-polarizable atom. Otherwise, the atom is either
+a Drude particle or the core of a polarizable atom. Then, {drudeid} must the id
+(tag) of the partner of the atom. For cores, {drudeid} must be the id of the
+corresponding Drude particle. For Drude particles {drudeid} must be the id of the
 corresponding core.
-If {drude} is different from 0, the atom is a Drude particle, otherwise it is 
-not. For consistency, if {drude} is not 0, {ref} must not be 0.
-Ghost atoms need to know their {ref} and {drude} properties, so the 
+If {drudetype} is 0, the atom is not polarizable.
+If {drudetype} is 1, the atom is the core of a polarizable atom.
+If {drudetype} is 2, the atom is a Drude particle.
+For consistency, if {drudetype} is not 0, {drudeid} must not be 0.
+Ghost atoms need to know their {drudeid} and {drudetype} properties, so the 
 "fix property/atom"_fix_property_atom.html command must be used with the keyword
 {ghost} set to {yes}.
 

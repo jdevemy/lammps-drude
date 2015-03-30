@@ -136,15 +136,17 @@ thermostating.
 
 <P>The status of the atoms (core or Drude particle or non-polarizable atom) must 
 be specified by a <A HREF = "fix_property_atom.html">fix property/atom</A>.
-Two integer properties are required, which must be called <I>ref</I> and <I>drude</I>.
-If <I>ref</I> is 0, the atom is a non-polarizable atom. Otherwise, the atom is either
-a Drude particle or the core of a polarizable atom. Then, <I>ref</I> must the id
-(tag) of the partner of the atom. For cores, <I>ref</I> must be the id of the
-corresponding Drude particle. For Drude particles <I>ref</I> must be the id of the
+Two integer properties are required, which must be called <I>drudeid</I> and <I>drudetype</I>.
+If <I>drudeid</I> is 0, the atom is a non-polarizable atom. Otherwise, the atom is either
+a Drude particle or the core of a polarizable atom. Then, <I>drudeid</I> must the id
+(tag) of the partner of the atom. For cores, <I>drudeid</I> must be the id of the
+corresponding Drude particle. For Drude particles <I>drudeid</I> must be the id of the
 corresponding core.
-If <I>drude</I> is different from 0, the atom is a Drude particle, otherwise it is 
-not. For consistency, if <I>drude</I> is not 0, <I>ref</I> must not be 0.
-Ghost atoms need to know their <I>ref</I> and <I>drude</I> properties, so the 
+If <I>drudetype</I> is 0, the atom is not polarizable.
+If <I>drudetype</I> is 1, the atom is the core of a polarizable atom.
+If <I>drudetype</I> is 2, the atom is a Drude particle.
+For consistency, if <I>drudetype</I> is not 0, <I>drudeid</I> must not be 0.
+Ghost atoms need to know their <I>drudeid</I> and <I>drudetype</I> properties, so the 
 <A HREF = "fix_property_atom.html">fix property/atom</A> command must be used with the keyword
 <I>ghost</I> set to <I>yes</I>.
 </P>
