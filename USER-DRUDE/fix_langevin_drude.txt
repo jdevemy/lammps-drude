@@ -1,0 +1,264 @@
+<script type="text/javascript"
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({ TeX: { equationNumbers: {autoNumber: "AMS"} } });
+</script>
+
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix langevin/drude command :h3
+
+[Syntax:]
+
+fix ID group-ID langevin/drude Tcom damp_com seed_com Tdrude damp_drude seed_drude keyword values ... :pre
+
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+langevin/drude = style name of this fix command :l
+Tcom = desired temperature of the centers of mass (temperature units) :l
+damp_com = damping parameter for the thermostat on centers of mass (time units) :l
+seed_com = random number seed to use for white noise of the thermostat on centers of mass (positive integer) :l
+Tdrude = desired temperature of the Drude oscillators (temperature units) :l
+damp_drude = damping parameter for the thermostat on Drude oscillators (time units) :l
+seed_drude = random number seed to use for white noise of the thermostat on Drude oscillators (positive integer) :l
+zero or more keyword/value pairs may be appended :l
+keyword = {zero} :l
+  {zero} value = {no} or {yes}
+    {no} = do not set total random force on centers of mass to zero
+    {yes} = set total random force on centers of mass to zero :pre
+:ule
+
+[Examples:]
+
+fix 3 all langevin/drude 300.0 100.0 19377 1.0 20.0 83451
+fix 1 all langevin/drude 298.15 100.0 19377 5.0 10.0 83451 zero yes :pre
+
+[Description:]
+
+Apply two Langevin thermostats as described in "(Jiang)"_#Jiang for 
+thermalizing the reduced degrees of freedom of Drude oscillators.
+
+Drude oscillators are a way to simulate polarizable atoms, by splitting
+them into a core and a Drude particle bound by a spring. The Drude particle
+carries a charge subtracted from the core, so that the core-Drude particle
+pair represents a dipole, with a total charge equal to that of the initial atom. 
+The Drude particles represent the electronic clouds around the nuclei. They 
+have normally no Lennard-Jones interactions.
+
+The Drude particle and the core should be connected by a 
+"harmonic bond"_bond_harmonic.html of zero equilibrium distance and of 
+(half-)stiffness 
+\begin\{equation\} K = \frac 1 2\, \frac \{q^2\} \alpha \end\{equation\}
+where \(q\) is the charge of the Drude particle and \(\alpha\) is the atom polarizability.
+
+Ideally, the mass of Drude particles would vanish and their positions would be 
+determined self-consistently by iterative minimization of the energy, the cores' 
+positions being fixed.
+It is however more efficient and it yields comparable results, if the dipoles 
+are thermalized at a low temperature "(Lamoureux)"_#Lamoureux.
+In that case, the Drude particles need a small mass. The thermalization works
+by transforming the particles degrees of freedom by: :b
+{In these equations upper case denotes atomic or center of mass values and lower 
+case denotes Drude particle or dipole values. Primes denote the transformed 
+(reduced) values, while bare letters denote the original values.} :b
+Velocities:
+\begin\{equation\} V' = \frac \{M\, V + m\, v\} \{M'\} \end\{equation\}
+\begin\{equation\} v' = v - V \end\{equation\}
+Masses:
+\begin\{equation\} M' = M + m \end\{equation\}
+\begin\{equation\} m' = \frac \{M\, m \} \{M'\} \end\{equation\}
+The Langevin forces are computed as
+\begin\{equation\} F' = - \frac \{M'\} \{\mathtt\{damp\_com\}\}\, V' + F_r' \end\{equation\}
+\begin\{equation\} f' = - \frac \{m'\} \{\mathtt\{damp\_drude\}\}\, v' + f_r' \end\{equation\}
+\(F_r'\) is a random force proportional to 
+\(\sqrt \{ \frac \{2\, k_B \mathtt\{Tcom\}\, M'\} 
+                 \{\mathrm dt\, \mathtt\{damp\_com\} \} 
+        \} \). :b
+\(f_r'\) is a random force proportional to 
+\(\sqrt \{ \frac \{2\, k_B \mathtt\{Tdrude\}\, m'\} 
+                 \{\mathrm dt\, \mathtt\{damp\_drude\} \} 
+        \} \). :b
+Then the real forces acting on the particles are computed from the inverse 
+transform:
+\begin\{equation\} F = \frac M \{M'\}\, F' - f' \end\{equation\}
+\begin\{equation\} f = \frac m \{M'\}\, F' + f' \end\{equation\}
+
+This fix also thermostates non-polarizable atoms in the group at temperature 
+{Tcom}, as if they had a massless Drude partner.
+The Drude particles themselves need not be in the group. The center of mass and 
+the dipole are thermostated iff the core atom is in the group.
+
+Note that the thermostat effect of this fix is applied to only the translational
+degrees of freedom of the particles, which is an important
+consideration for finite-size particles, which have rotational degrees
+of freedom, are being thermostated. The translational degrees of
+freedom can also have a bias velocity removed from them before
+thermostating takes place; see the description below.
+
+IMPORTANT NOTE: Like the "fix langevin"_fix_langevin.html command, this fix
+does NOT perform time integration. It only modifies forces to effect
+thermostating. Thus you must use a separate time integration fix,
+like "fix nve"_fix_nve.html or "fix nph"_fix_nh.html to actually update 
+the velocities and positions of atoms using the modified forces.  Likewise, 
+this fix should not normally be used on atoms that also have their temperature
+controlled by another fix - e.g. by "fix nvt"_fix_nh.html or "fix
+temp/rescale"_fix_temp_rescale.html commands.
+
+See "this howto section"_Section_howto.html#howto_16 of the manual for
+a discussion of different ways to compute temperature and perform
+thermostating.
+
+:line
+
+The status of the atoms (core or Drude particle or non-polarizable atom) must 
+be specified by a "fix property/atom"_fix_property_atom.html.
+Two integer properties are required, which must be called {drudeid} and {drudetype}.
+If {drudeid} is 0, the atom is a non-polarizable atom. Otherwise, the atom is either
+a Drude particle or the core of a polarizable atom. Then, {drudeid} must the id
+(tag) of the partner of the atom. For cores, {drudeid} must be the id of the
+corresponding Drude particle. For Drude particles {drudeid} must be the id of the
+corresponding core.
+If {drudetype} is 0, the atom is not polarizable.
+If {drudetype} is 1, the atom is the core of a polarizable atom.
+If {drudetype} is 2, the atom is a Drude particle.
+For consistency, if {drudetype} is not 0, {drudeid} must not be 0.
+Ghost atoms need to know their {drudeid} and {drudetype} properties, so the 
+"fix property/atom"_fix_property_atom.html command must be used with the keyword
+{ghost} set to {yes}.
+
+The Drude particle and its core should not have electrostatic interactions.
+So the "special_bonds"_special_bonds.html command must exclude coulombic 
+interaction between 1-2 neighbors (which is done by default).
+If polarizable atoms are 1-2, 1-3 or 1-4 neighbors, the same screening defined
+by "special_bonds"_special_bonds.html should apply to their Drude partners.
+See "fix special/drude"_fix_special_drude.html for how the lists of special 
+neighbors can be redefined.
+
+:line
+
+{Tcom} is the target temperature of the centers of mass, which would be used to
+thermostate the non-polarizable atoms.
+{Tdrude} is the (normally low) target temperature of the core-Drude particle 
+pairs (dipoles).
+{Tcom} and {Tdrude} can be specified as an equal-style "variable"_variable.html.
+If the value is a variable, it should be specified as
+v_name, where name is the variable name. In this case, the variable
+will be evaluated each timestep, and its value used to determine the
+target temperature.
+
+Equal-style variables can specify formulas with various mathematical
+functions, and include "thermo_style"_thermo_style.html command
+keywords for the simulation box parameters and timestep and elapsed
+time.  Thus it is easy to specify a time-dependent temperature.
+
+Like other fixes that perform thermostating, this fix can be used
+with "compute commands"_compute.html that remove a "bias" from the
+atom velocities.  E.g. removing the center-of-mass velocity from a
+group of atoms.  This is not done by default, but only if the
+"fix_modify"_fix_modify.html command is used to assign a temperature
+compute to this fix that includes such a bias term.  See the doc pages
+for individual "compute commands"_compute.html to determine which ones
+include a bias.  In this case, the thermostat works in the following
+manner: bias is removed from each atom, thermostating is performed on
+the remaining thermal degrees of freedom, and the bias is added back
+in. -- NOT TESTED -- 
+
+Note: The target temperature of the core-Drude particle pairs should be
+chosen low enough, so as to mimic as closely as possible the self-consistent
+minimization. It must however be high enough, so that the dipoles can follow 
+the local electric field exerted by the neighbouring atoms. The optimal value
+probably depends on the temperature of the centers of mass and on the mass of 
+the Drude particles.
+
+Note: The spring stiffness must be chosen high enough, so that the Drude 
+particle stays close to its core and that the pair can approximate a point
+dipole. However, the higher the stiffness, the quicker the oscillations. Quick
+oscillations require a small timestep, which leads to longer simulation times.
+For the same reason, the mass of the Drude particles cannot be chosen too small,
+because the oscillations of the dipole would be too quick and would require too
+a small timestep.
+
+{damp_com} is the characteristic time for reaching thermal equilibrium of the 
+centers of mass.
+For example, a value of 100.0 means to relax the temperature of the centers of 
+mass in a timespan of (roughly) 100 time units (tau or fmsec or psec - see the 
+"units"_units.html command).
+{damp_drude} is the characteristic time for reaching thermal equilibrium of the
+dipoles. It is typically a few timesteps.
+
+The number {seed_com} and {seed_drude} are positive integers. They set the seeds
+ of the Marsaglia random number generators used for generating the random forces 
+ on centers of mass and on the dipoles. Each processor uses the input seed to 
+ generate its own unique seed and its own stream of random numbers.
+Thus the dynamics of the system will not be identical on two runs on
+different numbers of processors.
+
+The keyword {zero} can be used to eliminate drift due to the thermostat on 
+centers of mass. Because the random forces on different centers of mass are
+independent, they do not sum exactly to zero.  As a result, this fix
+applies a small random force to the entire system, and the
+momentum of the total center of mass of the system undergoes a slow random walk. 
+If the keyword {zero} is set to {yes}, the total random force on the centers of 
+mass is set exactly to zero by subtracting off an equal part of it from each 
+center of mass in the group. As a result, the total center of mass of a system 
+with zero initial momentum will not drift over time.
+
+:line
+
+[Restart, fix_modify, output, run start/stop, minimize info:]
+
+No information about this fix is written to "binary restart
+files"_restart.html.  Because the state of the random number generator
+is not saved in restart files, this means you cannot do "exact"
+restarts with this fix, where the simulation continues on the same as
+if no restart had taken place.  However, in a statistical sense, a
+restarted simulation should produce the same behavior.
+
+The "fix_modify"_fix_modify.html {temp} option is supported by this
+fix.  You can use it to assign a temperature "compute"_compute.html
+you have defined to this fix which will be used in its thermostating
+procedure, as described above. For consistency, the group used by the compute 
+should include the group of this fix and the Drude particles. -- NOT TESTED -- 
+
+This fix computes a global vector of 6 components which can be accessed by 
+various "output commands"_Section_howto.html#howto_15. The meaning of the
+components are
+
+[1] temperature of the centers of mass (temperature units)
+[2] temperature of the dipoles (temperature units)
+[3] number of degrees of freedom of the centers of mass
+[4] number of degrees of freedom of the dipoles 
+[5] kinetic energy of the centers of mass (energy units)
+[6] kinetic energy of the dipoles (energy units) :pre
+
+This fix is not invoked during "energy minimization"_minimize.html.
+
+[Restrictions:] 
+This fix needs the ghost velocities. The user should include 
+"comm_modify vel yes"_comm_modify.html in the input file.
+
+[Related commands:]
+
+"fix langevin"_fix_langevin.html, "fix special/drude"_fix_special_drude.html
+
+[Default:]
+
+The option defaults are zero = no.
+
+:line
+
+:link(Jiang)
+[(Jiang)] Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux, 
+ J Phys Chem Lett, 2, 87-92 (2011).
+ 
+:link(Lamoureux)
+[(Lamoureux)] Lamoureux and Roux, J Chem Phys, 119, 3025-3039 (2003).
+
+
+

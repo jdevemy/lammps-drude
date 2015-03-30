@@ -26,6 +26,7 @@
 #include "modify.h"
 #include "compute.h"
 #include "error.h"
+#include "domain.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -174,13 +175,15 @@ void FixLangevinDrude::setup(int vflag)
   int nlocal = atom->nlocal;
   int fix_dof = 0;
   int *drudetype = atom->ivector[index_drudetype];
-  int *drudeid = atom->ivector[index_drudeid];
+  //int *drudeid = atom->ivector[index_drudeid];
+  int dim = domain->dimension;
+
   for (int i = 0; i < modify->nfix; i++)
     fix_dof += modify->fix[i]->dof(igroup);
   int dof_core_loc = 0, dof_drude_loc = 0;
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) { // Only the cores need to be in the group.
-      if (drudeid[i] == 0) // Non-polarizable atom
+      if (drudetype[i] == 0) // Non-polarizable atom
           dof_core_loc++;
       else {
           if (drudetype[i] == 2) continue;
@@ -190,18 +193,30 @@ void FixLangevinDrude::setup(int vflag)
     }
   }
   int ncoreloc = dof_core_loc;
-  dof_core_loc *= 3;
-  dof_drude_loc *= 3;
+  dof_core_loc *= dim;
+  dof_drude_loc *= dim;
   MPI_Allreduce(&dof_core_loc,  &dof_core,  1, MPI_INT, MPI_SUM, world);
   MPI_Allreduce(&dof_drude_loc, &dof_drude, 1, MPI_INT, MPI_SUM, world);
   MPI_Allreduce(&ncoreloc, &ncore, 1, MPI_INT, MPI_SUM, world);
   dof_core -= fix_dof;
-  if (zero) dof_core -= 3; // The center of mass is not thermalized.
+  if (zero) dof_core -= dim; // The center of mass is not thermalized.
+
+  langevin(vflag, false);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixLangevinDrude::post_force(int vflag){ 
+void FixLangevinDrude::post_force(int vflag)
+{
+  langevin(vflag, true);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixLangevinDrude::langevin(int /*vflag*/, bool thermalize=true)
+{ 
+  // Compute the kinetic energy and temperature of the reduced degrees of
+  // freedom. Thermalize by adding the langevin force if thermalize=true.
   // Each core-Drude pair is thermalized only once: where the core is local.
 
   double **v = atom->v, **f = atom->f;
@@ -219,7 +234,8 @@ void FixLangevinDrude::post_force(int vflag){
   double fdrude[3], fcore[3]; // forces in reduced representation
   double Ccore, Cdrude, Gcore, Gdrude;
   double fcoresum[3], fcoreloc[3];
-  
+  int dim = domain->dimension;
+
   /*for (int i = 0; i < nlocal; i++){ // Check comm_style brick/drude
     if (drudetype[i] == 2) {
         int j = atom->map(drudeid[i]);
@@ -237,53 +253,57 @@ void FixLangevinDrude::post_force(int vflag){
   }*/
   
   // Compute target core temperature
-  if (tstyle_core == CONSTANT)
-    t_target_core = t_start_core; // + delta * (t_stop-t_start_core);
-  else {
-    modify->clearstep_compute();
-    t_target_core = input->variable->compute_equal(tvar_core);
-    if (t_target_core < 0.0)
-      error->one(FLERR, "Fix langevin/drude variable returned "
-                        "negative core temperature");
-    modify->addstep_compute(update->ntimestep + nevery);
+  if (thermalize) {
+    if (tstyle_core == CONSTANT)
+      t_target_core = t_start_core; // + delta * (t_stop-t_start_core);
+    else {
+      modify->clearstep_compute();
+      t_target_core = input->variable->compute_equal(tvar_core);
+      if (t_target_core < 0.0)
+        error->one(FLERR, "Fix langevin/drude variable returned "
+                          "negative core temperature");
+      modify->addstep_compute(update->ntimestep + nevery);
+    }
+
+    // Compute target drude temperature
+    if (tstyle_drude == CONSTANT)
+      t_target_drude = t_start_drude; // + delta * (t_stop-t_start_core);
+    else {
+      modify->clearstep_compute();
+      t_target_drude = input->variable->compute_equal(tvar_drude);
+      if (t_target_drude < 0.0)
+        error->one(FLERR, "Fix langevin/drude variable returned "
+                          "negative drude temperature");
+      modify->addstep_compute(update->ntimestep + nevery);
+    }
+ 
+    // Clear ghost forces
+    // They have already been communicated if needed
+    for (int i = nlocal; i < nall; i++) {
+      for (int k = 0; k < dim; k++)
+        f[i][k] = 0.;
+    }
+    if (zero) for (int k=0; k<dim; k++) fcoreloc[k] = 0.;
   }
 
-  // Compute target drude temperature
-  if (tstyle_drude == CONSTANT)
-    t_target_drude = t_start_drude; // + delta * (t_stop-t_start_core);
-  else {
-    modify->clearstep_compute();
-    t_target_drude = input->variable->compute_equal(tvar_drude);
-    if (t_target_drude < 0.0)
-      error->one(FLERR, "Fix langevin/drude variable returned "
-                        "negative drude temperature");
-    modify->addstep_compute(update->ntimestep + nevery);
-  }
- 
-  // Clear ghost forces
-  // They have already been communicated if needed
-  for (int i = nlocal; i < nall; i++) {
-    for (int k = 0; k < 3; k++)
-      f[i][k] = 0.;
-  }
-  if (zero) for (int k=0; k<3; k++) fcoreloc[k] = 0.;
- 
   double kineng_core_loc = 0., kineng_drude_loc = 0.;
   // NB : the masses are the real masses, not the reduced ones
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) { // only the cores need to be in the group
-      if (drudeid[i] == 0) { // Non-polarizable atom
+      if (drudetype[i] == 0) { // Non-polarizable atom
         double mi;
         if (rmass)
           mi = rmass[i];
         else
           mi = mass[type[i]]; 
-        Gcore  = mi / t_period_core  / ftm2v;
-        Ccore  = sqrt(2.0 * Gcore  * kb * t_target_core  / dt / ftm2v / mvv2e);
-        for(int k = 0; k < 3; k++){
-          fcore[k] = Ccore  * random_core->gaussian()  - Gcore  * v[i][k];
-          if (zero) fcoreloc[k] += fcore[k];
-          f[i][k] += fcore[k];
+        if (thermalize) {
+          Gcore  = mi / t_period_core  / ftm2v;
+          Ccore  = sqrt(2.0 * Gcore  * kb * t_target_core  / dt / ftm2v / mvv2e);
+          for(int k = 0; k < dim; k++){
+            fcore[k] = Ccore  * random_core->gaussian()  - Gcore  * v[i][k];
+            if (zero) fcoreloc[k] += fcore[k];
+            f[i][k] += fcore[k];
+          }
         }
         kineng_core_loc += mi * (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
       } else {
@@ -303,12 +323,14 @@ void FixLangevinDrude::post_force(int vflag){
         mi /= mtot;
         mj /= mtot;
           
-        Gcore  = mtot / t_period_core  / ftm2v;
-        Gdrude = mu   / t_period_drude / ftm2v;
-        Ccore  = sqrt(2.0 * Gcore  * kb * t_target_core  / dt / ftm2v / mvv2e);
-        Cdrude = sqrt(2.0 * Gdrude * kb * t_target_drude / dt / ftm2v / mvv2e);
-          
-        for (int k=0; k<3; k++) {
+        if (thermalize) {
+          Gcore  = mtot / t_period_core  / ftm2v;
+          Gdrude = mu   / t_period_drude / ftm2v;
+          Ccore  = sqrt(2.0 * Gcore  * kb * t_target_core  / dt / ftm2v / mvv2e);
+          Cdrude = sqrt(2.0 * Gdrude * kb * t_target_drude / dt / ftm2v / mvv2e);
+        }
+
+        for (int k=0; k<dim; k++) {
           // TODO check whether a fix_modify temp can subtract a bias velocity
           vcore[k] = mi * v[i][k] + mj * v[j][k]; 
           vdrude[k] = v[j][k] - v[i][k];
@@ -316,27 +338,29 @@ void FixLangevinDrude::post_force(int vflag){
           kineng_core_loc += mtot * vcore[k] * vcore[k];
           kineng_drude_loc += mu * vdrude[k] * vdrude[k];
             
-          fcore[k]  = Ccore  * random_core->gaussian()  - Gcore  * vcore[k];
-          fdrude[k] = Cdrude * random_drude->gaussian() - Gdrude * vdrude[k];
+          if (thermalize) {
+            fcore[k]  = Ccore  * random_core->gaussian()  - Gcore  * vcore[k];
+            fdrude[k] = Cdrude * random_drude->gaussian() - Gdrude * vdrude[k];
            
-          if (zero) fcoreloc[k]  += fcore[k];
+            if (zero) fcoreloc[k]  += fcore[k];
             
-          f[i][k] += mi * fcore[k] - fdrude[k];
-          f[j][k] += mj * fcore[k] + fdrude[k];
+            f[i][k] += mi * fcore[k] - fdrude[k];
+            f[j][k] += mj * fcore[k] + fdrude[k];
 
-          // TODO tally energy if asked
+            // TODO tally energy if asked
+          }
         }
       }
     }
   }
   
-  if(zero) { // Remove the drift
-    MPI_Allreduce(fcoreloc,  fcoresum,  3, MPI_DOUBLE, MPI_SUM, world);
-    for (int k=0; k<3; k++) fcoresum[k] /= ncore;
+  if(zero && thermalize) { // Remove the drift
+    MPI_Allreduce(fcoreloc,  fcoresum,  dim, MPI_DOUBLE, MPI_SUM, world);
+    for (int k=0; k<dim; k++) fcoresum[k] /= ncore;
     for (int i=0; i<nlocal; i++) {
       if (mask[i] & groupbit) { // only the cores need to be in the group
-        if (drudeid[i] == 0) {
-          for (int k=0; k<3; k++) f[i][k] -= fcoresum[k];
+        if (drudetype[i] == 0) {
+          for (int k=0; k<dim; k++) f[i][k] -= fcoresum[k];
         } else {
           if (drudetype[i] == 2) continue; // Done together with the core
           int j = atom->map(drudeid[i]);
@@ -351,7 +375,7 @@ void FixLangevinDrude::post_force(int vflag){
           mtot = mi + mj;
           mi /= mtot;
           mj /= mtot;
-          for (int k=0; k<3; k++) {
+          for (int k=0; k<dim; k++) {
             f[i][k] -= mi * fcoresum[k];
             f[j][k] -= mj * fcoresum[k];
           }

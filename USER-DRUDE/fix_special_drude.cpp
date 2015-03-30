@@ -49,7 +49,7 @@ int FixSpecialDrude::setmask()
 void FixSpecialDrude::pre_force(int)
 {
     
-    //if (done) return;
+    if (done) return;
     // Redefine lists of special neighbors so that Drudes are equivalent to their core
     // Need to call this after the standard list of special neighbors is built
     int nlocal = atom->nlocal, nall = atom->nlocal + atom->nghost;
@@ -87,7 +87,7 @@ void FixSpecialDrude::pre_force(int)
             std::cout << atom->special[i][k] << " ";
         } std::cout << std::endl;
     }*/
-    if (done) return;
+    //if (done) return;
     // All atoms need to know their special info.    
     // All atoms need to know their drudeness and the drudeid of their partner.
     // Loop on the core atoms
@@ -96,7 +96,7 @@ void FixSpecialDrude::pre_force(int)
             // Remove Drude particles from the list because some are missing
             // and all of them are 1 neighbor too far away
             if (i >= nlocal) { // This is a ghost
-                if (drudeid[i] == 0 
+                if (drudetype[i] == 0 
                   || atom->map(drudeid[i]) >= nlocal
                   || atom->map(drudeid[i]) < 0) continue;
                 // This is either a non-polarizable atom
@@ -131,7 +131,7 @@ void FixSpecialDrude::pre_force(int)
             // Add back all Drude particles at the correct positions
             for (int k=0; k<nspecial[i][2]; k++) {
                 j = atom->map(special[i][k]);
-                if (drudeid[j] > 0) { // if not j > 0, error "missing atom"
+                if (drudetype[j] == 1) { // if not j > 0, error "missing atom"
                     // This neighbor is the core of a polarizable atom.
                     // Check size: need to grow special?
                     if (nspecial[i][2] == maxspecial) {
@@ -162,7 +162,7 @@ void FixSpecialDrude::pre_force(int)
             std::cout << atom->special[i][k] << " ";
         } std::cout << std::endl;*/
             // Also adds the own Drude partner at the beginning (if any)
-            if (drudeid[i] > 0){
+            if (drudetype[i] == 1){
                 // Check size: need to grow special?
     //std::cout << comm->me << " " << __LINE__ << "  " << nspecial[i][2] << std::endl;
                 if (nspecial[i][2] == maxspecial) {
@@ -218,7 +218,8 @@ void FixSpecialDrude::pre_force(int)
         }
     } 
     // reset ghosts
-    for (int i=nlocal; i<nall; i++) nspecial[i][2] = 0; 
+    for (int i=nlocal; i<nall; i++) 
+        nspecial[i][0] = nspecial[i][1] = nspecial[i][2] = 0; 
     
     /*std::cout << comm->me << " : " << maxspecial << std::endl;
     for (int i = 0; i < nall; i++) {
@@ -237,7 +238,7 @@ void FixSpecialDrude::pre_force(int)
 
 /* ---------------------------------------------------------------------- */
 
-int FixSpecialDrude::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int FixSpecialDrude::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   if (done) return 0;
   int m = 0;
