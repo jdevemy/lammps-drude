@@ -26,11 +26,13 @@ FixSpecialDrude::FixSpecialDrude(LAMMPS *lmp, int narg, char **arg) :
 
 void FixSpecialDrude::init()
 {
+  char typetag[] = "drudetype", idtag[] = "idtag";
   int dummy;
-  index_drudetype = atom->find_custom("drudetype", dummy);
+  
+  index_drudetype = atom->find_custom(typetag, dummy);
   if (index_drudetype == -1) 
     error->all(FLERR,"Unable to get DRUDETYPE atom property");
-  index_drudeid = atom->find_custom("drudeid", dummy);
+  index_drudeid = atom->find_custom(idtag, dummy);
   if (index_drudeid == -1) 
     error->all(FLERR,"Unable to get DRUDEID atom property");
 }

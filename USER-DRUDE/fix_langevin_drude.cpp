@@ -152,11 +152,12 @@ void FixLangevinDrude::init()
   //if (temperature->tempbias) which = BIAS; // only for core
   //else which = NOBIAS;
 
+  char typetag[] = "drudetype", idtag[] = "drudeid";
   int dummy;
-  index_drudetype = atom->find_custom("drudetype", dummy);
+  index_drudetype = atom->find_custom(typetag, dummy);
   if (index_drudetype == -1) 
     error->all(FLERR,"Unable to get DRUDETYPE atom property");
-  index_drudeid = atom->find_custom("drudeid", dummy);
+  index_drudeid = atom->find_custom(idtag, dummy);
   if (index_drudeid == -1) 
     error->all(FLERR,"Unable to get DRUDEID atom property");
 }
