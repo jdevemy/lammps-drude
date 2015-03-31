@@ -39,7 +39,8 @@ PairThole::~PairThole()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    //TODO
+    memory->destroy(polar);
+    memory->destroy(thole);
     memory->destroy(cut);
     memory->destroy(scale);
   }
@@ -96,8 +97,6 @@ void PairThole::compute(int eflag, int vflag)
       qi = q[i];
     else
       qi = -q[di];
-//printf("POLARI:%f\n", polari);
-//polari = 1.368;
 
     xtmp = x[i][0];
     ytmp = x[i][1];
@@ -124,8 +123,6 @@ void PairThole::compute(int eflag, int vflag)
         qj = q[j];
       else
         qj = -q[dj];
-//printf("POLARJ:%f\n", polarj);
-//polarj = 1.368;
  
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -138,8 +135,6 @@ void PairThole::compute(int eflag, int vflag)
 
         r = sqrt(rsq);
         tholeij = (thole[itype][itype] + thole[jtype][jtype]) / 2.0;
-//printf("THOLEIJ:%f\n", tholeij);
-//tholeij = 2.089;
         a_screen = tholeij/pow(polari * polarj, 1./6.);
         factor_f = 0.5*(2 + (exp(-a_screen * r) * (-2 - a_screen*r * (2 + a_screen*r)))) - factor_coul;
         factor_e = 0.5*(2 - (exp(-a_screen * r) * (2 + a_screen*r))) - factor_coul;
@@ -276,7 +271,8 @@ double PairThole::init_one(int i, int j)
   if (setflag[i][j] == 0)
     cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
 
-  //TODO
+  thole[j][i] = thole[i][j];
+  polar[j][i] = polar[i][j];
   scale[j][i] = scale[i][j];
 
   return cut[i][j];
