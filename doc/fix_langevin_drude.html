@@ -58,7 +58,7 @@ fix 1 all langevin/drude 298.15 100.0 19377 5.0 10.0 83451 zero yes
 <P>Apply two Langevin thermostats as described in <A HREF = "#Jiang">(Jiang)</A> for 
 thermalizing the reduced degrees of freedom of Drude oscillators.
 </P>
-<P>Drude oscillators are a way to simulate polarizable atoms, by splitting
+<P>Drude oscillators are a way to simulate polarizables atoms, by splitting
 them into a core and a Drude particle bound by a spring. The Drude particle
 carries a charge subtracted from the core, so that the core-Drude particle
 pair represents a dipole, with a total charge equal to that of the initial atom. 
@@ -93,7 +93,7 @@ The Langevin forces are computed as
 \begin{equation} F' = - \frac {M'} {\mathtt{damp\_com}}\, V' + F_r' \end{equation}
 \begin{equation} f' = - \frac {m'} {\mathtt{damp\_drude}}\, v' + f_r' \end{equation}
 \(F_r'\) is a random force proportional to 
-\(\sqrt { \frac {2\, k_B \mathtt{Tcom}\, M'} 
+\(\sqrt { \frac {2\, k_B \mathtt{Tcom}\, m'} 
                  {\mathrm dt\, \mathtt{damp\_com} } 
         } \). 
 <BR>
@@ -136,17 +136,15 @@ thermostating.
 
 <P>The status of the atoms (core or Drude particle or non-polarizable atom) must 
 be specified by a <A HREF = "fix_property_atom.html">fix property/atom</A>.
-Two integer properties are required, which must be called <I>drudeid</I> and <I>drudetype</I>.
-If <I>drudeid</I> is 0, the atom is a non-polarizable atom. Otherwise, the atom is either
-a Drude particle or the core of a polarizable atom. Then, <I>drudeid</I> must the id
-(tag) of the partner of the atom. For cores, <I>drudeid</I> must be the id of the
-corresponding Drude particle. For Drude particles <I>drudeid</I> must be the id of the
+Two integer properties are required, which must be called <I>ref</I> and <I>drude</I>.
+If <I>ref</I> is 0, the atom is a non-polarizable atom. Otherwise, the atom is either
+a Drude particle or the core of a polarizable atom. Then, <I>ref</I> must the id
+(tag) of the partner of the atom. For cores, <I>ref</I> must be the id of the
+corresponding Drude particle. For Drude particles <I>ref</I> must be the id of the
 corresponding core.
-If <I>drudetype</I> is 0, the atom is not polarizable.
-If <I>drudetype</I> is 1, the atom is the core of a polarizable atom.
-If <I>drudetype</I> is 2, the atom is a Drude particle.
-For consistency, if <I>drudetype</I> is not 0, <I>drudeid</I> must not be 0.
-Ghost atoms need to know their <I>drudeid</I> and <I>drudetype</I> properties, so the 
+If <I>drude</I> is different from 0, the atom is a Drude particle, otherwise it is 
+not. For consistency, if <I>drude</I> is not 0, <I>ref</I> must not be 0.
+Ghost atoms need to know their <I>ref</I> and <I>drude</I> properties, so the 
 <A HREF = "fix_property_atom.html">fix property/atom</A> command must be used with the keyword
 <I>ghost</I> set to <I>yes</I>.
 </P>
@@ -187,7 +185,7 @@ manner: bias is removed from each atom, thermostating is performed on
 the remaining thermal degrees of freedom, and the bias is added back
 in. -- NOT TESTED -- 
 </P>
-<P>Note: The target temperature of the core-Drude particle pairs should be
+<P>Note: The temperature thermostating the core-Drude particle pairs should be
 chosen low enough, so as to mimic as closely as possible the self-consistent
 minimization. It must however be high enough, so that the dipoles can follow 
 the local electric field exerted by the neighbouring atoms. The optimal value
@@ -257,9 +255,7 @@ components are
 </PRE>
 <P>This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
 </P>
-<P><B>Restrictions:</B> 
-This fix needs the ghost velocities. The user should include 
-<A HREF = "comm_modify.html">comm_modify vel yes</A> in the input file.
+<P><B>Restrictions:</B> none
 </P>
 <P><B>Related commands:</B>
 </P>
