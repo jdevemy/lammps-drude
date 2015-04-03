@@ -26,7 +26,7 @@ FixSpecialDrude::FixSpecialDrude(LAMMPS *lmp, int narg, char **arg) :
 
 void FixSpecialDrude::init()
 {
-  char typetag[] = "drudetype", idtag[] = "idtag";
+  char typetag[] = "drudetype", idtag[] = "drudeid";
   int dummy;
   
   index_drudetype = atom->find_custom(typetag, dummy);
