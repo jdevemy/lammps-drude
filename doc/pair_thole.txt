@@ -22,14 +22,15 @@ pair_style hybrid/overlay ... thole args :pre
 
 args = list of arguments for a particular style :ul
 
-  {thole} args = thole
-    thole = Thole damping parameter
+  {thole} args = thole cutoff
+    thole = global value for Thole damping parameter
+    cutoff = global cutoff
 :pre
 
 
 [Examples:]
 
-pair_style hybrid/overlay ... thole 2.6
+pair_style hybrid/overlay ... thole 2.6 12.0
 pair_coeff  1 1  thole  1.0
 pair_coeff  1 2  thole  1.0 2.6
 pair_coeff  * 2  thole  1.0 2.6
