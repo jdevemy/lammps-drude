@@ -22,16 +22,17 @@ pair_style hybrid/overlay ... thole args :pre
 
 args = list of arguments for a particular style :ul
 
-  {thole} args = thole
-    thole = Thole damping parameter
+  {thole} args = thole cutoff
+    thole = global value for Thole damping parameter
+    cutoff = global cutoff
 :pre
 
 
 [Examples:]
 
-pair_style hybrid/overlay ... thole 2.6
+pair_style hybrid/overlay ... thole 2.6 12.0
 pair_coeff  1 1  thole  1.0
-pair_coeff  1 2  thole  1.0 2.6
+pair_coeff  1 2  thole  1.0 2.6 10.0
 pair_coeff  * 2  thole  1.0 2.6
 :pre
 
@@ -86,10 +87,13 @@ types via the "pair_coeff"_pair_coeff.html command as in the examples
 above.
 
 alpha (distance units^3)
-thole :ul
+thole
+cutoff (distance units) :ul
 
-The last coefficient is optional.  If not specified the global Thole
-damping parameter specified in the pair_style command is used.
+The last two coefficients are optional.  If not specified the global
+Thole damping parameter or global cutoff specified in the pair_style
+command are used. In order to use a specific cutoff (third argument) a
+thole parameter (second argument) must also be given.
 
 
 [Mixing]:

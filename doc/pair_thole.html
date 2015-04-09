@@ -24,15 +24,16 @@
 </PRE>
 <UL><LI>args = list of arguments for a particular style 
 </UL>
-<PRE>  <I>thole</I> args = thole
-    thole = Thole damping parameter
+<PRE>  <I>thole</I> args = thole cutoff
+    thole = global value for Thole damping parameter
+    cutoff = global cutoff
 
 </PRE>
 <P><B>Examples:</B>
 </P>
-<PRE>pair_style hybrid/overlay ... thole 2.6
+<PRE>pair_style hybrid/overlay ... thole 2.6 12.0
 pair_coeff  1 1  thole  1.0
-pair_coeff  1 2  thole  1.0 2.6
+pair_coeff  1 2  thole  1.0 2.6 10.0
 pair_coeff  * 2  thole  1.0 2.6
 
 </PRE>
@@ -86,10 +87,13 @@ types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examp
 above.
 </P>
 <UL><LI>alpha (distance units^3)
-<LI>thole 
+<LI>thole
+<LI>cutoff (distance units) 
 </UL>
-<P>The last coefficient is optional.  If not specified the global Thole
-damping parameter specified in the pair_style command is used.
+<P>The last two coefficients are optional.  If not specified the global
+Thole damping parameter or global cutoff specified in the pair_style
+command are used. In order to use a specific cutoff (third argument) a
+thole parameter (second argument) must also be given.
 </P>
 <P><B>Mixing</B>:
 </P>

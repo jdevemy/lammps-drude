@@ -41,9 +41,10 @@ class PairThole : public Pair {
   void *extract(const char *, int &);
 
  protected:
+  double thole_global;
   double cut_global;
   double **cut,**scale;
-  double **thole,**polar;
+  double **polar,**thole;
   int index_drudetype, index_drudeid;
 
   virtual void allocate();
