@@ -86,13 +86,12 @@ void PairThole::compute(int eflag, int vflag)
     if (!drudetype[i])
       continue;
 
+    di = domain->closest_image(i, atom->map(drudeid[i]));
     // get dq of the core via the drude charge
     if (drudetype[i] == 2)
       qi = q[i];
-    else {
-      di = domain->closest_image(i, atom->map(drudeid[i]));
+    else
       qi = -q[di];
-    }
 
     xtmp = x[i][0];
     ytmp = x[i][1];
@@ -117,7 +116,7 @@ void PairThole::compute(int eflag, int vflag)
         dj = domain->closest_image(j, atom->map(drudeid[j]));
         qj = -q[dj];
       }
- 
+
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
@@ -188,7 +187,7 @@ void PairThole::settings(int narg, char **arg)
 
   thole_global = force->numeric(FLERR,arg[0]);
   cut_global = force->numeric(FLERR,arg[1]);
-  
+
   // reset cutoffs that have been explicitly set
 
   if (allocated) {
@@ -208,7 +207,7 @@ void PairThole::settings(int narg, char **arg)
 
 void PairThole::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5) 
+  if (narg < 3 || narg > 5) 
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
@@ -247,7 +246,7 @@ void PairThole::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair style thole requires atom attribute q");
 
-  char typetag[] = "drudetype", idtag[] = "drudeid";      
+  char typetag[] = "drudetype", idtag[] = "drudeid";
   int dummy;
   index_drudetype = atom->find_custom(typetag, dummy);
   if (index_drudetype == -1)
@@ -384,7 +383,7 @@ double PairThole::single(int i, int j, int itype, int jtype,
     dj = domain->closest_image(j, atom->map(drudeid[j]));
     qj = -atom->q[dj];
   }
-  
+
   r2inv = 1.0/rsq;
   if (rsq < cutsq[itype][jtype]) {
     rinv = sqrt(r2inv);
@@ -392,15 +391,15 @@ double PairThole::single(int i, int j, int itype, int jtype,
     a_screen = thole[itype][jtype] / pow(polar[itype][jtype], 1./3.);
     factor_f = 0.5*(2 + (exp(-a_screen * r) *
                          (-2 - a_screen*r * (2 + a_screen*r)))) - factor_coul;
-    forcecoul = force->qqrd2e * atom->q[i]*atom->q[j]*rinv;
+    forcecoul = force->qqrd2e * qi*qj*rinv;
   } else forcecoul= 0.0;
-  fforce = forcecoul * r2inv;
+  fforce = factor_f*forcecoul * r2inv;
 
   if (rsq < cutsq[itype][jtype]) {
     factor_e = 0.5*(2 - (exp(-a_screen * r) * (2 + a_screen*r))) - factor_coul;
-    phicoul = factor_e * force->qqrd2e * atom->q[i]*atom->q[j]*rinv;
+    phicoul = factor_e * force->qqrd2e * qi*qj*rinv;
   } else phicoul = 0.0;
-  
+
   return phicoul;
 }
 
