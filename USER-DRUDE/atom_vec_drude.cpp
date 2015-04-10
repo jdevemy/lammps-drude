@@ -44,7 +44,7 @@ AtomVecDrude::AtomVecDrude(LAMMPS *lmp) : AtomVec(lmp)
   size_data_atom = 7;
   size_data_vel = 4;
   xcol_data = 5;
-  atom->drudetype = NULL;
+  //atom->drudetype = NULL;
   atom->drudeid = NULL;
   //TODO write restart section;
   atom->molecule_flag = atom->q_flag = 1;
@@ -52,9 +52,7 @@ AtomVecDrude::AtomVecDrude(LAMMPS *lmp) : AtomVec(lmp)
 }
 
 AtomVecDrude::~AtomVecDrude(){
-  if (atom->drudetype != NULL) memory->destroy(atom->drudetype);
-  if (atom->drudeid != NULL) memory->destroy(atom->drudeid);
-  //AtomVec::~AtomVec();
+  memory->destroy(atom->drudeid);
 }
 
 /* ----------------------------------------------------------------------
