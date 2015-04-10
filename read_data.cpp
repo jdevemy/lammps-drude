@@ -327,7 +327,7 @@ void ReadData::command(int narg, char **arg)
       } else if (strcmp(keyword,"Drude Types") == 0) {
         if (!avec_drude)
           error->all(FLERR,"Invalid data file section: Drude Types");
-        drudetypes(firstpass);
+        if (firstpass) drudetypes();
       } else if (strcmp(keyword,"Masses") == 0) {
         if (firstpass) mass();
         else skip_lines(atom->ntypes);
@@ -1349,7 +1349,7 @@ void ReadData::drudetypes()
   for (int i = 0; i < atom->ntypes; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    avec_drude->set_drudetype(buf);
+    avec_drude->set_drudetypes(buf);
     buf = next + 1;
   }
   delete [] original;

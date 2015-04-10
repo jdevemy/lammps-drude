@@ -54,6 +54,7 @@ class ReadData : protected Pointers {
   class AtomVecTri *avec_tri;
   bigint nbodies;
   class AtomVecBody *avec_body;
+  class AtomVecDrude *avec_drude;
 
   void open(char *);
   void scan(int &, int &, int &, int &);
@@ -75,6 +76,8 @@ class ReadData : protected Pointers {
 
   void bonus(bigint, class AtomVec *, const char *);
   void bodies(int);
+
+  void drudetypes();
 
   void mass();
   void paircoeffs();

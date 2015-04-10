@@ -266,10 +266,9 @@ void WriteData::type_arrays()
     for (int i = 1; i <= atom->ntypes; i++) fprintf(fp,"%d %g\n",i,mass[i]);
   }
   if (atom->drudetype) {
-    AtomVecDrude::DrudeTypes *idtype;
     fprintf(fp,"\nDrude Types\n\n");
     for (int i = 1; i <= atom->ntypes; i++) 
-      fprintf(fp,"%d %d\n",i,(int)idtype[i]);
+      fprintf(fp,"%d %d\n",i,atom->drudetype[i]);
   }
 }
 

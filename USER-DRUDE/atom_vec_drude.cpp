@@ -46,7 +46,7 @@ AtomVecDrude::AtomVecDrude(LAMMPS *lmp) : AtomVec(lmp)
   xcol_data = 5;
   atom->drudetype = NULL;
   atom->drudeid = NULL;
-  write data section;
+  //TODO write restart section;
   atom->molecule_flag = atom->q_flag = 1;
 
 }
@@ -54,6 +54,7 @@ AtomVecDrude::AtomVecDrude(LAMMPS *lmp) : AtomVec(lmp)
 AtomVecDrude::~AtomVecDrude(){
   if (atom->drudetype != NULL) memory->destroy(atom->drudetype);
   if (atom->drudeid != NULL) memory->destroy(atom->drudeid);
+  //AtomVec::~AtomVec();
 }
 
 /* ----------------------------------------------------------------------
@@ -224,7 +225,7 @@ void AtomVecDrude::copy(int i, int j, int delflag)
   nspecial[j][2] = nspecial[i][2];
   for (k = 0; k < nspecial[j][2]; k++) special[j][k] = special[i][k];
 
-  drudeid[j] = drudeid[i];
+  atom->drudeid[j] = atom->drudeid[i];
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
@@ -414,7 +415,7 @@ int AtomVecDrude::pack_border(int n, int *list, double *buf,
       buf[m++] = ubuf(mask[j]).d;
       buf[m++] = q[j];
       buf[m++] = ubuf(molecule[j]).d;
-      buf[m++] = ubuf(drudeid[j]).d;
+      buf[m++] = ubuf(atom->drudeid[j]).d;
     }
   } else {
     if (domain->triclinic == 0) {
@@ -436,7 +437,7 @@ int AtomVecDrude::pack_border(int n, int *list, double *buf,
       buf[m++] = ubuf(mask[j]).d;
       buf[m++] = q[j];
       buf[m++] = ubuf(molecule[j]).d;
-      buf[m++] = ubuf(drudeid[i]).d;
+      buf[m++] = ubuf(atom->drudeid[i]).d;
     }
   }
 
@@ -470,7 +471,7 @@ int AtomVecDrude::pack_border_vel(int n, int *list, double *buf,
       buf[m++] = v[j][0];
       buf[m++] = v[j][1];
       buf[m++] = v[j][2];
-      buf[m++] = ubuf(drudeid[j]).d;
+      buf[m++] = ubuf(atom->drudeid[j]).d;
     }
   } else {
     if (domain->triclinic == 0) {
@@ -496,7 +497,7 @@ int AtomVecDrude::pack_border_vel(int n, int *list, double *buf,
         buf[m++] = v[j][0];
         buf[m++] = v[j][1];
         buf[m++] = v[j][2];
-        buf[m++] = ubuf(drudeid[j]).d;
+        buf[m++] = ubuf(atom->drudeid[j]).d;
       }
     } else {
       dvx = pbc[0]*h_rate[0] + pbc[5]*h_rate[5] + pbc[4]*h_rate[4];
@@ -521,7 +522,7 @@ int AtomVecDrude::pack_border_vel(int n, int *list, double *buf,
           buf[m++] = v[j][1];
           buf[m++] = v[j][2];
         }
-        buf[m++] = ubuf(drudeid[j]).d;
+        buf[m++] = ubuf(atom->drudeid[j]).d;
       }
     }
   }
@@ -544,7 +545,7 @@ int AtomVecDrude::pack_border_hybrid(int n, int *list, double *buf)
     j = list[i];
     buf[m++] = q[j];
     buf[m++] = ubuf(molecule[j]).d;
-    buf[m++] = ubuf(drudeid[j]).d;
+    buf[m++] = ubuf(atom->drudeid[j]).d;
   }
   return m;
 }
@@ -567,7 +568,7 @@ void AtomVecDrude::unpack_border(int n, int first, double *buf)
     mask[i] = (int) ubuf(buf[m++]).i;
     q[i] = buf[m++];
     molecule[i] = (tagint) ubuf(buf[m++]).i;
-    drudeid[i] = (tagint) ubuf(buf[m++]).i;
+    atom->drudeid[i] = (tagint) ubuf(buf[m++]).i;
   }
 
   if (atom->nextra_border)
@@ -597,7 +598,7 @@ void AtomVecDrude::unpack_border_vel(int n, int first, double *buf)
     v[i][0] = buf[m++];
     v[i][1] = buf[m++];
     v[i][2] = buf[m++];
-    drudeid[i] = ubuf(buf[m++]).i;
+    atom->drudeid[i] = ubuf(buf[m++]).i;
   }
 
   if (atom->nextra_border)
@@ -617,7 +618,7 @@ int AtomVecDrude::unpack_border_hybrid(int n, int first, double *buf)
   for (i = first; i < last; i++) {
     q[i] = buf[m++];
     molecule[i] = (tagint) ubuf(buf[m++]).i;
-    drudeid[i] = ubuf(buf[m++]).i;
+    atom->drudeid[i] = ubuf(buf[m++]).i;
   }
   return m;
 }
@@ -683,7 +684,7 @@ int AtomVecDrude::pack_exchange(int i, double *buf)
   buf[m++] = ubuf(nspecial[i][2]).d;
   for (k = 0; k < nspecial[i][2]; k++) buf[m++] = ubuf(special[i][k]).d;
 
-  buf[m++] = ubuf(drudeid[i]).d;
+  buf[m++] = ubuf(atom->drudeid[i]).d;
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
@@ -755,7 +756,7 @@ int AtomVecDrude::unpack_exchange(double *buf)
   for (k = 0; k < nspecial[nlocal][2]; k++)
     special[nlocal][k] = (tagint) ubuf(buf[m++]).i;
 
-  drudeid[nlocal] = (tagint) ubuf(buf[m++]).i;
+  atom->drudeid[nlocal] = (tagint) ubuf(buf[m++]).i;
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
@@ -813,7 +814,7 @@ int AtomVecDrude::pack_restart(int i, double *buf)
 
   buf[m++] = q[i];
   buf[m++] = ubuf(molecule[i]).d;
-  buf[m++] = ubuf(drudeid[i]).d;
+  buf[m++] = ubuf(atom->drudeid[i]).d;
 
   buf[m++] = ubuf(num_bond[i]).d;
   for (k = 0; k < num_bond[i]; k++) {
@@ -884,7 +885,7 @@ int AtomVecDrude::unpack_restart(double *buf)
 
   q[nlocal] = buf[m++];
   molecule[nlocal] = (tagint) ubuf(buf[m++]).i;
-  drudeid[nlocal] = (tagint) ubuf(buf[m++]).i;
+  atom->drudeid[nlocal] = (tagint) ubuf(buf[m++]).i;
 
   num_bond[nlocal] = (int) ubuf(buf[m++]).i;
   for (k = 0; k < num_bond[nlocal]; k++) {
@@ -959,7 +960,7 @@ void AtomVecDrude::create_atom(int itype, double *coord)
   num_dihedral[nlocal] = 0;
   num_improper[nlocal] = 0;
   nspecial[nlocal][0] = nspecial[nlocal][1] = nspecial[nlocal][2] = 0;
-  drudeid[nlocal] = 0;
+  atom->drudeid[nlocal] = 0;
 
   atom->nlocal++;
 }

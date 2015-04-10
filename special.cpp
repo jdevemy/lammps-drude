@@ -1140,7 +1140,7 @@ void Special::rebuild_drude(){
   /*int *drudetype = atom->ivector[index_drudetype];
   int *drudeid = atom->ivector[index_drudeid];*/
   int *drudetype = atom->drudetype;
-  int *type = atom->type,
+  int *type = atom->type;
   tagint *drudeid = atom->drudeid;
 
   // First make sure that drude partners know each other

@@ -364,7 +364,8 @@ double PairThole::single(int i, int j, int itype, int jtype,
   int di, dj;
 
   int *drudetype = atom->drudetype; //ivector[index_drudetype];
-  tagint *drudeid = atom->drudeid: //ivector[index_drudeid];
+  tagint *drudeid = atom->drudeid; //ivector[index_drudeid];
+  int *type = atom->type;
 
   // only on core-drude pair, but not on the same pair
   if (!drudetype[type[i]] || !drudetype[type[j]] || j == i)

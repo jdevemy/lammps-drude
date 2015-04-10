@@ -32,7 +32,7 @@ namespace LAMMPS_NS {
 class AtomVecDrude : public AtomVec {
  public:
   AtomVecDrude(class LAMMPS *);
-  ~AtomVecDrude() {}
+  virtual ~AtomVecDrude();
   void grow(int);
   void grow_reset();
   void copy(int, int, int);
