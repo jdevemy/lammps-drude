@@ -46,7 +46,7 @@ class FixLangevinDrude : public Fix {
   char *tstr_core, *tstr_drude;
   double energy;
   int tflag;
-  int index_drudetype, index_drudeid;
+  //int index_drudetype, index_drudeid;
 
   class AtomVecEllipsoid *avec;
 

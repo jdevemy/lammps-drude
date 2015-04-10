@@ -28,7 +28,7 @@ class Special : protected Pointers {
   int me,nprocs;
   tagint **onetwo,**onethree,**onefour;
 
-  static int index_drudetype, index_drudeid;
+  //static int index_drudetype, index_drudeid;
 
   // data used by ring callback methods
 

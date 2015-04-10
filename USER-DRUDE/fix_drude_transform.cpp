@@ -40,14 +40,14 @@ FixDrudeTransform<inverse>::~FixDrudeTransform()
 template <bool inverse>
 void FixDrudeTransform<inverse>::init()
 {
-  char typetag[] = "drudetype", idtag[] = "drudeid";
+  /*char typetag[] = "drudetype", idtag[] = "drudeid";
   int dummy;
   index_drudetype = atom->find_custom(typetag, dummy);
   if (index_drudetype == -1) 
     error->all(FLERR,"Unable to get DRUDETYPE atom property");
   index_drudeid = atom->find_custom(idtag, dummy);
   if (index_drudeid == -1) 
-    error->all(FLERR,"Unable to get DRUDEID atom property");
+    error->all(FLERR,"Unable to get DRUDEID atom property");*/
 }
 
 template <bool inverse>
@@ -65,15 +65,15 @@ void FixDrudeTransform<inverse>::setup(int) {
   int ntypes = atom->ntypes;
   int * type = atom->type;
   double * rmass = atom->rmass, * mass = atom->mass;
-  int * drudeid = atom->ivector[index_drudeid];
-  int * drudetype = atom->ivector[index_drudetype];
+  tagint * drudeid = atom->drudeid; //ivector[index_drudeid];
+  int * drudetype = atom->drudetype;//ivector[index_drudetype];
   
   if (!rmass) {
     if (!mcoeff) mcoeff = new double[ntypes+1];
     double mcoeff_loc[ntypes+1];
     for (int itype=0; itype<=ntypes; itype++) mcoeff_loc[itype] = 2.; // an impossible value: mcoeff is at most 1.
     for (int i=0; i<nlocal; i++) {
-      if (drudetype[i]) {
+      if (drudetype[type[i]]) {
         int j = atom->map(drudeid[i]);
         if (mcoeff_loc[type[i]] < 1.5) { // already done
           if (mcoeff_loc[type[j]] > 1.5){ // not yet done ??
@@ -127,19 +127,19 @@ void FixDrudeTransform<inverse>::real_to_reduced()
   double * rmass = atom->rmass, * mass = atom->mass;
   double mcore, mdrude, coeff;
   int icore, idrude;
-  int * drudeid = atom->ivector[index_drudeid];
-  int * drudetype = atom->ivector[index_drudetype];
+  tagint * drudeid = atom->drudeid; //ivector[index_drudeid];
+  int * drudetype = atom->drudetype; //ivector[index_drudetype];
 
   if (!rmass) {
     for (int itype=0; itype<ntypes; itype++)
       if (mcoeff[itype] < 1.5) mass[itype] *= 1. - mcoeff[itype];
   }
   for (int i=0; i<nlocal; i++) {
-    if (mask[i] & groupbit && drudetype[i] != 0) {
+    if (mask[i] & groupbit && drudetype[type[i]] != 0) {
       int j = atom->map(drudeid[i]);
       //int j = domain->closest_image(i, atom->map(drudeid[i]));
-      if (drudetype[i] == 2 && j < nlocal) continue;
-      /*if (drudetype[i] == 2) {
+      if (drudetype[type[i]] == 2 && j < nlocal) continue;
+      /*if (drudetype[type[i]] == 2) {
         if (!comm->me)
         std::cout << comm->me << " DEBUT DIRECT: local Drude " << atom->tag[i]
                   << " ghost core " << drudeid[i] << std::endl
@@ -149,7 +149,7 @@ void FixDrudeTransform<inverse>::real_to_reduced()
                   << comm->me << " fdrude " << f[i][0] << " fcore " << f[j][0] << std::endl;
       }*/
 
-      if (drudetype[i] == 2) {
+      if (drudetype[type[i]] == 2) {
         idrude = i;
         icore = j;
       } else {
@@ -173,7 +173,7 @@ void FixDrudeTransform<inverse>::real_to_reduced()
         f[icore][k] += f[idrude][k];
         f[idrude][k] -= coeff * f[icore][k];
       } 
-      /*if (drudetype[i] == 2) {
+      /*if (drudetype[type[i]] == 2) {
         if (!comm->me)
         std::cout << comm->me << " FIN DIRECT: local Drude " << atom->tag[i]
                   << " ghost core " << drudeid[i] << std::endl
@@ -198,19 +198,19 @@ void FixDrudeTransform<inverse>::reduced_to_real()
   double * rmass = atom->rmass, * mass = atom->mass;
   double mcore, mdrude, coeff;
   int icore, idrude;
-  int * drudeid = atom->ivector[index_drudeid];
-  int * drudetype = atom->ivector[index_drudetype];
+  tagint * drudeid = atom->drudeid; //ivector[index_drudeid];
+  int * drudetype = atom->drudetype; //ivector[index_drudetype];
 
   if (!rmass) {
     for (int itype=0; itype<ntypes; itype++)
       if (mcoeff[itype] < 1.5) mass[itype] /= 1. - mcoeff[itype];
   }
   for (int i=0; i<nlocal; i++) {
-    if (mask[i] & groupbit && drudetype[i] != 0) {
+    if (mask[i] & groupbit && drudetype[type[i]] != 0) {
       int j = atom->map(drudeid[i]);
       //int j = domain->closest_image(i, atom->map(drudeid[i]));
-      if (drudetype[i] == 2 && j < nlocal) continue;
-      /*if (drudetype[i] == 2) {
+      if (drudetype[type[i]] == 2 && j < nlocal) continue;
+      /*if (drudetype[type[i]] == 2) {
         if (!comm->me)
         std::cout << comm->me << " DEBUT INVERSE: local Drude " << atom->tag[i]
                   << " ghost core " << drudeid[i] << std::endl
@@ -220,7 +220,7 @@ void FixDrudeTransform<inverse>::reduced_to_real()
                   << comm->me << " fdrude " << f[i][0] << " fcore " << f[j][0] << std::endl;
       }*/
 
-      if (drudetype[i] == 2) {
+      if (drudetype[type[i]] == 2) {
         idrude = i;
         icore = j;
       } else {
@@ -253,7 +253,7 @@ void FixDrudeTransform<inverse>::reduced_to_real()
         f[idrude][k] += coeff * f[icore][k];
         f[icore][k] -= f[idrude][k];
       } 
-      /*if (drudetype[i] == 2) {
+      /*if (drudetype[type[i]] == 2) {
         if (!comm->me)
         std::cout << comm->me << " FIN INVERSE: local Drude " << atom->tag[i]
                   << " ghost core " << drudeid[i] << std::endl

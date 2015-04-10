@@ -69,8 +69,8 @@ void PairThole::compute(int eflag, int vflag)
   double *special_coul = force->special_coul;
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
-  int *drudetype = atom->ivector[index_drudetype];
-  int *drudeid = atom->ivector[index_drudeid];
+  int *drudetype = atom->drudetype; //ivector[index_drudetype];
+  tagint *drudeid = atom->drudeid; //ivector[index_drudeid];
 
   inum = list->inum;
   ilist = list->ilist;
@@ -83,12 +83,12 @@ void PairThole::compute(int eflag, int vflag)
     i = ilist[ii];
 
     // only on core-drude pair
-    if (!drudetype[i])
+    if (!drudetype[type[i]])
       continue;
 
     di = domain->closest_image(i, atom->map(drudeid[i]));
     // get dq of the core via the drude charge
-    if (drudetype[i] == 2)
+    if (drudetype[type[i]] == 2)
       qi = q[i];
     else
       qi = -q[di];
@@ -106,11 +106,11 @@ void PairThole::compute(int eflag, int vflag)
       j &= NEIGHMASK;
 
       // only on core-drude pair, but not into the same pair
-      if (!drudetype[j] || j == di)
+      if (!drudetype[type[j]] || j == di)
         continue;
 
       // get dq of the core via the drude charge
-      if (drudetype[j] == 2)
+      if (drudetype[type[j]] == 2)
         qj = q[j];
       else {
         dj = domain->closest_image(j, atom->map(drudeid[j]));
@@ -246,7 +246,7 @@ void PairThole::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair style thole requires atom attribute q");
 
-  char typetag[] = "drudetype", idtag[] = "drudeid";
+  /*char typetag[] = "drudetype", idtag[] = "drudeid";
   int dummy;
   index_drudetype = atom->find_custom(typetag, dummy);
   if (index_drudetype == -1)
@@ -254,7 +254,7 @@ void PairThole::init_style()
 
   index_drudeid = atom->find_custom(idtag, dummy);
   if (index_drudeid == -1) 
-    error->all(FLERR,"Unable to get DRUDEID atom property");
+    error->all(FLERR,"Unable to get DRUDEID atom property");*/
 
   neighbor->request(this,instance_me);
 }
@@ -363,21 +363,21 @@ double PairThole::single(int i, int j, int itype, int jtype,
   double qi,qj,factor_f,factor_e,a_screen;
   int di, dj;
 
-  int *drudetype = atom->ivector[index_drudetype];
-  int *drudeid = atom->ivector[index_drudeid];
+  int *drudetype = atom->drudetype; //ivector[index_drudetype];
+  tagint *drudeid = atom->drudeid: //ivector[index_drudeid];
 
   // only on core-drude pair, but not on the same pair
-  if (!drudetype[i] || !drudetype[j] || j == i)
+  if (!drudetype[type[i]] || !drudetype[type[j]] || j == i)
     return 0.0;
 
   // get dq of the core via the drude charge
-  if (drudetype[i] == 2)
+  if (drudetype[type[i]] == 2)
     qi = atom->q[i];
   else {
     di = domain->closest_image(i, atom->map(drudeid[i]));
     qi = -atom->q[di];
   }
-  if (drudetype[j] == 2)
+  if (drudetype[type[j]] == 2)
     qj = atom->q[j];
   else {
     dj = domain->closest_image(j, atom->map(drudeid[j]));

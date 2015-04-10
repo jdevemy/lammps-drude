@@ -16,6 +16,7 @@
 #include "special.h"
 #include "atom.h"
 #include "atom_vec.h"
+#include "atom_vec_drude.h"
 #include "force.h"
 #include "comm.h"
 #include "accelerator_kokkos.h"
@@ -30,7 +31,7 @@ using namespace LAMMPS_NS;
 // allocate space for static class variable
 
 Special *Special::sptr;
-int Special::index_drudetype, Special::index_drudeid;
+//int Special::index_drudetype, Special::index_drudeid;
 
 /* ---------------------------------------------------------------------- */
 
@@ -1126,26 +1127,32 @@ void Special::ring_eight(int ndatum, char *cbuf)
 }
 
 void Special::rebuild_drude(){
-  // Assume drudeid and drudetype are known
-  char typetag[] = "drudetype", idtag[] = "drudeid";
+  /*char typetag[] = "drudetype", idtag[] = "drudeid";
   int dummy;
   index_drudetype = atom->find_custom(typetag, dummy);
   if (index_drudetype == -1) return;
   index_drudeid = atom->find_custom(idtag, dummy);
-  if (index_drudeid == -1) return;
+  if (index_drudeid == -1) return;*/
   
   int nlocal = atom->nlocal;
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
-  int *drudetype = atom->ivector[index_drudetype];
-  int *drudeid = atom->ivector[index_drudeid];
+  /*int *drudetype = atom->ivector[index_drudetype];
+  int *drudeid = atom->ivector[index_drudeid];*/
+  int *drudetype = atom->drudetype;
+  int *type = atom->type,
+  tagint *drudeid = atom->drudeid;
+
+  // First make sure that drude partners know each other
+  AtomVecDrude *avec_drude = (AtomVecDrude *) atom->style_match("drude");
+  avec_drude->build_drudeid();
 
   // Build lists of drude and core-drude pairs
   std::vector<tagint> drude_vec, core_drude_vec, core_special_vec;
   for (int i=0; i<nlocal; i++) {
-    if (drudetype[i] == 2) {
+    if (drudetype[type[i]] == 2) {
       drude_vec.push_back(atom->tag[i]);
-    } else if (drudetype[i] == 1){
+    } else if (drudetype[type[i]] == 1){
       core_drude_vec.push_back(atom->tag[i]);
       core_drude_vec.push_back(drudeid[i]);
     }
@@ -1157,7 +1164,7 @@ void Special::rebuild_drude(){
              (char *) core_drude_vec.data(), 
              10, ring_add_drude, NULL, 1);
   for (int i=0; i<nlocal; i++) {
-    if (drudetype[i] != 1) continue;
+    if (drudetype[type[i]] != 1) continue;
     core_special_vec.push_back(atom->tag[i]);
     core_special_vec.push_back((tagint) nspecial[i][0]);
     core_special_vec.push_back((tagint) nspecial[i][1]);
@@ -1185,14 +1192,15 @@ void Special::ring_remove_drude(int size, char *cbuf){
   int nlocal = atom->nlocal;
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
+  tagint *drudetype = atom->drudetype; //ivector[index_drudetype];
+  int *type = atom->type;
   tagint *first = (tagint *) cbuf;
   tagint *last = first + size;
   std::set<tagint> drude_set(first, last);
   
-  int *drudetype = atom->ivector[index_drudetype];
 
   for (int i=0; i<nlocal; i++) {
-    if (drudetype[i] == 2) continue;
+    if (drudetype[type[i]] == 2) continue;
     for (int j=0; j<nspecial[i][2]; j++) {
       if (drude_set.count(special[i][j]) > 0) { // I identify a drude in my special list, remove it
         // left shift
@@ -1216,13 +1224,14 @@ void Special::ring_add_drude(int size, char *cbuf){
   int nlocal = atom->nlocal;
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
+  int *drudetype = atom->drudetype;//ivector[index_drudetype];
+  int *type = atom->type;
+  tagint *drudeid = atom->drudeid;//ivector[index_drudeid];
+  
   tagint *first = (tagint *) cbuf;
   tagint *last = first + size;
   std::map<tagint, tagint> core_drude_map;
 
-  int *drudetype = atom->ivector[index_drudetype];
-  int *drudeid = atom->ivector[index_drudeid];
-  
   tagint *it = first;
   while (it < last) {
     tagint core_tag = *it;
@@ -1232,7 +1241,7 @@ void Special::ring_add_drude(int size, char *cbuf){
   }
   
   for (int i=0; i<nlocal; i++) {
-    if (drudetype[i] == 2) continue;
+    if (drudetype[type[i]] == 2) continue;
     if (core_drude_map.count(atom->tag[i]) > 0) { // I identify myself as a core, add my own drude
       // right shift
       for (int k=nspecial[i][2]-1; k>=0; k--)
@@ -1265,13 +1274,14 @@ void Special::ring_copy_drude(int size, char *cbuf){
   int nlocal = atom->nlocal;
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
+  int *drudetype = atom->drudetype;//ivector[index_drudetype];
+  int *type = atom->type;
+  tagint *drudeid = atom->drudeid;//ivector[index_drudeid];
+  
   tagint *first = (tagint *) cbuf;
   tagint *last = first + size;
   std::map<tagint, tagint*> core_special_map;
   
-  int *drudetype = atom->ivector[index_drudetype];
-  int *drudeid = atom->ivector[index_drudeid];
-
   tagint *it = first;
   while (it < last) {
     tagint core_tag = *it;
@@ -1282,7 +1292,7 @@ void Special::ring_copy_drude(int size, char *cbuf){
   }
   
   for (int i=0; i<nlocal; i++) {
-    if (drudetype[i] != 2) continue;
+    if (drudetype[type[i]] != 2) continue;
     if (core_special_map.count(drudeid[i]) > 0) { // My core is in this list, copy its special info
       it = core_special_map[drudeid[i]];
       nspecial[i][0] = (int) *it;

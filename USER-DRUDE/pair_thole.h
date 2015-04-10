@@ -45,7 +45,7 @@ class PairThole : public Pair {
   double cut_global;
   double **cut,**scale;
   double **polar,**thole;
-  int index_drudetype, index_drudeid;
+  //int index_drudetype, index_drudeid;
 
   virtual void allocate();
 };
