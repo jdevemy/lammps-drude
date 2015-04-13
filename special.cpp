@@ -1127,25 +1127,58 @@ void Special::ring_eight(int ndatum, char *cbuf)
 }
 
 void Special::rebuild_drude(){
-  /*char typetag[] = "drudetype", idtag[] = "drudeid";
-  int dummy;
-  index_drudetype = atom->find_custom(typetag, dummy);
-  if (index_drudetype == -1) return;
-  index_drudeid = atom->find_custom(idtag, dummy);
-  if (index_drudeid == -1) return;*/
-  
   int nlocal = atom->nlocal;
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
-  /*int *drudetype = atom->ivector[index_drudetype];
-  int *drudeid = atom->ivector[index_drudeid];*/
   int *drudetype = atom->drudetype;
   int *type = atom->type;
   tagint *drudeid = atom->drudeid;
 
   // First make sure that drude partners know each other
   AtomVecDrude *avec_drude = (AtomVecDrude *) atom->style_match("drude");
+  if (!avec_drude) return;
   avec_drude->build_drudeid();
+
+  if (me == 0) {
+    if (screen) fprintf(screen, "Rebuild special list taking Drude particles into account\n");
+    if (logfile) fprintf(logfile, "Rebuild special list taking Drude particles into account\n");
+  }
+  int nspecmax, nspecmax_old, nspecmax_loc;
+  nspecmax_loc = 0;
+  for (int i=0; i<nlocal; i++) {
+    if (nspecmax_loc < nspecial[i][2]) nspecmax_loc = nspecial[i][2]; 
+  }
+  MPI_Allreduce(&nspecmax_loc, &nspecmax_old, 1, MPI_INT, MPI_MAX, world);
+  if (me == 0) {
+    if (screen) fprintf(screen, "Old max number of 1-2 to 1-4 neighbors: %d\n", nspecmax_old);
+    if (logfile) fprintf(logfile, "Old max number of 1-2 to 1-4 neighbors: %d\n", nspecmax_old);
+  }
+  
+  // Check consistency with property atom
+  char typetag[] = "drudetype", idtag[] = "drudeid";
+  int dummy;
+  int index_drudetype = atom->find_custom(typetag, dummy);
+  int index_drudeid = atom->find_custom(idtag, dummy);
+  if (index_drudeid != -1 && index_drudetype != -1) {
+    int *drudetype_pa = atom->ivector[index_drudetype];
+    int *drudeid_pa = atom->ivector[index_drudeid];
+    for (int i=0; i<nlocal; i++){
+      if (drudeid[i] != drudeid_pa[i]){
+        char str[1024];
+        sprintf(str, "Drudeid inconsistent %d: %d != %d", atom->tag[i], drudeid[i], drudeid_pa[i]);
+        error->all(FLERR, str);
+      }
+      if (drudetype[type[i]] != drudetype_pa[i]){
+        char str[1024];
+        sprintf(str, "Drudetype inconsistent %d: %d != %d", atom->tag[i], drudetype[type[i]], drudetype_pa[i]);
+        error->all(FLERR, str);
+      }
+    }
+    if (me == 0) {
+      if (screen) fprintf(screen, "Drudeid and Drudetype are consistent with property/atom\n");
+      if (logfile) fprintf(logfile, "Drudeid and Drudetype are consistent with property/atom\n");
+    }
+  }
 
   // Build lists of drude and core-drude pairs
   std::vector<tagint> drude_vec, core_drude_vec, core_special_vec;
@@ -1163,6 +1196,17 @@ void Special::rebuild_drude(){
   comm->ring(core_drude_vec.size(), sizeof(tagint),
              (char *) core_drude_vec.data(), 
              10, ring_add_drude, NULL, 1);
+  
+  nspecmax_loc = 0;
+  for (int i=0; i<nlocal; i++) {
+    if (nspecmax_loc < nspecial[i][2]) nspecmax_loc = nspecial[i][2]; 
+  }
+  MPI_Allreduce(&nspecmax_loc, &nspecmax, 1, MPI_INT, MPI_MAX, world);
+  if (me == 0) {
+    if (screen) fprintf(screen, "New max number of 1-2 to 1-4 neighbors: %d (+%d)\n", nspecmax, nspecmax - nspecmax_old);
+    if (logfile) fprintf(logfile, "New max number of 1-2 to 1-4 neighbors: %d (+%d)\n", nspecmax, nspecmax - nspecmax_old);
+  }
+  
   for (int i=0; i<nlocal; i++) {
     if (drudetype[type[i]] != 1) continue;
     core_special_vec.push_back(atom->tag[i]);

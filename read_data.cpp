@@ -54,7 +54,7 @@ using namespace LAMMPS_NS;
 #define MAXBODY 20         // max # of lines in one body, also in Atom class
 
                            // customize for new sections
-#define NSECTIONS 25       // change when add to header::section_keywords
+#define NSECTIONS 26       // change when add to header::section_keywords
 
 // pair style suffixes to ignore
 // when matching Pair Coeffs comment to currently-defined pair style
@@ -328,6 +328,7 @@ void ReadData::command(int narg, char **arg)
         if (!avec_drude)
           error->all(FLERR,"Invalid data file section: Drude Types");
         if (firstpass) drudetypes();
+        else skip_lines(atom->ntypes);
       } else if (strcmp(keyword,"Masses") == 0) {
         if (firstpass) mass();
         else skip_lines(atom->ntypes);
@@ -640,7 +641,8 @@ void ReadData::header()
      "Dihedral Coeffs","Improper Coeffs",
      "BondBond Coeffs","BondAngle Coeffs","MiddleBondTorsion Coeffs",
      "EndBondTorsion Coeffs","AngleTorsion Coeffs",
-     "AngleAngleTorsion Coeffs","BondBond13 Coeffs","AngleAngle Coeffs"};
+     "AngleAngleTorsion Coeffs","BondBond13 Coeffs","AngleAngle Coeffs",
+     "Drude Types"};
 
   // skip 1st line of file
 
