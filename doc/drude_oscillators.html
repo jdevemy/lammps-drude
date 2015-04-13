@@ -1,0 +1,114 @@
+<HTML>
+<script type="text/javascript"
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({ TeX: { equationNumbers: {autoNumber: "AMS"} } });
+</script>
+
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>Drude oscillators 
+</H3>
+<P><B>Overview:</B>
+</P>
+<P>This doc page gives detail about how to use the LAMMPS atom style drude
+for simulating polarizable atoms using thermalized Drude oscillators.
+</P>
+<P>The atom style drude is set by the <A HREF = "atom_style.html">atom_style</A> command 
+<I>atom_style drude</I> in the input file.
+This atom style is similar to the atom style <I>full</I>. 
+The atoms possess a charge, and bonds, angles, dihedrals and impropers 
+can be defined.
+</P>
+<P>Polarizable atoms acquire an electric dipole moment under the action of 
+an external electric field.
+Drude oscillators represent these dipoles by two point charges close to 
+each other.
+In LAMMPS, each polarizable atom is split into two non-polarizable atoms:
+the core and the Drude particle.
+The Drude particle can be thought of as the electron cloud around the nucleus.
+</P>
+<P><B>Data file:</B>
+</P>
+<P>Both the core atom and the Drude particle should be present in the 
+data file. 
+The sum of their masses should be the mass of the initial (unsplit) atom. 
+The sum of their charges should be the charge of the initial (unsplit) atom.
+A <A HREF = "bond_harmonic.html">harmonic bond</A> between the core and Drude partners should 
+be present as a standard bond in the <I>Bonds</I> section of the data file. 
+It should have zero equilibrium length and its (half-)stiffness should be related 
+to the atom polarizability \(\alpha\) and to the charge of the Drude particle 
+\(q\) by
+\begin{equation} K = \frac 1 2\, \frac {q^2} \alpha \end{equation}
+</P>
+<P>Ideally, the mass of the Drude particle should be very small, and the
+stiffness of the harmonic bond should be very high, so that the Drude particle
+remains close ot the core. However, this implies very fast ocillations of the 
+Drude particle and requires a very small time step.
+A reasonable compromise is about 0.4 g/mol for the Drude particle and about
+500 kcal/mol for the (half-)stiffness.
+</P>
+An additional section called <I>Drude Types</I> must be present in the data file.
+It should contain one line per atom type formatted as 
+<BR>
+<PRE>    <I>atom_type_id drude_type</I> 
+</PRE>
+where <I>atom_type_id</I> is the id of the atom type and <I>drude_type</I> is 
+<BR>
+    0 for a non-polarizable atom type (typically hydrogen atoms) 
+<BR>
+    1 for the types of the cores of polarizable atoms 
+<BR>
+    2 for the types of the Drude particles 
+<BR>
+<P>The core-Drude particle pairs are identified by looking up the bonds connecting
+any Drude particle (particles whose type has Drude type 2).
+</P>
+<P><B>Special screening:</B>
+</P>
+<P>The core and Drude partners of a pair should not interact together via Coulomb 
+interaction.
+So the <I>special_bonds</I> command should impose a <I>coul</I> factor of 0. for 1-2 neighbors,
+which is the default.
+Furthermore, the list of special neighbors is redefined, so that the Drude particles
+are equivalent to their core. Like this, the same factor is applied to both atoms of
+the pair.
+This may require to increase the memory reserved for storing the list of special neighbors.
+This can be done using the <I>extra</I> keyword of the <I>special_bonds</I> command.
+</P>
+<P>The interaction between dipoles should normally not be reduced by the <I>coul</I> factors of
+<I>special_bonds</I>.
+The <A HREF = "pair_thole.html">pair_style thole</A> can be used for this purpose and for applying
+a Thole screening instead.
+See the doc of this pair style for more information.
+</P>
+<P><B>Thermalization:</B>
+</P>
+<P>The Drude oscillators can be thermalized at a low temperature, to approximate
+a self consistent field.
+This can be done with a langevin thermostat using a specific <A HREF = "fix_langevin_drude.html">fix 
+langevin_drude</A> as described in <A HREF = "#Jiang">(Jiang)</A>
+or with a lagrangian method (Nose-Hoover thermostat) using <A HREF = "fix_drude_transform.html">fix 
+drude/transform</A> as described in <A HREF = "#Lamoureux">(Lamoureux)</A>.
+</P>
+<HR>
+
+<A NAME = "Jiang"></A>
+
+<P><B>(Jiang)</B> Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux, 
+ J Phys Chem Lett, 2, 87-92 (2011).
+</P>
+<A NAME = "Lamoureux"></A>
+
+<P><B>(Lamoureux)</B> Lamoureux and Roux, J Chem Phys, 119, 3025-3039 (2003).
+</P>
+</HTML>
