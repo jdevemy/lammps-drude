@@ -86,7 +86,7 @@ void ComputeTempDrude::dof_compute()
 
 double ComputeTempDrude::compute_scalar()
 {
-  char idtag[] = "drudeid";
+  //char idtag[] = "drudeid";
   double vthermal[3];
 
   if (atom->nlocal > maxatom) {
@@ -104,10 +104,11 @@ double ComputeTempDrude::compute_scalar()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int flag;
-  int index = atom->find_custom(idtag, flag); 
+  /*int index = atom->find_custom(idtag, flag); 
   if (index == -1)
     error->all(FLERR,"Unable to get DRUDEID atom property");
-  int *drudeid = atom->ivector[index];
+  int *drudeid = atom->ivector[index];*/
+  int *drudeid = atom->drudeid;
 
   double t = 0.0;
   for (int i = 0; i < nlocal; i++)
@@ -137,7 +138,7 @@ double ComputeTempDrude::compute_scalar()
 
 void ComputeTempDrude::compute_vector()
 {
-  char idtag[] = "drudeid";
+  //char idtag[] = "drudeid";
   int i;
   double vthermal[3];
 
@@ -156,10 +157,11 @@ void ComputeTempDrude::compute_vector()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int flag;
-  int index = atom->find_custom(idtag, flag); 
+  /*int index = atom->find_custom(idtag, flag); 
   if (index == -1)
     error->all(FLERR,"Unable to get DRUDEID atom property");
-  int *drudeid = atom->ivector[index];
+  int *drudeid = atom->ivector[index];*/
+  int *drudeid = atom->drudeid;
 
   double massone,t[6];
   for (i = 0; i < 6; i++) t[i] = 0.0;
