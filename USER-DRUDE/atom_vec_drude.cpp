@@ -435,7 +435,7 @@ int AtomVecDrude::pack_border(int n, int *list, double *buf,
       buf[m++] = ubuf(mask[j]).d;
       buf[m++] = q[j];
       buf[m++] = ubuf(molecule[j]).d;
-      buf[m++] = ubuf(atom->drudeid[i]).d;
+      buf[m++] = ubuf(atom->drudeid[j]).d;
     }
   }
 
