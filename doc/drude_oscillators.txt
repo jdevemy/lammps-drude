@@ -52,7 +52,7 @@ stiffness of the harmonic bond should be very high, so that the Drude particle
 remains close ot the core. However, this implies very fast ocillations of the 
 Drude particle and requires a very small time step.
 A reasonable compromise is about 0.4 g/mol for the Drude particle and about
-500 kcal/mol for the (half-)stiffness.
+500 kcal/mol/Ang^2 for the (half-)stiffness.
 
 An additional section called {Drude Types} must be present in the data file.
 It should contain one line per atom type formatted as :b
