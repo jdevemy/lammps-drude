@@ -1162,16 +1162,19 @@ void Special::rebuild_drude(){
   if (index_drudeid != -1 && index_drudetype != -1) {
     int *drudetype_pa = atom->ivector[index_drudetype];
     int *drudeid_pa = atom->ivector[index_drudeid];
+    int cnt = 0;
     for (int i=0; i<nlocal; i++){
-      if (drudeid[i] != drudeid_pa[i]){
+      if (drudeid[i] != drudeid_pa[i] && cnt < 5){
         char str[1024];
         sprintf(str, "Drudeid inconsistent %d: %d != %d", atom->tag[i], drudeid[i], drudeid_pa[i]);
-        error->all(FLERR, str);
+        error->warning(FLERR, str);
+        cnt++;
       }
-      if (drudetype[type[i]] != drudetype_pa[i]){
+      if (drudetype[type[i]] != drudetype_pa[i] && cnt < 5){
         char str[1024];
         sprintf(str, "Drudetype inconsistent %d: %d != %d", atom->tag[i], drudetype[type[i]], drudetype_pa[i]);
-        error->all(FLERR, str);
+        error->warning(FLERR, str);
+        cnt++;
       }
     }
     if (me == 0) {
