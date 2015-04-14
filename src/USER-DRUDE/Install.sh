@@ -24,6 +24,8 @@ action () {
 
 # list of files with optional dependencies
 
+action atom_vec_drude.cpp
+action atom_vec_drude.h
 action compute_temp_drude.cpp
 action compute_temp_drude.h
 action fix_drude_transform.cpp
