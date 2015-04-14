@@ -45,25 +45,10 @@ Apply two Langevin thermostats as described in "(Jiang)"_#Jiang for
 thermalizing the reduced degrees of freedom of Drude oscillators.
 
 Drude oscillators are a way to simulate polarizables atoms, by splitting
-them into a core and a Drude particle bound by a spring. The Drude particle
-carries a charge subtracted from the core, so that the core-Drude particle
-pair represents a dipole, with a total charge equal to that of the initial atom. 
-The Drude particles represent the electronic clouds around the nuclei. They 
-have normally no Lennard-Jones interactions.
-
-The Drude particle and the core should be connected by a 
-"harmonic bond"_bond_harmonic.html of zero equilibrium distance and of 
-(half-)stiffness 
-\begin\{equation\} K = \frac 1 2\, \frac \{q^2\} \alpha \end\{equation\}
-where \(q\) is the charge of the Drude particle and \(\alpha\) is the atom polarizability.
-
-Ideally, the mass of Drude particles would vanish and their positions would be 
-determined self-consistently by iterative minimization of the energy, the cores' 
-positions being fixed.
-It is however more efficient and it yields comparable results, if the dipoles 
-are thermalized at a low temperature "(Lamoureux)"_#Lamoureux.
-In that case, the Drude particles need a small mass. The thermalization works
-by transforming the particles degrees of freedom by: :b
+them into a core and a Drude particle bound by a harmonic bond. 
+See "Drude oscillators"_drude_oscillators.html about how to use Drude 
+oscillators in LAMMPS.
+The thermalization works by transforming the particles degrees of freedom by: :b
 {In these equations upper case denotes atomic or center of mass values and lower 
 case denotes Drude particle or dipole values. Primes denote the transformed 
 (reduced) values, while bare letters denote the original values.} :b
@@ -116,27 +101,12 @@ thermostating.
 
 :line
 
-The status of the atoms (core or Drude particle or non-polarizable atom) must 
-be specified by a "fix property/atom"_fix_property_atom.html.
-Two integer properties are required, which must be called {ref} and {drude}.
-If {ref} is 0, the atom is a non-polarizable atom. Otherwise, the atom is either
-a Drude particle or the core of a polarizable atom. Then, {ref} must the id
-(tag) of the partner of the atom. For cores, {ref} must be the id of the
-corresponding Drude particle. For Drude particles {ref} must be the id of the
-corresponding core.
-If {drude} is different from 0, the atom is a Drude particle, otherwise it is 
-not. For consistency, if {drude} is not 0, {ref} must not be 0.
-Ghost atoms need to know their {ref} and {drude} properties, so the 
-"fix property/atom"_fix_property_atom.html command must be used with the keyword
-{ghost} set to {yes}.
+The atom style must be set to {drude} so that each atom knows whether it is a
+Drude particle or not.
 
-The Drude particle and its core should not have electrostatic interactions.
-So the "special_bonds"_special_bonds.html command must exclude coulombic 
-interaction between 1-2 neighbors (which is done by default).
-If polarizable atoms are 1-2, 1-3 or 1-4 neighbors, the same screening defined
-by "special_bonds"_special_bonds.html should apply to their Drude partners.
-See "fix special/drude"_fix_special_drude.html for how the lists of special 
-neighbors can be redefined.
+Ghost atoms need to know their velocity for this fix to act correctly.
+So you must use in addition the {comm_modify} command, like :b
+comm_modify vel yes :pre
 
 :line
 
@@ -173,14 +143,6 @@ minimization. It must however be high enough, so that the dipoles can follow
 the local electric field exerted by the neighbouring atoms. The optimal value
 probably depends on the temperature of the centers of mass and on the mass of 
 the Drude particles.
-
-Note: The spring stiffness must be chosen high enough, so that the Drude 
-particle stays close to its core and that the pair can approximate a point
-dipole. However, the higher the stiffness, the quicker the oscillations. Quick
-oscillations require a small timestep, which leads to longer simulation times.
-For the same reason, the mass of the Drude particles cannot be chosen too small,
-because the oscillations of the dipole would be too quick and would require too
-a small timestep.
 
 {damp_com} is the characteristic time for reaching thermal equilibrium of the 
 centers of mass.
@@ -241,7 +203,7 @@ This fix is not invoked during "energy minimization"_minimize.html.
 
 [Related commands:]
 
-"fix langevin"_fix_langevin.html, "fix special/drude"_fix_special_drude.html
+"fix langevin"_fix_langevin.html, "fix drude/transform/..."_fix_drude_transform.html
 
 [Default:]
 
@@ -252,9 +214,6 @@ The option defaults are zero = no.
 :link(Jiang)
 [(Jiang)] Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux, 
  J Phys Chem Lett, 2, 87-92 (2011).
- 
-:link(Lamoureux)
-[(Lamoureux)] Lamoureux and Roux, J Chem Phys, 119, 3025-3039 (2003).
 
 
 

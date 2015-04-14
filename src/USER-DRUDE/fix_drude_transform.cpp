@@ -130,7 +130,7 @@ void FixDrudeTransform<inverse>::real_to_reduced()
   tagint * drudeid = atom->drudeid; //ivector[index_drudeid];
   int * drudetype = atom->drudetype; //ivector[index_drudetype];
 
-  if (!rmass) {
+  if (!rmass) { // TODO: maybe drudetype can be used instead?
     for (int itype=0; itype<ntypes; itype++)
       if (mcoeff[itype] < 1.5) mass[itype] *= 1. - mcoeff[itype];
   }
@@ -235,7 +235,7 @@ void FixDrudeTransform<inverse>::reduced_to_real()
         mcore = rmass[icore];
         coeff = mdrude / (mcore + mdrude);
       } else {
-        if (!mcoeff[type[icore]]) {
+        if (!mcoeff[type[icore]]) { // TODO: should it be > 1.5 ?
           double s = sqrt(1. - mass[type[idrude]] / mass[type[icore]]);
           mass[type[idrude]] = 0.5 * mass[type[icore]] * (1. - s);
           mdrude = mass[type[idrude]];

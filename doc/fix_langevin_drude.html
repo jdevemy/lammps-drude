@@ -58,26 +58,11 @@ fix 1 all langevin/drude 298.15 100.0 19377 5.0 10.0 83451 zero yes
 <P>Apply two Langevin thermostats as described in <A HREF = "#Jiang">(Jiang)</A> for 
 thermalizing the reduced degrees of freedom of Drude oscillators.
 </P>
-<P>Drude oscillators are a way to simulate polarizables atoms, by splitting
-them into a core and a Drude particle bound by a spring. The Drude particle
-carries a charge subtracted from the core, so that the core-Drude particle
-pair represents a dipole, with a total charge equal to that of the initial atom. 
-The Drude particles represent the electronic clouds around the nuclei. They 
-have normally no Lennard-Jones interactions.
-</P>
-<P>The Drude particle and the core should be connected by a 
-<A HREF = "bond_harmonic.html">harmonic bond</A> of zero equilibrium distance and of 
-(half-)stiffness 
-\begin{equation} K = \frac 1 2\, \frac {q^2} \alpha \end{equation}
-where \(q\) is the charge of the Drude particle and \(\alpha\) is the atom polarizability.
-</P>
-Ideally, the mass of Drude particles would vanish and their positions would be 
-determined self-consistently by iterative minimization of the energy, the cores' 
-positions being fixed.
-It is however more efficient and it yields comparable results, if the dipoles 
-are thermalized at a low temperature <A HREF = "#Lamoureux">(Lamoureux)</A>.
-In that case, the Drude particles need a small mass. The thermalization works
-by transforming the particles degrees of freedom by: 
+Drude oscillators are a way to simulate polarizables atoms, by splitting
+them into a core and a Drude particle bound by a harmonic bond. 
+See <A HREF = "drude_oscillators.html">Drude oscillators</A> about how to use Drude 
+oscillators in LAMMPS.
+The thermalization works by transforming the particles degrees of freedom by: 
 <BR>
 <I>In these equations upper case denotes atomic or center of mass values and lower 
 case denotes Drude particle or dipole values. Primes denote the transformed 
@@ -134,28 +119,14 @@ thermostating.
 </P>
 <HR>
 
-<P>The status of the atoms (core or Drude particle or non-polarizable atom) must 
-be specified by a <A HREF = "fix_property_atom.html">fix property/atom</A>.
-Two integer properties are required, which must be called <I>ref</I> and <I>drude</I>.
-If <I>ref</I> is 0, the atom is a non-polarizable atom. Otherwise, the atom is either
-a Drude particle or the core of a polarizable atom. Then, <I>ref</I> must the id
-(tag) of the partner of the atom. For cores, <I>ref</I> must be the id of the
-corresponding Drude particle. For Drude particles <I>ref</I> must be the id of the
-corresponding core.
-If <I>drude</I> is different from 0, the atom is a Drude particle, otherwise it is 
-not. For consistency, if <I>drude</I> is not 0, <I>ref</I> must not be 0.
-Ghost atoms need to know their <I>ref</I> and <I>drude</I> properties, so the 
-<A HREF = "fix_property_atom.html">fix property/atom</A> command must be used with the keyword
-<I>ghost</I> set to <I>yes</I>.
+<P>The atom style must be set to <I>drude</I> so that each atom knows whether it is a
+Drude particle or not.
 </P>
-<P>The Drude particle and its core should not have electrostatic interactions.
-So the <A HREF = "special_bonds.html">special_bonds</A> command must exclude coulombic 
-interaction between 1-2 neighbors (which is done by default).
-If polarizable atoms are 1-2, 1-3 or 1-4 neighbors, the same screening defined
-by <A HREF = "special_bonds.html">special_bonds</A> should apply to their Drude partners.
-See <A HREF = "fix_special_drude.html">fix special/drude</A> for how the lists of special 
-neighbors can be redefined.
-</P>
+Ghost atoms need to know their velocity for this fix to act correctly.
+So you must use in addition the <I>comm_modify</I> command, like 
+<BR>
+<PRE>comm_modify vel yes 
+</PRE>
 <HR>
 
 <P><I>Tcom</I> is the target temperature of the centers of mass, which would be used to
@@ -191,14 +162,6 @@ minimization. It must however be high enough, so that the dipoles can follow
 the local electric field exerted by the neighbouring atoms. The optimal value
 probably depends on the temperature of the centers of mass and on the mass of 
 the Drude particles.
-</P>
-<P>Note: The spring stiffness must be chosen high enough, so that the Drude 
-particle stays close to its core and that the pair can approximate a point
-dipole. However, the higher the stiffness, the quicker the oscillations. Quick
-oscillations require a small timestep, which leads to longer simulation times.
-For the same reason, the mass of the Drude particles cannot be chosen too small,
-because the oscillations of the dipole would be too quick and would require too
-a small timestep.
 </P>
 <P><I>damp_com</I> is the characteristic time for reaching thermal equilibrium of the 
 centers of mass.
@@ -259,7 +222,7 @@ components are
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "fix_langevin.html">fix langevin</A>, <A HREF = "fix_special_drude.html">fix special/drude</A>
+<P><A HREF = "fix_langevin.html">fix langevin</A>, <A HREF = "fix_drude_transform.html">fix drude/transform/...</A>
 </P>
 <P><B>Default:</B>
 </P>
@@ -271,9 +234,5 @@ components are
 
 <P><B>(Jiang)</B> Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux, 
  J Phys Chem Lett, 2, 87-92 (2011).
-</P>
-<A NAME = "Lamoureux"></A>
-
-<P><B>(Lamoureux)</B> Lamoureux and Roux, J Chem Phys, 119, 3025-3039 (2003).
 </P>
 </HTML>
