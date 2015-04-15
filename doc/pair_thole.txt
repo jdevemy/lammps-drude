@@ -69,11 +69,11 @@ between the atom-specific values.
 
 The damping function is only applied to the interactions between the
 point charges representing the induced dipoles on polarizable sites,
-that is, charges on Drude particles, \( \delta q_i \), and opposite
-charges, \( -\delta q_i \), located on the respective core particles
+that is, charges on Drude particles, \( q_\{D,i\} \), and opposite
+charges, \( -q_\{D,i\} \), located on the respective core particles
 (to which each Drude particle is bonded). Therefore, Thole screening
 is not applied to the full charge of the core particle \( q_i \), but
-only to the \( -\delta q_i \) part of it.
+only to the \( -q_\{D,i\} \) part of it.
 
 The interactions between core charges are subject to the weighting
 factors set by the "special_bonds"_special_bonds.html command. The
