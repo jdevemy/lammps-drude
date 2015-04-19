@@ -36,5 +36,3 @@ action fix_special_drude.cpp
 action fix_special_drude.h
 action pair_thole.cpp
 action pair_thole.h
-action pair_coul_long_cs.cpp pair_coul_long.cpp
-action pair_coul_long_cs.h pair_coul_long.h
