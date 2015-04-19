@@ -73,8 +73,9 @@ void FixDrudeTransform<inverse>::setup(int) {
     double mcoeff_loc[ntypes+1];
     for (int itype=0; itype<=ntypes; itype++) mcoeff_loc[itype] = 2.; // an impossible value: mcoeff is at most 1.
     for (int i=0; i<nlocal; i++) {
-      if (drudetype[type[i]]) {
+      if (drudetype[type[i]] == 2) {
         int j = atom->map(drudeid[i]);
+        // i is drude, j is core
         if (mcoeff_loc[type[i]] < 1.5) { // already done
           if (mcoeff_loc[type[j]] > 1.5){ // not yet done ??
             error->all(FLERR,"There must be one Drude type per core type");}
@@ -86,6 +87,9 @@ void FixDrudeTransform<inverse>::setup(int) {
     }
 
     MPI_Allreduce(mcoeff_loc, mcoeff, ntypes, MPI_DOUBLE, MPI_MIN, world);
+    // mcoeff is 2 for non polarizable
+    // 0 < mcoeff < 1 for drude
+    // mcoeff < 0 for core
   }
 }
 
