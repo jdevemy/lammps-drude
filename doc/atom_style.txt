@@ -80,7 +80,7 @@ quantities.
 {template} | template index, template atom | small molecules with fixed topology |
 {tri} | corner points, angular momentum | rigid bodies |
 {wavepacket} | charge, spin, eradius, etag, cs_re, cs_im | AWPMD :tb(c=3,s=|)
-{full} | full | polarizable atoms using Drude oscillators |
+{drude} | drude | polarizable atoms using Drude oscillators |
 
 IMPORTANT NOTE: It is possible to add some attributes, such as a
 molecule ID, to atom styles that do not have them via the "fix
