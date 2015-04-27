@@ -166,11 +166,8 @@ void FixLangevinDrude::init()
 
 void FixLangevinDrude::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
-    post_force(vflag);
-  else {
+  if (!strstr(update->integrate_style,"verlet"))
     error->all(FLERR,"RESPA style not compatible with fix langevin/drude");
-  }
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -357,7 +354,7 @@ void FixLangevinDrude::langevin(int /*vflag*/, bool thermalize=true)
   }
   
   if(zero && thermalize) { // Remove the drift
-    MPI_Allreduce(fcoreloc,  fcoresum,  dim, MPI_DOUBLE, MPI_SUM, world);
+    MPI_Allreduce(fcoreloc, fcoresum, dim, MPI_DOUBLE, MPI_SUM, world);
     for (int k=0; k<dim; k++) fcoresum[k] /= ncore;
     for (int i=0; i<nlocal; i++) {
       if (mask[i] & groupbit) { // only the cores need to be in the group
