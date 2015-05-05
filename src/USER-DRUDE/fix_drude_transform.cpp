@@ -272,14 +272,38 @@ void FixDrudeTransform<inverse>::reduced_to_real()
 }
 
 template <bool inverse>
-int FixDrudeTransform<inverse>::pack_forward_comm(int n, int *list, double *buf, int, int *)
+int FixDrudeTransform<inverse>::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
 {
   double ** x = atom->x, ** v = atom->v, ** f = atom->f;
+  double dx,dy,dz;
   int dim = domain->dimension;
   int m = 0;
   for (int i=0; i<n; i++) {
     int j = list[i];
-    for (int k=0; k<dim; k++) buf[m++] = x[j][k];
+    if (pbc_flag == 0) {
+        for (int k=0; k<dim; k++) buf[m++] = x[j][k];
+    }
+    else {
+        if (domain->triclinic != 0) {
+            dx = pbc[0]*domain->xprd + pbc[5]*domain->xy;
+            dy = pbc[1]*domain->yprd;
+            if (dim == 3) {
+                dx += + pbc[4]*domain->xz;
+                dy += pbc[3]*domain->yz;
+                dz = pbc[2]*domain->zprd;
+            }
+        }
+        else {
+            dx = pbc[0]*domain->xprd;
+            dy = pbc[1]*domain->yprd;
+            if (dim == 3)
+                dz = pbc[2]*domain->zprd;
+        }
+        buf[m++] = x[j][0] + dx;
+        buf[m++] = x[j][1] + dy;
+        if (dim == 3)
+            buf[m++] = x[j][2] + dz;
+    }
     for (int k=0; k<dim; k++) buf[m++] = v[j][k];
     for (int k=0; k<dim; k++) buf[m++] = f[j][k];
   }
