@@ -261,18 +261,33 @@ class Data:
         bond_tp_map = {}
         atom_map = {}
         bond_map = {}
+        q = {}
+        atom_tp = {}
+        m = {}
 
         for att in self.atomtypes:
             if att['dflag'] != 2:
                 atom_tp_map[att['id']] = len(atom_tp_map) + 1
+            m[att['id']] = att['m']
         for atom in self.atoms:
             if atom['id'] in atom_tp_map:
                 atom_map[atom['n']] = len(atom_map) + 1
+            q[atom['n']] = atom['q']
+            atom_tp[atom['n']] = atom['id']
         for bond in self.bonds:
             if bond['i'] in atom_map and bond['j'] in atom_map:
                 bond_map[bond['n']] = len(bond_map) + 1
                 if bond['id'] not in bond_tp_map:
                     bond_tp_map[bond['id']] = len(bond_tp_map) + 1
+            else:
+                if bond['i'] in atom_map:
+                    q[bond['i']] += q[bond['j']] 
+                    if atom_tp[bond['j']] in m:
+                        m[atom_tp[bond['i']]] += m.pop(atom_tp[bond['j']])
+                else:
+                    q[bond['j']] += q[bond['i']]
+                    if atom_tp[bond['i']] in m:
+                        m[atom_tp[bond['j']]] += m.pop(atom_tp[bond['i']])
 
         size = len(self.atomtypes)
         for iatom_tp in reversed(xrange(size)):
@@ -280,6 +295,7 @@ class Data:
             if att['id'] not in atom_tp_map:
                 del self.atomtypes[iatom_tp]
             else:
+                att['m'] = m[att['id']]
                 att['id'] = atom_tp_map[att['id']]
 
         size = len(self.bondtypes)
@@ -296,6 +312,7 @@ class Data:
             if atom['n'] not in atom_map:
                 del self.atoms[iatom]
             else:
+                atom['q'] = q[atom['n']]
                 atom['n'] = atom_map[atom['n']]
                 atom['id'] = atom_tp_map[atom['id']]
 
