@@ -118,6 +118,8 @@ class Data:
         headers = {}
         while 1:
             line = f.readline().strip()
+            if '#' in line:
+                line = line[:line.index('#')].strip()
             if len(line) == 0:
                 continue
             found = 0
@@ -158,6 +160,8 @@ class Data:
             line = f.readline()
             if not line:
                 break
+            if '#' in line:
+                line = line[:line.index('#')]
             line = line.strip()
         
         f.close()
