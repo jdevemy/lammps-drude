@@ -1209,7 +1209,12 @@ void Special::rebuild_drude(){
     if (screen) fprintf(screen, "New max number of 1-2 to 1-4 neighbors: %d (+%d)\n", nspecmax, nspecmax - nspecmax_old);
     if (logfile) fprintf(logfile, "New max number of 1-2 to 1-4 neighbors: %d (+%d)\n", nspecmax, nspecmax - nspecmax_old);
   }
-  
+  if (atom->maxspecial < nspecmax) {
+    char str[1024];
+    sprintf(str, "Not enough space in special: special_bonds extra should be at least %d", nspecmax - nspecmax_old);
+    error->all(FLERR, str);
+  }
+
   for (int i=0; i<nlocal; i++) {
     if (drudetype[type[i]] != 1) continue;
     core_special_vec.push_back(atom->tag[i]);
