@@ -39,7 +39,7 @@ class FixDrudeTransform : public Fix {
   void final_integrate();
   int pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc);
   void unpack_forward_comm(int n, int first, double *buf);
-
+  bool is_reduced;
  protected:
   //int index_drudetype, index_drudeid;
   double * mcoeff;

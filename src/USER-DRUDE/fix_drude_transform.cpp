@@ -25,7 +25,7 @@ using namespace FixConst;
 
 template <bool inverse>
 FixDrudeTransform<inverse>::FixDrudeTransform(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), mcoeff(NULL)
+  Fix(lmp, narg, arg), mcoeff(NULL), is_reduced(false)
 {
   if (narg != 3) error->all(FLERR,"Illegal fix drude/transform command");
   comm_forward = 9;
@@ -189,6 +189,7 @@ void FixDrudeTransform<inverse>::real_to_reduced()
 
     }
   }
+  is_reduced = true;
 }
 
 template <bool inverse>
@@ -269,18 +270,20 @@ void FixDrudeTransform<inverse>::reduced_to_real()
 
     }
   }
+  is_reduced = false;
 }
 
 template <bool inverse>
 int FixDrudeTransform<inverse>::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
 {
   double ** x = atom->x, ** v = atom->v, ** f = atom->f;
+  int * type = atom->type, * drudetype = atom->drudetype;
   double dx,dy,dz;
   int dim = domain->dimension;
   int m = 0;
   for (int i=0; i<n; i++) {
     int j = list[i];
-    if (pbc_flag == 0) {
+    if (pbc_flag == 0 || is_reduced && drudetype[type[j]] == 2) {
         for (int k=0; k<dim; k++) buf[m++] = x[j][k];
     }
     else {
