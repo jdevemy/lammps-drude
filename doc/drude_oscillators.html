@@ -112,6 +112,14 @@ its core, should not be reduced by the <I>coul</I> factors of
 for this purpose and for applying a Thole screening instead.  See the
 doc page of this pair style for more information.
 </P>
+<P>When using the <A HREF = "charmm_dihedral.html">charmm dihedral style</A> with
+a non-zero 1-4 weighting factor, the Coulomb interaction between the
+1-4 atoms of the dihedral is screened. The Coulomb interaction with 
+the Drude particles of these atoms should be screened by the same factor.
+So you should add dihedrals with \(K = 0\) and with the same weighting 
+factor to the Drude partners of the core atoms. Note that in this case,
+the <A HREF = "pair_thole.html">pair style thole</A> should not be used.
+</P>
 <P><B>Thermalization:</B>
 </P>
 <P>The Drude oscillators can be thermalized at a low temperature, to approximate
