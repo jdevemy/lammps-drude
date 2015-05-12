@@ -25,7 +25,7 @@ using namespace FixConst;
 
 template <bool inverse>
 FixDrudeTransform<inverse>::FixDrudeTransform(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), is_reduced(false), mcoeff(NULL)
+  Fix(lmp, narg, arg), mcoeff(NULL)
 {
   if (narg != 3) error->all(FLERR,"Illegal fix drude/transform command");
   comm_forward = 9;
@@ -48,6 +48,8 @@ void FixDrudeTransform<inverse>::init()
   index_drudeid = atom->find_custom(idtag, dummy);
   if (index_drudeid == -1) 
     error->all(FLERR,"Unable to get DRUDEID atom property");*/
+  avec_drude = (AtomVecDrude *) atom->style_match("drude");
+  if (!avec_drude) error->warning(FLERR, "Fix drude/transform called without atom_style drude");
 }
 
 template <bool inverse>
@@ -98,24 +100,28 @@ template <>
 void FixDrudeTransform<false>::initial_integrate(int){
   comm->forward_comm_fix(this);
   real_to_reduced();
+  //comm->forward_comm_fix(this);
 }
 
 template <>
 void FixDrudeTransform<false>::final_integrate(){
   comm->forward_comm_fix(this);
   real_to_reduced();
+  //comm->forward_comm_fix(this);
 }
 
 template <>
 void FixDrudeTransform<true>::initial_integrate(int){
   comm->forward_comm_fix(this);
   reduced_to_real();
+  //comm->forward_comm_fix(this);
 }
 
 template <>
 void FixDrudeTransform<true>::final_integrate(){
   comm->forward_comm_fix(this);
   reduced_to_real();
+  //comm->forward_comm_fix(this);
 }
 
 } // end of namespace
@@ -123,6 +129,7 @@ void FixDrudeTransform<true>::final_integrate(){
 template <bool inverse>
 void FixDrudeTransform<inverse>::real_to_reduced()
 {
+  //printf("Real to reduced\n");
   int nlocal = atom->nlocal;
   int ntypes = atom->ntypes;
   int dim = domain->dimension;
@@ -140,8 +147,12 @@ void FixDrudeTransform<inverse>::real_to_reduced()
   }
   for (int i=0; i<nlocal; i++) {
     if (mask[i] & groupbit && drudetype[type[i]] != 0) {
-      int j = atom->map(drudeid[i]);
-      //int j = domain->closest_image(i, atom->map(drudeid[i]));
+      drudeid[i] = (tagint) domain->closest_image(i, atom->map(drudeid[i]));
+    }
+  }
+  for (int i=0; i<nlocal; i++) {
+    if (mask[i] & groupbit && drudetype[type[i]] != 0) {
+      int j = (int) drudeid[i];
       if (drudetype[type[i]] == 2 && j < nlocal) continue;
       /*if (drudetype[type[i]] == 2) {
         if (!comm->me)
@@ -189,12 +200,13 @@ void FixDrudeTransform<inverse>::real_to_reduced()
 
     }
   }
-  is_reduced = true;
+  avec_drude->is_reduced = true;
 }
 
 template <bool inverse>
 void FixDrudeTransform<inverse>::reduced_to_real()
 {
+  //printf("Reduced to real\n");
   int nlocal = atom->nlocal;
   int ntypes = atom->ntypes;
   int dim = domain->dimension;
@@ -206,14 +218,9 @@ void FixDrudeTransform<inverse>::reduced_to_real()
   tagint * drudeid = atom->drudeid; //ivector[index_drudeid];
   int * drudetype = atom->drudetype; //ivector[index_drudetype];
 
-  if (!rmass) {
-    for (int itype=1; itype<=ntypes; itype++)
-      if (mcoeff[itype] < 1.5) mass[itype] /= 1. - mcoeff[itype];
-  }
   for (int i=0; i<nlocal; i++) {
     if (mask[i] & groupbit && drudetype[type[i]] != 0) {
-      int j = atom->map(drudeid[i]);
-      //int j = domain->closest_image(i, atom->map(drudeid[i]));
+      int j = (int) drudeid[i];
       if (drudetype[type[i]] == 2 && j < nlocal) continue;
       /*if (drudetype[type[i]] == 2) {
         if (!comm->me)
@@ -267,15 +274,24 @@ void FixDrudeTransform<inverse>::reduced_to_real()
                   << comm->me << " vdrude " << v[i][0] << " vcore " << v[j][0] << std::endl
                   << comm->me << " fdrude " << f[i][0] << " fcore " << f[j][0] << std::endl;
       }*/
-
     }
   }
-  is_reduced = false;
+  for (int i=0; i<nlocal; i++) {
+    if (mask[i] & groupbit && drudetype[type[i]] != 0) {
+      drudeid[i] = atom->tag[(int) drudeid[i]];
+    }
+  }
+  if (!rmass) {
+    for (int itype=1; itype<=ntypes; itype++)
+      if (mcoeff[itype] < 1.5) mass[itype] /= 1. - mcoeff[itype];
+  }
+  avec_drude->is_reduced = false;
 }
 
 template <bool inverse>
 int FixDrudeTransform<inverse>::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
 {
+  //printf("Pack %d\n", avec_drude->is_reduced);
   double ** x = atom->x, ** v = atom->v, ** f = atom->f;
   int * type = atom->type, * drudetype = atom->drudetype;
   double dx,dy,dz;
@@ -283,7 +299,7 @@ int FixDrudeTransform<inverse>::pack_forward_comm(int n, int *list, double *buf,
   int m = 0;
   for (int i=0; i<n; i++) {
     int j = list[i];
-    if (pbc_flag == 0 || is_reduced && drudetype[type[j]] == 2) {
+    if (pbc_flag == 0 || (avec_drude->is_reduced && drudetype[type[j]] == 2)) {
         for (int k=0; k<dim; k++) buf[m++] = x[j][k];
     }
     else {
@@ -316,6 +332,7 @@ int FixDrudeTransform<inverse>::pack_forward_comm(int n, int *list, double *buf,
 template <bool inverse>
 void FixDrudeTransform<inverse>::unpack_forward_comm(int n, int first, double *buf)
 {
+  //printf("Unpack %d\n", avec_drude->is_reduced);
   double ** x = atom->x, ** v = atom->v, ** f = atom->f;
   int dim = domain->dimension;
   int m = 0;

@@ -65,6 +65,8 @@ class AtomVecDrude : public AtomVec {
   void set_drudetypes(const char*);
   void build_drudeid();
  
+  bool is_reduced;
+
  protected:
   tagint *tag;
   int *type,*mask;

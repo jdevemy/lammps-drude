@@ -30,7 +30,7 @@ using namespace LAMMPS_NS;
 
 AtomVecDrude *AtomVecDrude::sptr = NULL;
 
-AtomVecDrude::AtomVecDrude(LAMMPS *lmp) : AtomVec(lmp)
+AtomVecDrude::AtomVecDrude(LAMMPS *lmp) : AtomVec(lmp), is_reduced(false)
 {
   molecular = 1;
   bonds_allow = angles_allow = dihedrals_allow = impropers_allow = 1;
