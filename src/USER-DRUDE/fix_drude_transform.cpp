@@ -25,7 +25,7 @@ using namespace FixConst;
 
 template <bool inverse>
 FixDrudeTransform<inverse>::FixDrudeTransform(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), mcoeff(NULL), is_reduced(false)
+  Fix(lmp, narg, arg), is_reduced(false), mcoeff(NULL)
 {
   if (narg != 3) error->all(FLERR,"Illegal fix drude/transform command");
   comm_forward = 9;
@@ -86,7 +86,7 @@ void FixDrudeTransform<inverse>::setup(int) {
       }
     }
 
-    MPI_Allreduce(mcoeff_loc, mcoeff, ntypes, MPI_DOUBLE, MPI_MIN, world);
+    MPI_Allreduce(mcoeff_loc, mcoeff, ntypes+1, MPI_DOUBLE, MPI_MIN, world);
     // mcoeff is 2 for non polarizable
     // 0 < mcoeff < 1 for drude
     // mcoeff < 0 for core
@@ -135,7 +135,7 @@ void FixDrudeTransform<inverse>::real_to_reduced()
   int * drudetype = atom->drudetype; //ivector[index_drudetype];
 
   if (!rmass) { // TODO: maybe drudetype can be used instead?
-    for (int itype=0; itype<ntypes; itype++)
+    for (int itype=1; itype<=ntypes; itype++)
       if (mcoeff[itype] < 1.5) mass[itype] *= 1. - mcoeff[itype];
   }
   for (int i=0; i<nlocal; i++) {
@@ -207,7 +207,7 @@ void FixDrudeTransform<inverse>::reduced_to_real()
   int * drudetype = atom->drudetype; //ivector[index_drudetype];
 
   if (!rmass) {
-    for (int itype=0; itype<ntypes; itype++)
+    for (int itype=1; itype<=ntypes; itype++)
       if (mcoeff[itype] < 1.5) mass[itype] /= 1. - mcoeff[itype];
   }
   for (int i=0; i<nlocal; i++) {
