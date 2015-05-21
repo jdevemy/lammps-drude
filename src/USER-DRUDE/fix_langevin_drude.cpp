@@ -178,7 +178,8 @@ void FixLangevinDrude::setup(int vflag)
   int dim = domain->dimension;
 
   for (int i = 0; i < modify->nfix; i++)
-    fix_dof += modify->fix[i]->dof(igroup);
+    if (modify->fix[i]->dof_flag)
+      fix_dof += modify->fix[i]->dof(igroup);
   int dof_core_loc = 0, dof_drude_loc = 0;
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) { // Only the cores need to be in the group.
