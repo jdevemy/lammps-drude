@@ -40,7 +40,7 @@ FixLangevinDrude::FixLangevinDrude(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (narg < 9) error->all(FLERR,"Illegal fix langevin/drude command");
-  // TODO add options for tally and zero
+  // TODO add option for tally
 
   // Langevin thermostat should be applied every step
   nevery = 1;
@@ -151,15 +151,6 @@ void FixLangevinDrude::init()
   // TODO: allow bias
   //if (temperature->tempbias) which = BIAS; // only for core
   //else which = NOBIAS;
-
-  /*char typetag[] = "drudetype", idtag[] = "drudeid";
-  int dummy;
-  index_drudetype = atom->find_custom(typetag, dummy);
-  if (index_drudetype == -1) 
-    error->all(FLERR,"Unable to get DRUDETYPE atom property");
-  index_drudeid = atom->find_custom(idtag, dummy);
-  if (index_drudeid == -1) 
-    error->all(FLERR,"Unable to get DRUDEID atom property");*/
 }
 
 /* ---------------------------------------------------------------------- */
@@ -174,9 +165,8 @@ void FixLangevinDrude::setup(int vflag)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int fix_dof = 0;
-  int *drudetype = atom->drudetype; //ivector[index_drudetype];
+  int *drudetype = atom->drudetype; 
   int *type = atom->type;
-  //int *drudeid = atom->ivector[index_drudeid];
   int dim = domain->dimension;
 
   for (int i = 0; i < modify->nfix; i++)
@@ -230,29 +220,13 @@ void FixLangevinDrude::langevin(int /*vflag*/, bool thermalize=true)
   double ftm2v = force->ftm2v, mvv2e = force->mvv2e;
   double kb = force->boltz, dt = update->dt;
   
-  int *drudetype = atom->drudetype; //ivector[index_drudetype];
-  tagint *drudeid = atom->drudeid; //ivector[index_drudeid];
+  int *drudetype = atom->drudetype;
+  tagint *drudeid = atom->drudeid;
   double vdrude[3], vcore[3]; // velocities in reduced representation
   double fdrude[3], fcore[3]; // forces in reduced representation
   double Ccore, Cdrude, Gcore, Gdrude;
   double fcoresum[3], fcoreloc[3];
   int dim = domain->dimension;
-
-  /*for (int i = 0; i < nlocal; i++){ // Check comm_style brick/drude
-    if (drudetype[type[i]] == 2) {
-        int j = atom->map(drudeid[i]);
-        if (j < 0) std::cout << "CORE n°" << drudeid[i] << " missing on proc " << 
-        comm->me << " where is its DRUDE (" << atom->tag[i] << ").\n";
-        else if (j >= nlocal) std::cout << "CORE n°" << drudeid[i] << " is a ghost on proc " << 
-        comm->me << " whereas its DRUDE (" << atom->tag[i] << ") is owned.\n";
-    } else if (drudeid[i]) {
-        int j = atom->map(drudeid[i]);
-        if (j < 0) std::cout << "DRUDE n°" << drudeid[i] << " missing on proc " << 
-        comm->me << " where is its CORE (" << atom->tag[i] << ").\n";
-        else if (j >= nlocal) std::cout << "DRUDE n°" << drudeid[i] << " is a ghost on proc " << 
-        comm->me << " whereas its CORE (" << atom->tag[i] << ") is owned.\n";
-    }
-  }*/
   
   // Compute target core temperature
   if (thermalize) {

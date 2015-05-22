@@ -40,14 +40,6 @@ FixDrudeTransform<inverse>::~FixDrudeTransform()
 template <bool inverse>
 void FixDrudeTransform<inverse>::init()
 {
-  /*char typetag[] = "drudetype", idtag[] = "drudeid";
-  int dummy;
-  index_drudetype = atom->find_custom(typetag, dummy);
-  if (index_drudetype == -1) 
-    error->all(FLERR,"Unable to get DRUDETYPE atom property");
-  index_drudeid = atom->find_custom(idtag, dummy);
-  if (index_drudeid == -1) 
-    error->all(FLERR,"Unable to get DRUDEID atom property");*/
   avec_drude = (AtomVecDrude *) atom->style_match("drude");
   if (!avec_drude) error->warning(FLERR, "Fix drude/transform called without atom_style drude");
 }
@@ -67,8 +59,8 @@ void FixDrudeTransform<inverse>::setup(int) {
   int ntypes = atom->ntypes;
   int * type = atom->type;
   double * rmass = atom->rmass, * mass = atom->mass;
-  tagint * drudeid = atom->drudeid; //ivector[index_drudeid];
-  int * drudetype = atom->drudetype;//ivector[index_drudetype];
+  tagint * drudeid = atom->drudeid;
+  int * drudetype = atom->drudetype;
   
   if (!rmass) {
     if (!mcoeff) mcoeff = new double[ntypes+1];
@@ -100,28 +92,28 @@ template <>
 void FixDrudeTransform<false>::initial_integrate(int){
   comm->forward_comm_fix(this);
   real_to_reduced();
-  //comm->forward_comm_fix(this);
+  //comm->forward_comm_fix(this); // Normally not needed
 }
 
 template <>
 void FixDrudeTransform<false>::final_integrate(){
   comm->forward_comm_fix(this);
   real_to_reduced();
-  //comm->forward_comm_fix(this);
+  //comm->forward_comm_fix(this); // Normally not needed
 }
 
 template <>
 void FixDrudeTransform<true>::initial_integrate(int){
   comm->forward_comm_fix(this);
   reduced_to_real();
-  //comm->forward_comm_fix(this);
+  //comm->forward_comm_fix(this); // Normally not needed
 }
 
 template <>
 void FixDrudeTransform<true>::final_integrate(){
   comm->forward_comm_fix(this);
   reduced_to_real();
-  //comm->forward_comm_fix(this);
+  //comm->forward_comm_fix(this); // Normally not needed
 }
 
 } // end of namespace
@@ -129,7 +121,6 @@ void FixDrudeTransform<true>::final_integrate(){
 template <bool inverse>
 void FixDrudeTransform<inverse>::real_to_reduced()
 {
-  //printf("Real to reduced\n");
   int nlocal = atom->nlocal;
   int ntypes = atom->ntypes;
   int dim = domain->dimension;
@@ -138,8 +129,8 @@ void FixDrudeTransform<inverse>::real_to_reduced()
   double * rmass = atom->rmass, * mass = atom->mass;
   double mcore, mdrude, coeff;
   int icore, idrude;
-  tagint * drudeid = atom->drudeid; //ivector[index_drudeid];
-  int * drudetype = atom->drudetype; //ivector[index_drudetype];
+  tagint * drudeid = atom->drudeid;
+  int * drudetype = atom->drudetype;
 
   if (!rmass) { // TODO: maybe drudetype can be used instead?
     for (int itype=1; itype<=ntypes; itype++)
@@ -154,15 +145,6 @@ void FixDrudeTransform<inverse>::real_to_reduced()
     if (mask[i] & groupbit && drudetype[type[i]] != 0) {
       int j = (int) drudeid[i];
       if (drudetype[type[i]] == 2 && j < nlocal) continue;
-      /*if (drudetype[type[i]] == 2) {
-        if (!comm->me)
-        std::cout << comm->me << " DEBUT DIRECT: local Drude " << atom->tag[i]
-                  << " ghost core " << drudeid[i] << std::endl
-                  << comm->me << " mdrude " << mass[type[i]] << " mcore " << mass[type[j]] << std::endl
-                  << comm->me << " xdrude " << x[i][0] << " xcore " << x[j][0] << std::endl
-                  << comm->me << " vdrude " << v[i][0] << " vcore " << v[j][0] << std::endl
-                  << comm->me << " fdrude " << f[i][0] << " fcore " << f[j][0] << std::endl;
-      }*/
 
       if (drudetype[type[i]] == 2) {
         idrude = i;
@@ -188,16 +170,6 @@ void FixDrudeTransform<inverse>::real_to_reduced()
         f[icore][k] += f[idrude][k];
         f[idrude][k] -= coeff * f[icore][k];
       } 
-      /*if (drudetype[type[i]] == 2) {
-        if (!comm->me)
-        std::cout << comm->me << " FIN DIRECT: local Drude " << atom->tag[i]
-                  << " ghost core " << drudeid[i] << std::endl
-                  << comm->me << " mdrude " << mass[type[i]] << " mcore " << mass[type[j]] << std::endl
-                  << comm->me << " xdrude " << x[i][0] << " xcore " << x[j][0] << std::endl
-                  << comm->me << " vdrude " << v[i][0] << " vcore " << v[j][0] << std::endl
-                  << comm->me << " fdrude " << f[i][0] << " fcore " << f[j][0] << std::endl;
-      }*/
-
     }
   }
   avec_drude->is_reduced = true;
@@ -206,7 +178,6 @@ void FixDrudeTransform<inverse>::real_to_reduced()
 template <bool inverse>
 void FixDrudeTransform<inverse>::reduced_to_real()
 {
-  //printf("Reduced to real\n");
   int nlocal = atom->nlocal;
   int ntypes = atom->ntypes;
   int dim = domain->dimension;
@@ -215,23 +186,14 @@ void FixDrudeTransform<inverse>::reduced_to_real()
   double * rmass = atom->rmass, * mass = atom->mass;
   double mcore, mdrude, coeff;
   int icore, idrude;
-  tagint * drudeid = atom->drudeid; //ivector[index_drudeid];
-  int * drudetype = atom->drudetype; //ivector[index_drudetype];
+  tagint * drudeid = atom->drudeid;
+  int * drudetype = atom->drudetype;
 
   for (int i=0; i<nlocal; i++) {
     if (mask[i] & groupbit && drudetype[type[i]] != 0) {
       int j = (int) drudeid[i];
       if (drudetype[type[i]] == 2 && j < nlocal) continue;
-      /*if (drudetype[type[i]] == 2) {
-        if (!comm->me)
-        std::cout << comm->me << " DEBUT INVERSE: local Drude " << atom->tag[i]
-                  << " ghost core " << drudeid[i] << std::endl
-                  << comm->me << " mdrude " << mass[type[i]] << " mcore " << mass[type[j]] << std::endl
-                  << comm->me << " xdrude " << x[i][0] << " xcore " << x[j][0] << std::endl
-                  << comm->me << " vdrude " << v[i][0] << " vcore " << v[j][0] << std::endl
-                  << comm->me << " fdrude " << f[i][0] << " fcore " << f[j][0] << std::endl;
-      }*/
-
+      
       if (drudetype[type[i]] == 2) {
         idrude = i;
         icore = j;
@@ -265,15 +227,6 @@ void FixDrudeTransform<inverse>::reduced_to_real()
         f[idrude][k] += coeff * f[icore][k];
         f[icore][k] -= f[idrude][k];
       } 
-      /*if (drudetype[type[i]] == 2) {
-        if (!comm->me)
-        std::cout << comm->me << " FIN INVERSE: local Drude " << atom->tag[i]
-                  << " ghost core " << drudeid[i] << std::endl
-                  << comm->me << " mdrude " << mass[type[i]] << " mcore " << mass[type[j]] << std::endl
-                  << comm->me << " xdrude " << x[i][0] << " xcore " << x[j][0] << std::endl
-                  << comm->me << " vdrude " << v[i][0] << " vcore " << v[j][0] << std::endl
-                  << comm->me << " fdrude " << f[i][0] << " fcore " << f[j][0] << std::endl;
-      }*/
     }
   }
   for (int i=0; i<nlocal; i++) {
@@ -291,7 +244,6 @@ void FixDrudeTransform<inverse>::reduced_to_real()
 template <bool inverse>
 int FixDrudeTransform<inverse>::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
 {
-  //printf("Pack %d\n", avec_drude->is_reduced);
   double ** x = atom->x, ** v = atom->v, ** f = atom->f;
   int * type = atom->type, * drudetype = atom->drudetype;
   double dx,dy,dz;
@@ -332,7 +284,6 @@ int FixDrudeTransform<inverse>::pack_forward_comm(int n, int *list, double *buf,
 template <bool inverse>
 void FixDrudeTransform<inverse>::unpack_forward_comm(int n, int first, double *buf)
 {
-  //printf("Unpack %d\n", avec_drude->is_reduced);
   double ** x = atom->x, ** v = atom->v, ** f = atom->f;
   int dim = domain->dimension;
   int m = 0;

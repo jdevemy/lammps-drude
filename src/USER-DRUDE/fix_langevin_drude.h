@@ -32,7 +32,6 @@ class FixLangevinDrude : public Fix {
   void init();
   void setup(int vflag);
   virtual void post_force(int vflag);
-  //void post_force_respa(int, int, int);
   void langevin(int vflag, bool thermalize); 
   void reset_target(double);
   virtual void *extract(const char *, int &);
@@ -46,14 +45,9 @@ class FixLangevinDrude : public Fix {
   char *tstr_core, *tstr_drude;
   double energy;
   int tflag;
-  //int index_drudetype, index_drudeid;
 
   class AtomVecEllipsoid *avec;
 
-  //char *id_temp;
-  //class Compute *temperature;
-
-  //int nlevels_respa;
   class RanMars *random_core, *random_drude;
   int seed, seed_drude;
   int dof_core, dof_drude;
