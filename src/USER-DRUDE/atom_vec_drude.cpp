@@ -44,9 +44,7 @@ AtomVecDrude::AtomVecDrude(LAMMPS *lmp) : AtomVec(lmp), is_reduced(false)
   size_data_atom = 7;
   size_data_vel = 4;
   xcol_data = 5;
-  //atom->drudetype = NULL;
   atom->drudeid = NULL;
-  //TODO write restart section;
   atom->molecule_flag = atom->q_flag = 1;
 
 }
@@ -1140,6 +1138,9 @@ bigint AtomVecDrude::memory_usage()
   return bytes;
 }
 
+/* ----------------------------------------------------------------------
+   look in bond lists for Drude partner tags and fill atom->drudeid
+------------------------------------------------------------------------- */
 void AtomVecDrude::build_drudeid(){
   int nlocal = atom->nlocal;
   int *type = atom->type;
@@ -1148,9 +1149,10 @@ void AtomVecDrude::build_drudeid(){
 
   std::vector<tagint> drude_vec; // list of my Drudes' tags
   std::vector<tagint> core_drude_vec;
-  partner_set = new std::set<tagint>[nlocal];
+  partner_set = new std::set<tagint>[nlocal]; // Temporary sets of bond partner tags
   
   sptr = this;
+  // Build list of my atoms' bond partners
   for (int i=0; i<nlocal; i++){
     if (drudetype[type[i]] == NOPOL_TYPE) continue;
     drudeid[i] = 0;
@@ -1159,10 +1161,14 @@ void AtomVecDrude::build_drudeid(){
       core_drude_vec.push_back(bond_atom[i][k]);
     }
   }
+  // Loop on procs to fill my atoms' sets of bond partners
   comm->ring(core_drude_vec.size(), sizeof(tagint),
              (char *) core_drude_vec.data(),
              4, ring_build_partner, NULL, 1);
 
+  // Build the list of my Drudes' tags
+  // The only bond partners of a Drude particle is its core, 
+  // so fill drudeid for my Drudes.
   for (int i=0; i<nlocal; i++){
     if (drudetype[type[i]] == DRUDE_TYPE){
       drude_vec.push_back(atom->tag[i]);
@@ -1178,6 +1184,11 @@ void AtomVecDrude::build_drudeid(){
   delete [] partner_set;
 }
 
+/* ----------------------------------------------------------------------
+ * when receive buffer, build the set of received Drude tags.
+ * Look in my cores' bond partner tags if there is a Drude tag.
+ * If so fill this core's dureid.
+------------------------------------------------------------------------- */
 void AtomVecDrude::ring_search_drudeid(int size, char *cbuf){
   // Search for the drude partner of my cores
   Atom *atom = sptr->atom;
@@ -1203,6 +1214,10 @@ void AtomVecDrude::ring_search_drudeid(int size, char *cbuf){
   }
 }
 
+/* ----------------------------------------------------------------------
+ * buffer contains bond partners. Look for my atoms and add their partner's
+ * tag in its set of bond partners.
+------------------------------------------------------------------------- */
 void AtomVecDrude::ring_build_partner(int size, char *cbuf){
   // Add partners from incoming list
   Atom *atom = sptr->atom;
@@ -1222,9 +1237,13 @@ void AtomVecDrude::ring_build_partner(int size, char *cbuf){
   }
 }
 
+/* ----------------------------------------------------------------------
+ * Fill drudetype info from a line read in the data file
+------------------------------------------------------------------------- */
 void AtomVecDrude::set_drudetypes(const char *str)
 {
-  if (atom->drudetype == NULL) memory->create(atom->drudetype, atom->ntypes, "avec_drude:drudetype");
+  if (atom->drudetype == NULL) 
+      memory->create(atom->drudetype, atom->ntypes+1, "avec_drude:drudetype");
   int itype, idtype;
   int n = sscanf(str,"%d %d",&itype,&idtype);
   if (n != 2) error->all(FLERR,"Invalid Drude type line in data file");
