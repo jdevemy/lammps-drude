@@ -168,6 +168,8 @@ void FixLangevinDrude::setup(int vflag)
 {
   if (!strstr(update->integrate_style,"verlet"))
     error->all(FLERR,"RESPA style not compatible with fix langevin/drude");
+  if (!comm->ghost_velocity)
+    error->all(FLERR,"fix langevin/drude requires ghost velocities. Use comm_modify vel yes");
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
