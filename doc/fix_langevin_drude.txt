@@ -171,6 +171,26 @@ with zero initial momentum will not drift over time.
 
 :line
 
+Use example: rigid bodies in the NPT ensemble
+
+fix TEMP all langevin/drude 300. 100. 1256 1. 20. 13977 zero yes
+fix NPH ATOMS rigid/nph/small molecule iso 1. 1. 500.
+fix NVE DRUDES nve
+thermo_style custom step cpu etotal ke pe ebond ecoul elong press vol temp c_TATOM c_TDRUDE f_TEMP\[1\] f_TEMP\[2\] :pre
+
+Comments:
+
+Drude particles should not be in the rigid group, otherwise the Drude oscillators will be frozen and the system will lose its polarizability.
+{zero yes} avoids a drift of the center of mass of the system, but is a bit slower.
+use two different random seeds to avoid unphysical correlations.
+temperature is controlled by the fix {langevin/drude}, so the time-integration fixes do not thermostate.
+don't forget to time-integrate both cores and Drude particles.
+pressure is time-integrated only once by using {nve} for Drude particles and {nph} for atoms/cores (or vice versa). Do not use {nph} for both.
+contrary to the alternative thermostating using Nose-Hoover thermostat fix {npt} and fix {drude/transform}, the {fix_modify} command is not required here, because the fix {nph} computes the global pressure even if its group is {ATOMS}. This is what we want. If we thermostated {ATOMS} using {npt}, the pressure should be the global one, but the temperature should be only that of the cores. That's why the command {fix_modify} should be called in that case.
+f_TEMP\[1\] and f_TEMP\[2\] contain the reduced temperatures of the cores/atoms and of the Drude particles (see below). They should be 300. and 1. on average here. :ul
+
+:line
+
 [Restart, fix_modify, output, run start/stop, minimize info:]
 
 No information about this fix is written to "binary restart
