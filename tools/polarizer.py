@@ -543,8 +543,8 @@ class Data:
                         jfound = True
                         break
                 if ifound and jfound:
-                    alphaij = (alphai + alphaj) / 2.0
-                    tholeij = (tholei * tholej)**0.5
+                    alphaij = (alphai * alphaj)**0.5
+                    tholeij = (tholei + tholej) / 2.0
                     print("pair_coeff {0:4} {1:4} thole {2:7.3f} "\
                           "{3:7.3f}".format(atti['id'], attj['id'],
                                             alphaij, tholeij))
