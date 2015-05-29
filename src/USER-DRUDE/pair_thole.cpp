@@ -69,8 +69,8 @@ void PairThole::compute(int eflag, int vflag)
   double *special_coul = force->special_coul;
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
-  int *drudetype = atom->drudetype; //ivector[index_drudetype];
-  tagint *drudeid = atom->drudeid; //ivector[index_drudeid];
+  int *drudetype = atom->drudetype;
+  tagint *drudeid = atom->drudeid;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -246,16 +246,6 @@ void PairThole::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair style thole requires atom attribute q");
 
-  /*char typetag[] = "drudetype", idtag[] = "drudeid";
-  int dummy;
-  index_drudetype = atom->find_custom(typetag, dummy);
-  if (index_drudetype == -1)
-    error->all(FLERR,"Unable to get DRUDETYPE atom property");
-
-  index_drudeid = atom->find_custom(idtag, dummy);
-  if (index_drudeid == -1) 
-    error->all(FLERR,"Unable to get DRUDEID atom property");*/
-
   neighbor->request(this,instance_me);
 }
 
@@ -363,8 +353,8 @@ double PairThole::single(int i, int j, int itype, int jtype,
   double qi,qj,factor_f,factor_e,a_screen;
   int di, dj;
 
-  int *drudetype = atom->drudetype; //ivector[index_drudetype];
-  tagint *drudeid = atom->drudeid; //ivector[index_drudeid];
+  int *drudetype = atom->drudetype;
+  tagint *drudeid = atom->drudeid;
   int *type = atom->type;
 
   // only on core-drude pair, but not on the same pair
