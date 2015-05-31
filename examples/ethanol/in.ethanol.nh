@@ -10,7 +10,6 @@ special_bonds lj/coul 0.0 0.0 0.5
 pair_style hybrid/overlay lj/cut/coul/long 8.0 8.0 thole 2.600 8.0
 kspace_style pppm 1.0e-4
 
-comm_modify vel yes
 read_data data.ethanol
 
 
@@ -75,6 +74,7 @@ compute cTEMP_ATOM gATOMS temp
 
 fix fDTDIR all drude/transform/direct
 fix fNPT gATOMS npt temp ${vTEMP} ${vTEMP} 100 iso ${vPRESS} ${vPRESS} 500
+fix_modify fNPT temp cTEMP_ATOM press thermo_press
 fix fNVT gDRUDES nvt temp ${vTEMP_D} ${vTEMP_D} 100.0
 fix fDTINV all drude/transform/inverse
 
