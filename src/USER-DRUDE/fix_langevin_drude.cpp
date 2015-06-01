@@ -48,6 +48,7 @@ FixLangevinDrude::FixLangevinDrude(LAMMPS *lmp, int narg, char **arg) :
   global_freq = nevery;
   extvector = 0;
   size_vector = 6;
+  comm_reverse = 3;
   //extscalar = 1;
   
   // core temperature
@@ -368,7 +369,9 @@ void FixLangevinDrude::langevin(int /*vflag*/, bool thermalize=true)
   temp_drude = 2.0 * kineng_drude / (dof_drude * kb);
   
   // Reverse communication of the forces on ghost Drude particles
-  comm->reverse_comm();
+  printf("%d %d %lf\n", __LINE__, comm->me, f[0][0]);
+  if (thermalize) comm->reverse_comm_fix(this, 3);
+  printf("%d %d %lf\n", __LINE__, comm->me, f[0][0]);
 }
 
 /* ---------------------------------------------------------------------- */
