@@ -411,3 +411,35 @@ double FixLangevinDrude::compute_vector(int n)
     }
 }
 
+/* ---------------------------------------------------------------------- */
+int FixLangevinDrude::pack_reverse_comm(int n, int first, double *buf)
+{
+  int i,m,last;
+  double ** f = atom->f;
+
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++) {
+    buf[m++] = f[i][0];
+    buf[m++] = f[i][1];
+    buf[m++] = f[i][2];
+  }
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixLangevinDrude::unpack_reverse_comm(int n, int *list, double *buf)
+{
+  int i,j,m;
+  double ** f = atom->f;
+
+  m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    f[j][0] += buf[m++];
+    f[j][1] += buf[m++];
+    f[j][2] += buf[m++];
+  }
+}
+

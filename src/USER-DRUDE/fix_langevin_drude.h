@@ -36,6 +36,8 @@ class FixLangevinDrude : public Fix {
   void reset_target(double);
   virtual void *extract(const char *, int &);
   double compute_vector(int);
+  int pack_reverse_comm(int, int, double*);
+  void unpack_reverse_comm(int, int*, double*);
 
  protected:
   double t_start_core,t_period_core,t_target_core;
