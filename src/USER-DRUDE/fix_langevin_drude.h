@@ -48,11 +48,8 @@ class FixLangevinDrude : public Fix {
   double energy;
   int tflag;
 
-  class AtomVecEllipsoid *avec;
-
   class RanMars *random_core, *random_drude;
-  int seed, seed_drude;
-  int dof_core, dof_drude;
+  bigint dof_core, dof_drude;
   double kineng_core, kineng_drude;
   double temp_core, temp_drude;
   int zero;

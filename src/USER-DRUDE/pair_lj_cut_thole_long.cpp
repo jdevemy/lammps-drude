@@ -127,6 +127,7 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
 
     if (drudetype[type[i]]){
       di = atom->map(drudeid[i]);
+      if (di < 0) error->all(FLERR, "Drude partner not found");
       di_closest = domain->closest_image(i, di);
       if (drudetype[type[i]] == 1)
         dqi = -q[di];

@@ -173,7 +173,7 @@ void FixLangevinDrude::setup(int vflag)
   for (int i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->dof_flag)
       fix_dof += modify->fix[i]->dof(igroup);
-  int dof_core_loc = 0, dof_drude_loc = 0;
+  bigint dof_core_loc = 0, dof_drude_loc = 0;
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) { // Only the cores need to be in the group.
       if (drudetype[type[i]] == 0) // Non-polarizable atom
@@ -185,12 +185,12 @@ void FixLangevinDrude::setup(int vflag)
       }
     }
   }
-  int ncoreloc = dof_core_loc;
+  bigint ncoreloc = dof_core_loc;
   dof_core_loc *= dim;
   dof_drude_loc *= dim;
-  MPI_Allreduce(&dof_core_loc,  &dof_core,  1, MPI_INT, MPI_SUM, world);
-  MPI_Allreduce(&dof_drude_loc, &dof_drude, 1, MPI_INT, MPI_SUM, world);
-  MPI_Allreduce(&ncoreloc, &ncore, 1, MPI_INT, MPI_SUM, world);
+  MPI_Allreduce(&dof_core_loc,  &dof_core,  1, MPI_LMP_BIGINT, MPI_SUM, world);
+  MPI_Allreduce(&dof_drude_loc, &dof_drude, 1, MPI_LMP_BIGINT, MPI_SUM, world);
+  MPI_Allreduce(&ncoreloc, &ncore, 1, MPI_LMP_BIGINT, MPI_SUM, world);
   dof_core -= fix_dof;
   if (zero) dof_core -= dim; // The center of mass is not thermalized.
 
@@ -207,7 +207,7 @@ void FixLangevinDrude::post_force(int vflag)
 /* ---------------------------------------------------------------------- */
 
 void FixLangevinDrude::langevin(int /*vflag*/, bool thermalize=true)
-{ 
+{
   // Compute the kinetic energy and temperature of the reduced degrees of
   // freedom. Thermalize by adding the langevin force if thermalize=true.
   // Each core-Drude pair is thermalized only once: where the core is local.
@@ -369,10 +369,8 @@ void FixLangevinDrude::langevin(int /*vflag*/, bool thermalize=true)
   temp_drude = 2.0 * kineng_drude / (dof_drude * kb);
   
   // Reverse communication of the forces on ghost Drude particles
-  //printf("%d %d %lf\n", __LINE__, comm->me, f[0][0]);
   //if (thermalize) comm->reverse_comm_fix(this, 3);
   if (thermalize) comm->reverse_comm();
-  //printf("%d %d %lf\n", __LINE__, comm->me, f[0][0]);
 }
 
 /* ---------------------------------------------------------------------- */
