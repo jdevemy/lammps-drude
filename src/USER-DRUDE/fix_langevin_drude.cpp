@@ -369,9 +369,10 @@ void FixLangevinDrude::langevin(int /*vflag*/, bool thermalize=true)
   temp_drude = 2.0 * kineng_drude / (dof_drude * kb);
   
   // Reverse communication of the forces on ghost Drude particles
-  printf("%d %d %lf\n", __LINE__, comm->me, f[0][0]);
-  if (thermalize) comm->reverse_comm_fix(this, 3);
-  printf("%d %d %lf\n", __LINE__, comm->me, f[0][0]);
+  //printf("%d %d %lf\n", __LINE__, comm->me, f[0][0]);
+  //if (thermalize) comm->reverse_comm_fix(this, 3);
+  if (thermalize) comm->reverse_comm();
+  //printf("%d %d %lf\n", __LINE__, comm->me, f[0][0]);
 }
 
 /* ---------------------------------------------------------------------- */
