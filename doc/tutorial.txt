@@ -248,7 +248,6 @@ fix NVE DRUDES nve :pre
 
 NVT ensemble using Nose-Hoover thermostat:
 
-compute TATOM ATOMS temp
 fix DIRECT all drude/transform/direct
 fix RIGID ATOMS rigid/nvt/small molecule temp 300. 300. 100.
 fix NVT DRUDES nvt temp 1. 1. 20.
