@@ -214,7 +214,7 @@ fix INVERSE all drude/transform/inverse
 group CORES  type 1 2 3     # DCs
 group DRUDES type 6 7 8     # DPs 
 </PRE>
-<P>Note that with the fixes <I>drude/transform</I>, it is not required to specify <I>comm_modify vel yes</I> because the fixes to it anyway
+<P>Note that with the fixes <I>drude/transform</I>, it is not required to specify <I>comm_modify vel yes</I> because the fixes do it anyway
 (several times and for the forces also).
 To avoid the flying ice cube artifact, where the atoms progressively freeze and the center of mass of the whole system drifts faster and faster, 
 the fix <I>momentum</I> can be used. For instance:
