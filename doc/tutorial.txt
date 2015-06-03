@@ -74,7 +74,7 @@ So the only {pair_coeff} line you need to add is
 
 pair_coeff * 6* 0.0 0.0 # All-DPs :pre
 
-Now for the thermalization, the simplest choice is to use the "fix langevin/drude".
+Now for the thermalization, the simplest choice is to use the "fix langevin/drude"_fix_langevin_drude.html.
 
 fix LANG all langevin/drude 300. 100. 12435 1. 20. 13977 :pre
 
@@ -125,7 +125,7 @@ This is a correction to the coulomb pair_styles which stabilizes the interaction
 It is to be used as {hybrid/overlay} with any standard {coul} pair style.
 In our example, we would use
 
-pair_style hybrid/overlay lj/cut/coul/long 10.0 thole 2.6 10.0
+pair_style hybrid/overlay lj/cut/coul/long 10.0 thole 2.6 10.0 :pre
 
 This tells LAMMPS that we are using two pair_style. 
 The first one is as above ({lj/cut/coul/long 10.0}).
@@ -172,7 +172,7 @@ pair_coeff    8    8 thole     0.621     :pre
 
 For the {thole} pair style the coefficients are 
 
-the atom polarizability in cubic Angstrom
+the atom polarizability in cubic length unit
 the screening factor of the Thole function (optional, default defined by the pair_style command)
 the cutoff (optional, default defined by the pair_style command) :ol
 
