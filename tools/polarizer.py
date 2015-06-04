@@ -97,6 +97,8 @@ def bondline(bd):
     return "{0:7d} {1:4d} {2:7d} {3:7d}  {4}\n".format(bd['n'], bd['id'],
                                             bd['i'], bd['j'], bd['note'])
 
+def velline(at):
+    return "{0:7d} {1:13.6e} {2:13.6e} {3:13.6e} \n".format(at['n'], at['vx'], at['vy'], at['vz'])
 
 # --------------------------------------
 
@@ -111,6 +113,7 @@ class Data:
         self.bondtypes = []
         self.atoms = []
         self.bonds = []
+        self.idmap = {}
         
         self.nselect = 1
 
@@ -224,8 +227,18 @@ class Data:
             atom['x'] = float(tok[4])
             atom['y'] = float(tok[5])
             atom['z'] = float(tok[6])
-            atom['note'] = ''.join([s + ' ' for s in tok[7:]]).strip()
+            #atom['note'] = ''.join([s + ' ' for s in tok[7:]]).strip()
+            atom['note'] = ' '.join(tok[7:])
             self.atoms.append(atom)
+            self.idmap[atom['n']] = atom
+
+        if 'Velocities' in self.sections:
+            for line in self.sections['Velocities']:
+                tok = line.split()
+                atom = self.idmap[int(tok[0])]
+                atom['vx'] = float(tok[1])
+                atom['vy'] = float(tok[2])
+                atom['vz'] = float(tok[3])
 
     def polarize(self, drude):
         """add Drude particles"""
@@ -297,9 +310,12 @@ class Data:
                     natom += 1
                     newatom = deepcopy(atom)
                     newatom['n'] = natom
+                    self.idmap[natom] = newatom
                     newatom['id'] = ddt['id']
                     newatom['q'] = ddt['dq']
-                    newatom['note'] = atom['note'] + ' DP'
+                    newatom['note'] = atom['note'] 
+                    if '#' not in newatom['note']: newatom['note'] += ' #'
+                    newatom['note'] += ' DP'
                     newatom['dflag'] = 2
                     newatom['dd'] = atom['n']
                     
@@ -307,11 +323,16 @@ class Data:
                     newatom['x'] += 0.1 * (random.random() - 0.5)
                     newatom['y'] += 0.1 * (random.random() - 0.5)
                     newatom['z'] += 0.1 * (random.random() - 0.5)
+                    if 'Velocities' in self.sections:
+                        newatom['vx'] = atom['vx']
+                        newatom['vy'] = atom['vy']
+                        newatom['vz'] = atom['vz']
                     
                     newatoms.append(newatom)
                     atom['q'] -= ddt['dq']
                     atom['dflag'] = 1
                     atom['dd'] = natom
+                    if '#' not in atom['note']: atom['note'] += ' #'
                     atom['note'] += ' DC'
                                 
                     nbond += 1
@@ -331,6 +352,10 @@ class Data:
             self.sections['Atoms'].append(atomline(atom))        
         for bond in newbonds:                  
             self.sections['Bonds'].append(bondline(bond))
+        if 'Velocities' in self.sections:
+            self.sections['Velocities'] = []
+            for atom in self.atoms + newatoms:
+                self.sections['Velocities'].append(velline(atom))
 
         # self.sections['Drudes'] = []
         # for atom in self.atoms + newatoms:
