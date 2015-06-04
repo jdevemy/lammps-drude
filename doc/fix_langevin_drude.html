@@ -192,7 +192,8 @@ with zero initial momentum will not drift over time.
 
 <P>Use example: rigid bodies in the NPT ensemble
 </P>
-<PRE>fix TEMP all langevin/drude 300. 100. 1256 1. 20. 13977 zero yes
+<PRE>comm_modify vel yes
+fix TEMP all langevin/drude 300. 100. 1256 1. 20. 13977 zero yes
 fix NPH ATOMS rigid/nph/small molecule iso 1. 1. 500.
 fix NVE DRUDES nve
 thermo_style custom step cpu etotal ke pe ebond ecoul elong press vol temp c_TATOM c_TDRUDE f_TEMP[1] f_TEMP[2] 

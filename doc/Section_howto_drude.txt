@@ -131,107 +131,49 @@ electrostatic charge and also bonded terms (such as bonds, angles,
 dihedrals and impropers) but includes a Drude type (0, 1 or 2 as
 explained previously).
 
-The {special_bonds} command should set a {coul} factor of 0.0 for 1-2
-neighbors, which is the default. The list of special neighbors is
-redefined so that the Drude particles are equivalent to their cores
-with respect to the 1-2, 1-3, etc. neighboring relations. In this
-manner, the same special factor is applied to each core and Drude
-particle in a pair.  This may require increasing the memory reserved
-for storing the list of special neighbors, which can be done using the
-{extra} keyword of the {special_bonds} command. An error message will
-be printed by LAMMPS if extra memory is needed for special neighbors.
+The "special_bonds"_special_bonds.html command should set a {coul}
+factor of 0.0 for 1-2 neighbors, which is the default. The list of
+special neighbors is redefined so that the Drude particles are
+equivalent to their cores with respect to the 1-2, 1-3,
+etc. neighboring relations. In this manner, the same special factor is
+applied to each core and Drude particle in a pair.  This may require
+increasing the memory reserved for storing the list of special
+neighbors, which can be done using the {extra} keyword of the
+{special_bonds} command. An error message will be printed by LAMMPS if
+extra memory is needed for special neighbors.
 
 Induced Drude dipoles on neighboring, bonded atoms can interact too
 strongly, leading to excessive correlation or even instabilities of
 the trajectory. The interaction between Drude dipoles, composed of the
 \(q_D\) charge on a Drude particle and the opposite charge on its
 core, can be damped at short distance by the "pair_style
-thole"_pair_thole.html. The pair style {thole} is to be used as {hybrid/overlay}
-in the "pair_style"_pair_style.html command, since it applies a
-correction to the Coulomb interactions:
+thole"_pair_thole.html. The pair style {thole} is to be used as
+{hybrid/overlay} in the "pair_style"_pair_style.html command, since it
+applies a correction to the Coulomb interactions:
 
 pair_style hybrid/overlay lj/cut/coul/long 10.0 thole 2.6 10.0 :pre
 
 Since hybrid/overlay does not support mixing, the interaction
 coefficients of all pairs must be explicitly given, both for the van
-der Waals/Coulomb and for the Thole correction.
-
-pair_coeff    1    1 thole  1.66 
-pair_coeff    1    2 thole  1.66 :pre
-
-See the doc page of the "pair_style thole"_pair_thole.html for more
-information.
+der Waals/Coulomb and for the Thole correction. See the doc page of
+the "pair_style thole"_pair_thole.html for more information.
 
 The Drude oscillators can be thermalized at a low temperature, to
-approximate a self consistent field.  This can be done with a Langevin
-thermostat using a specific "fix
+approximate relaxed Drudes (self consistent field).  This can be done
+with a Langevin thermostat using a specific "fix
 langevin_drude"_fix_langevin_drude.html as described in
-"(Jiang)"_#Jiang or with a Lagrangian method (Nose-Hoover thermostat)
-using "fix drude/transform"_fix_drude_transform.html as described in
-"(Lamoureux)"_#Lamoureux.
-
-Use of the "langevin/drude"_fix_langevin_drude.html thermostat
-requires that velocities of ghost atoms be communicated between
-processors, and also that a fix performing time integration be called,
-resulting in a block of instructions as follows:
-
-comm_modify vel yes
-fix LANG all langevin/drude 300.0 100 12435 1.0 20 13977 zero yes
-fix NVE all nve :pre
-
-Here the centers of mass of the core-Drude pairs are thermostated at
-300 K and the relative motion of the Drude particles with respect t
-the cores is thermostated at 1 K. The pressure of the system can be
-regulated using a Nose-Hoover barostat, by replacing the {fix nve} by:
-
-fix NPH all nph iso 1. 1. 500 :pre
-
-The correct temperature of the cores and Drude particles can be
-obtained from the output of {fix langevin/drude}:
-
-thermo_style custom ... f_LANG\[1\] f_LANG\[2\] :pre
-
-
-Use of Nose-Hoover thermostat instead of Langevin thermostat requires
-a different block of instructions including use of "fix
-drude/transform"_#fix_drude_transform.html to perform coordinate
-transformations of the core-Drude pairs:
-
-fix DIRECT all drude/transform/direct
-fix NVT1 ATOMS nvt temp 300. 300. 100
-fix NVT2 DRUDES nvt temp 1. 1. 20
-fix INVERSE all drude/transform/inverse :pre
-
-Here the first line transforms the coordinates of the cores towards
-the centers of mass of core-Drude pairs and the coordinates of the
-Drude particles become relative to the cores. The last one performs
-the oposite transformations. The {fix nvt} instances regulate the
-temperature of (center of mass) core-Drude pairs and of the relative
-motion of Drude particles with respect to their cores. For pressure
-regulation using a Nose-Hoover barostat the following block of
-instructions can be used:
-
-compute TATOMS ATOMS temp
-fix DIRECT all drude/transform/direct
-fix NPT ATOMS npt temp 300. 300. 100 iso 1. 1. 500
-fix_modify NPT temp TATOMS
-fix NVT DRUDES nvt temp 1. 1. 20
-fix INVERSE all drude/transform/inverse :pre
-
-where the temperature of the cores and non-polarizable atoms (group
-ATOMS), not including the Drude particles, is used by the {fix
-npt}. Also, the system pressure is regulated by only one fix. Finally,
-the "fix momentum"_fix_momentum.html can be used to avoid the system
-gaining overall momentum (flying ice cube artifact described by
-"Lamoureux, Roux"_#Lamoureux):
-
-fix MOMENTUM all momentum 100 linear 1 1 1 :pre
+"(Jiang)"_#Jiang or with an extended Lagrangian method (Nose-Hoover
+thermostat) using "fix drude/transform"_fix_drude_transform.html as
+described in "(Lamoureux)"_#Lamoureux. Detailed information and usage
+examples can be obtained from the doc pages of "fix
+langevin_drude"_fix_langevin_drude.html and "fix
+drude/transform"_fix_drude_transform.html.
 
 If it is the case, labels for the Drude particles can be added to the
 trajectory dump file through the "dump_modify
 element"_dump_modify.html command:
 
-dump_modify TRAJ element ... D D D :pre
+dump_modify TRAJ element ... D D :pre
 
 
 :line

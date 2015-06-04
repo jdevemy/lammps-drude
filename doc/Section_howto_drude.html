@@ -132,106 +132,49 @@ electrostatic charge and also bonded terms (such as bonds, angles,
 dihedrals and impropers) but includes a Drude type (0, 1 or 2 as
 explained previously).
 </P>
-<P>The <I>special_bonds</I> command should set a <I>coul</I> factor of 0.0 for 1-2
-neighbors, which is the default. The list of special neighbors is
-redefined so that the Drude particles are equivalent to their cores
-with respect to the 1-2, 1-3, etc. neighboring relations. In this
-manner, the same special factor is applied to each core and Drude
-particle in a pair.  This may require increasing the memory reserved
-for storing the list of special neighbors, which can be done using the
-<I>extra</I> keyword of the <I>special_bonds</I> command. An error message will
-be printed by LAMMPS if extra memory is needed for special neighbors.
+<P>The <A HREF = "special_bonds.html">special_bonds</A> command should set a <I>coul</I>
+factor of 0.0 for 1-2 neighbors, which is the default. The list of
+special neighbors is redefined so that the Drude particles are
+equivalent to their cores with respect to the 1-2, 1-3,
+etc. neighboring relations. In this manner, the same special factor is
+applied to each core and Drude particle in a pair.  This may require
+increasing the memory reserved for storing the list of special
+neighbors, which can be done using the <I>extra</I> keyword of the
+<I>special_bonds</I> command. An error message will be printed by LAMMPS if
+extra memory is needed for special neighbors.
 </P>
 <P>Induced Drude dipoles on neighboring, bonded atoms can interact too
 strongly, leading to excessive correlation or even instabilities of
 the trajectory. The interaction between Drude dipoles, composed of the
 \(q_D\) charge on a Drude particle and the opposite charge on its
 core, can be damped at short distance by the <A HREF = "pair_thole.html">pair_style
-thole</A>. The pair style <I>thole</I> is to be used as <I>hybrid/overlay</I>
-in the <A HREF = "pair_style.html">pair_style</A> command, since it applies a
-correction to the Coulomb interactions:
+thole</A>. The pair style <I>thole</I> is to be used as
+<I>hybrid/overlay</I> in the <A HREF = "pair_style.html">pair_style</A> command, since it
+applies a correction to the Coulomb interactions:
 </P>
 <PRE>pair_style hybrid/overlay lj/cut/coul/long 10.0 thole 2.6 10.0 
 </PRE>
 <P>Since hybrid/overlay does not support mixing, the interaction
 coefficients of all pairs must be explicitly given, both for the van
-der Waals/Coulomb and for the Thole correction.
-</P>
-<PRE>pair_coeff    1    1 thole  1.66 
-pair_coeff    1    2 thole  1.66 
-</PRE>
-<P>See the doc page of the <A HREF = "pair_thole.html">pair_style thole</A> for more
-information.
+der Waals/Coulomb and for the Thole correction. See the doc page of
+the <A HREF = "pair_thole.html">pair_style thole</A> for more information.
 </P>
 <P>The Drude oscillators can be thermalized at a low temperature, to
-approximate a self consistent field.  This can be done with a Langevin
-thermostat using a specific <A HREF = "fix_langevin_drude.html">fix
+approximate relaxed Drudes (self consistent field).  This can be done
+with a Langevin thermostat using a specific <A HREF = "fix_langevin_drude.html">fix
 langevin_drude</A> as described in
-<A HREF = "#Jiang">(Jiang)</A> or with a Lagrangian method (Nose-Hoover thermostat)
-using <A HREF = "fix_drude_transform.html">fix drude/transform</A> as described in
-<A HREF = "#Lamoureux">(Lamoureux)</A>.
+<A HREF = "#Jiang">(Jiang)</A> or with an extended Lagrangian method (Nose-Hoover
+thermostat) using <A HREF = "fix_drude_transform.html">fix drude/transform</A> as
+described in <A HREF = "#Lamoureux">(Lamoureux)</A>. Detailed information and usage
+examples can be obtained from the doc pages of <A HREF = "fix_langevin_drude.html">fix
+langevin_drude</A> and <A HREF = "fix_drude_transform.html">fix
+drude/transform</A>.
 </P>
-<P>Use of the <A HREF = "fix_langevin_drude.html">langevin/drude</A> thermostat
-requires that velocities of ghost atoms be communicated between
-processors, and also that a fix performing time integration be called,
-resulting in a block of instructions as follows:
-</P>
-<PRE>comm_modify vel yes
-fix LANG all langevin/drude 300.0 100 12435 1.0 20 13977 zero yes
-fix NVE all nve 
-</PRE>
-<P>Here the centers of mass of the core-Drude pairs are thermostated at
-300 K and the relative motion of the Drude particles with respect t
-the cores is thermostated at 1 K. The pressure of the system can be
-regulated using a Nose-Hoover barostat, by replacing the <I>fix nve</I> by:
-</P>
-<PRE>fix NPH all nph iso 1. 1. 500 
-</PRE>
-<P>The correct temperature of the cores and Drude particles can be
-obtained from the output of <I>fix langevin/drude</I>:
-</P>
-<PRE>thermo_style custom ... f_LANG[1] f_LANG[2] 
-</PRE>
-<P>Use of Nose-Hoover thermostat instead of Langevin thermostat requires
-a different block of instructions including use of <A HREF = "#fix_drude_transform.html">fix
-drude/transform</A> to perform coordinate
-transformations of the core-Drude pairs:
-</P>
-<PRE>fix DIRECT all drude/transform/direct
-fix NVT1 ATOMS nvt temp 300. 300. 100
-fix NVT2 DRUDES nvt temp 1. 1. 20
-fix INVERSE all drude/transform/inverse 
-</PRE>
-<P>Here the first line transforms the coordinates of the cores towards
-the centers of mass of core-Drude pairs and the coordinates of the
-Drude particles become relative to the cores. The last one performs
-the oposite transformations. The <I>fix nvt</I> instances regulate the
-temperature of (center of mass) core-Drude pairs and of the relative
-motion of Drude particles with respect to their cores. For pressure
-regulation using a Nose-Hoover barostat the following block of
-instructions can be used:
-</P>
-<PRE>compute TATOMS ATOMS temp
-fix DIRECT all drude/transform/direct
-fix NPT ATOMS npt temp 300. 300. 100 iso 1. 1. 500
-fix_modify NPT temp TATOMS
-fix NVT DRUDES nvt temp 1. 1. 20
-fix INVERSE all drude/transform/inverse 
-</PRE>
-<P>where the temperature of the cores and non-polarizable atoms (group
-ATOMS), not including the Drude particles, is used by the <I>fix
-npt</I>. Also, the system pressure is regulated by only one fix. Finally,
-the <A HREF = "fix_momentum.html">fix momentum</A> can be used to avoid the system
-gaining overall momentum (flying ice cube artifact described by
-<A HREF = "#Lamoureux">Lamoureux, Roux</A>):
-</P>
-<PRE>fix MOMENTUM all momentum 100 linear 1 1 1 
-</PRE>
 <P>If it is the case, labels for the Drude particles can be added to the
 trajectory dump file through the <A HREF = "dump_modify.html">dump_modify
 element</A> command:
 </P>
-<PRE>dump_modify TRAJ element ... D D D 
+<PRE>dump_modify TRAJ element ... D D 
 </PRE>
 <HR>
 
