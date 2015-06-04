@@ -63,6 +63,7 @@ PairLJCutTholeLong::~PairLJCutTholeLong()
     memory->destroy(cutsq);
     memory->destroy(polar);
     memory->destroy(thole);
+    memory->destroy(ascreen);
     memory->destroy(cut_lj);
     memory->destroy(cut_ljsq);
     memory->destroy(scale);
@@ -87,9 +88,9 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
   double fraction,table;
   double grij,expm2,prefactor,t,erfc;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  double factor_f,factor_e,a_screen;
+  double factor_f,factor_e;
   int di,dj;
-  double dqi,dqj;
+  double dqi,dqj,dcoul,asr,exp_asr;
   int di_closest;
 
   evdwl = ecoul = 0.0;
@@ -183,10 +184,12 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
                 dj = atom->map(drudeid[j]);
                 dqj = -q[dj];
               } else dqj = qj;
-              a_screen = thole[itype][jtype] / pow(polar[itype][jtype], 1./3.);
-              factor_f = 0.5*(2 + (exp(-a_screen * r) * (-2 - a_screen*r * (2 + a_screen*r)))) - factor_coul;
-              if (eflag) factor_e = 0.5*(2 - (exp(-a_screen * r) * (2 + a_screen*r))) - factor_coul;
-              forcecoul += factor_f * qqrd2e * dqi * dqj / r;
+              asr = ascreen[i][j] * r;
+              exp_asr = exp(-asr);
+              dcoul = qqrd2e * dqi * dqj / r;
+              factor_f = 0.5*(2. + (exp_asr * (-2. - asr * (2. + asr)))) - factor_coul;
+              if (eflag) factor_e = 0.5*(2. - (exp_asr * (2. + asr))) - factor_coul;
+              forcecoul += factor_f * dcoul;
             } 
           }
         } else forcecoul = 0.0;
@@ -217,7 +220,7 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
             }
             if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
             if (drudetype[type[i]] && drudetype[type[j]] && j != di_closest){
-              ecoul += factor_e * qqrd2e * dqi * dqj / r;
+              ecoul += factor_e * dcoul;
             }
           } else ecoul = 0.0;
 
@@ -256,6 +259,7 @@ void PairLJCutTholeLong::allocate()
   memory->create(cut_lj,n+1,n+1,"pair:cut_lj");
   memory->create(cut_ljsq,n+1,n+1,"pair:cut_ljsq");
   memory->create(scale,n+1,n+1,"pair:scale");
+  memory->create(ascreen,n+1,n+1,"pair:ascreen");
   memory->create(thole,n+1,n+1,"pair:thole");
   memory->create(polar,n+1,n+1,"pair:polar");
   memory->create(epsilon,n+1,n+1,"pair:epsilon");
@@ -323,6 +327,7 @@ void PairLJCutTholeLong::coeff(int narg, char **arg)
       sigma[i][j] = sigma_one;
       polar[i][j] = polar_one;
       thole[i][j] = thole_one;
+      ascreen[i][j] = thole[i][j] / pow(polar[i][j], 1./3.);
       cut_lj[i][j] = cut_lj_one;
       scale[i][j] = 1.0;
       setflag[i][j] = 1;
@@ -387,6 +392,7 @@ double PairLJCutTholeLong::init_one(int i, int j)
     cut_lj[i][j] = mix_distance(cut_lj[i][i],cut_lj[j][j]);
     polar[i][j] = sqrt(polar[i][i] * polar[j][j]);
     thole[i][j] = 0.5 * (thole[i][i] + thole[j][j]);
+    ascreen[i][j] = thole[i][j] / pow(polar[i][j], 1./3.);
   }
 
   // include TIP4P qdist in full cutoff, qdist = 0.0 if not TIP4P
@@ -412,6 +418,7 @@ double PairLJCutTholeLong::init_one(int i, int j)
   offset[j][i] = offset[i][j];
   polar[j][i] = polar[i][j];
   thole[j][i] = thole[i][j];
+  ascreen[j][i] = ascreen[i][j];
   scale[j][i] = scale[i][j];
 
   // check interior rRESPA cutoff
@@ -492,12 +499,14 @@ void PairLJCutTholeLong::read_restart(FILE *fp)
           fread(&sigma[i][j],sizeof(double),1,fp);
           fread(&polar[i][j],sizeof(double),1,fp);
           fread(&thole[i][j],sizeof(double),1,fp);
+          ascreen[i][j] = thole[i][j] / pow(polar[i][j], 1./3.);
           fread(&cut_lj[i][j],sizeof(double),1,fp);
         }
         MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&polar[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&thole[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&ascreen[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut_lj[i][j],1,MPI_DOUBLE,0,world);
       }
     }
@@ -579,7 +588,8 @@ double PairLJCutTholeLong::single(int i, int j, int itype, int jtype,
   double r2inv,r6inv,r,grij,expm2,t,erfc,prefactor;
   double fraction,table,forcecoul,forcelj,phicoul,philj;
   int itable;
-  double dqi,dqj,factor_f,factor_e,a_screen;
+  double factor_f,factor_e;
+  double dqi,dqj,dcoul,asr,exp_asr;
   int di, dj, di_closest;
 
   int *drudetype = atom->drudetype;
@@ -621,10 +631,12 @@ double PairLJCutTholeLong::single(int i, int j, int itype, int jtype,
           dj = atom->map(drudeid[j]);
           dqj = -atom->q[dj];
         } else if (drudetype[j] == 2) dqj = atom->q[j];
-        a_screen = thole[itype][jtype] / pow(polar[itype][jtype], 1./3.);
-        factor_f = 0.5*(2 + (exp(-a_screen * r) * (-2 - a_screen*r * (2 + a_screen*r)))) - factor_coul;
-        forcecoul += factor_f * force->qqrd2e * dqi * dqj / r;
-        factor_e = 0.5*(2 - (exp(-a_screen * r) * (2 + a_screen*r))) - factor_coul; 
+        asr = ascreen[i][j] * r; // = thole[itype][jtype] / pow(polar[itype][jtype], 1./3.);
+        exp_asr = exp(-asr);
+        dcoul = force->qqrd2e * dqi * dqj / r;
+        factor_f = 0.5*(2. + (exp_asr * (-2. - asr * (2. + asr)))) - factor_coul;
+        forcecoul += factor_f * dcoul;
+        factor_e = 0.5*(2. - (exp_asr * (2. + asr))) - factor_coul; 
       }
     }
   } else forcecoul = 0.0;
@@ -646,7 +658,7 @@ double PairLJCutTholeLong::single(int i, int j, int itype, int jtype,
     }
     if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor;
     if (drudetype[type[i]] && drudetype[type[j]] && di_closest != dj)
-      phicoul += factor_e * force->qqrd2e * dqi * dqj / r;
+      phicoul += factor_e * dcoul;
     eng += phicoul;
   }
 
@@ -665,11 +677,12 @@ void *PairLJCutTholeLong::extract(const char *str, int &dim)
 {
   dim = 0;
   if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
-  dim = 5;
+  dim = 6;
   if (strcmp(str,"epsilon") == 0) return (void *) epsilon;
   if (strcmp(str,"sigma") == 0) return (void *) sigma;
   if (strcmp(str,"scale") == 0) return (void *) scale;
   if (strcmp(str,"polar") == 0) return (void *) polar;
   if (strcmp(str,"thole") == 0) return (void *) thole;
+  if (strcmp(str,"ascreen") == 0) return (void *) ascreen;
   return NULL;
 }

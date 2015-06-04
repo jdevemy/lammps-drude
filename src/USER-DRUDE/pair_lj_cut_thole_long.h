@@ -57,7 +57,7 @@ class PairLJCutTholeLong : public Pair {
   double thole_global;
   double cut_global;
   double **cut,**scale;
-  double **polar,**thole;
+  double **polar,**thole,**ascreen;
 
   virtual void allocate();
 };
