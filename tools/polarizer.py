@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # polarizer.py - add Drude oscillators to LAMMPS data file.
 # Agilio Padua <agilio.padua@univ-bpclermont.fr>
 # Alain Dequidt <alain.dequidt@univ-bpclermont.fr>
@@ -204,10 +204,13 @@ class Data:
         """extract atom and bond info from nonpolarizable data"""
         
         # extract atom IDs
+        missinglabels = False
         for line in self.sections['Masses']:
             tok = line.split()
             if len(tok) < 4:
-                print("warning: missing type for atom ID " + tok[0])
+                print("error: missing type for atom ID " + tok[0] +
+                      " in Masses section")
+                missinglabels = True
                 continue
             atomtype = {}
             atomtype['id'] = int(tok[0])
@@ -215,6 +218,9 @@ class Data:
             atomtype['type'] = tok[3]
             self.atomtypes.append(atomtype)
 
+        if missinglabels:
+            sys.exit(0)
+            
         # extract atom registers
         for line in self.sections['Atoms']:
             tok = line.split()
@@ -368,14 +374,14 @@ class Data:
         # extract atom IDs
         for line in self.sections['Masses']:
             tok = line.split()
-            if len(tok) < 4:
-                print("warning: missing type for atom ID " + tok[0])
-                continue
             atomtype = {}
             atomtype['id'] = int(tok[0])
             atomtype['m'] = float(tok[1])
-            atomtype['type'] = tok[3]
-            self.atomtypes.append(atomtype)
+            if len(tok) >= 4:
+                atomtype['type'] = tok[3]
+            else:
+                atomtype['type'] = ""
+            self.atomtypes.append(atomtype)            
 
         # extract atom drude types
         for itype, line in enumerate(self.sections['Drude Types']):
