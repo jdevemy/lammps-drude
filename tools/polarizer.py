@@ -2,7 +2,7 @@
 # polarizer.py - add Drude oscillators to LAMMPS data file.
 # Agilio Padua <agilio.padua@univ-bpclermont.fr>
 # Alain Dequidt <alain.dequidt@univ-bpclermont.fr>
-# version 2015/04/14
+# version 2015/06/03
 
 """
 Add Drude oscillators to LAMMPS data file.
@@ -612,8 +612,8 @@ class Drude:
 def main():
     parser = argparse.ArgumentParser(
         description = 'Add Drude dipole polarization to LAMMPS data file')
-    parser.add_argument('-f', '--ffdrude', default = 'drude.ff',
-                        help = 'Drude parameter file (default: drude.ff)')
+    parser.add_argument('-f', '--ffdrude', default = 'drude.dff',
+                        help = 'Drude parameter file (default: drude.dff)')
     parser.add_argument('-t', '--thole', type = float, default = 2.6,
                         help = 'Thole damping parameter (default: 2.6)')
     parser.add_argument('-c', '--cutoff', type = float, default = 12.0,

@@ -83,11 +83,11 @@ quantities.
 <TR><TD ><I>sphere</I> </TD><TD > diameter, mass, angular velocity </TD><TD > granular models </TD></TR>
 <TR><TD ><I>template</I> </TD><TD > template index, template atom </TD><TD > small molecules with fixed topology </TD></TR>
 <TR><TD ><I>tri</I> </TD><TD > corner points, angular momentum </TD><TD > rigid bodies </TD></TR>
-<TR><TD ><I>wavepacket</I> </TD><TD > charge, spin, eradius, etag, cs_re, cs_im </TD><TD > AWPMD 
+<TR><TD ><I>wavepacket</I> </TD><TD > charge, spin, eradius, etag, cs_re, cs_im </TD><TD > AWPMD </TD></TR>
+<TR><TD ><I>drude</I> </TD><TD > full + Drude dipoles </TD><TD > polarizable atoms with Drude oscillators </TD></TR>
+<TR><TD > 
 </TD></TR></TABLE></DIV>
 
-<P><I>drude</I> | drude | polarizable atoms using Drude oscillators |
-</P>
 <P>IMPORTANT NOTE: It is possible to add some attributes, such as a
 molecule ID, to atom styles that do not have them via the <A HREF = "fix_property_atom.html">fix
 property/atom</A> command.  This command also
@@ -184,11 +184,11 @@ and position can be time integrated due to forces and torques.
 <I>bstyle</I> specification, in the atom_style body command.  These
 arguments are described in the <A HREF = "body.html">body</A> doc page.
 </P>
-<P>The <I>drude</I> style is similar to the <I>full</I> style, but some of the atoms
-represent Drude particles. This atom style can be used for simulating
-polarizable atoms.
-The <A HREF = "drude_oscillators.html">drude oscillators</A> doc page describes how to
-use this atom_style for simulating polarizable atoms.
+<P>The <I>drude</I> style is similar to the <I>full</I> style, but some of the
+atoms represent Drude particles. This atom style can be used for
+simulating polarizable atoms.  The <A HREF = "drude_oscillators.html">drude
+oscillators</A> doc page describes how to use this
+atom_style for simulating polarizable atoms.
 </P>
 <HR>
 

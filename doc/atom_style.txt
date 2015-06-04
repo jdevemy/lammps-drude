@@ -79,8 +79,8 @@ quantities.
 {sphere} | diameter, mass, angular velocity | granular models |
 {template} | template index, template atom | small molecules with fixed topology |
 {tri} | corner points, angular momentum | rigid bodies |
-{wavepacket} | charge, spin, eradius, etag, cs_re, cs_im | AWPMD :tb(c=3,s=|)
-{drude} | drude | polarizable atoms using Drude oscillators |
+{wavepacket} | charge, spin, eradius, etag, cs_re, cs_im | AWPMD |
+{drude} | full + Drude dipoles | polarizable atoms with Drude oscillators | :tb(c=3,s=|)
 
 IMPORTANT NOTE: It is possible to add some attributes, such as a
 molecule ID, to atom styles that do not have them via the "fix
@@ -178,11 +178,11 @@ Note that there may be additional arguments required along with the
 {bstyle} specification, in the atom_style body command.  These
 arguments are described in the "body"_body.html doc page.
 
-The {drude} style is similar to the {full} style, but some of the atoms
-represent Drude particles. This atom style can be used for simulating
-polarizable atoms.
-The "drude oscillators"_drude_oscillators.html doc page describes how to
-use this atom_style for simulating polarizable atoms.
+The {drude} style is similar to the {full} style, but some of the
+atoms represent Drude particles. This atom style can be used for
+simulating polarizable atoms.  The "drude
+oscillators"_drude_oscillators.html doc page describes how to use this
+atom_style for simulating polarizable atoms.
 
 :line
 

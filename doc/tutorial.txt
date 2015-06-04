@@ -1,25 +1,33 @@
 Thermalized Drude oscillators in LAMMPS: tutorial :h3
 
-In this tutorial we explain how to use "Drude oscillators"_drude_oscillators.html in LAMMPS to simulate polarizable systems.
-As an example, we are going to simulate 250 phenol molecules.
+In this tutorial we explain how to use "Drude
+oscillators"_drude_oscillators.html in LAMMPS to simulate polarizable
+systems.  As an example, we are going to simulate 250 phenol
+molecules. First of all, LAMMPS has to be compiled with the USER-DRUDE
+package activated. Then, the data file and input scripts have to be
+modified to include the Drude dipoles and how to handle them.
 
 :line
 [Preparation of the data file]
 
-The data file is similar to a standard LAMMPS data file for {atom_style full}, 
-except for an additional section {Drude Types} identifying which types are non-polarizable atoms (0),
-core of polarizable atoms (DC: 1) or Drude particles (DP: 2).
-The DPs and the {harmonic bonds} connecting them to their DC should appear in the data file
-as normal atoms and bonds.
+The data file is similar to a standard LAMMPS data file for
+{atom_style full}, except for an additional section {Drude Types}
+identifying which types are non-polarizable atoms (0), cores of
+polarizable atoms (DC: 1) or Drude particles (DP: 2).  The DPs and the
+{harmonic bonds} connecting them to their DC should appear in the data
+file as normal atoms and bonds.
 
-You can use the "polarizer"_pol.html tool to convert a non-polarizable
-data file (here {data.102494.lmp}) to a polarizable data file ({data-p.lmp})
+You can use the {polarizer} tool (Python script distributed with the
+USER-DRUDE package) to convert a non-polarizable data file (here
+{data.102494.lmp}) to a polarizable data file ({data-p.lmp})
 
 polarizer.py -q -f phenol.dff data.102494.lmp data-p.lmp :pre 
 
-This will automatically insert the new atoms and bonds and the {Drude Types} section.
-The masses and charges of DCs and DPs are computed from {phenol.dff}, as well as the DC-DP bond constants.
-The file {phenol.dff} contains notably the polarizabilities of the atom types and the mass of the Drude particles, for instance:
+This will automatically insert the new atoms and bonds and the {Drude
+Types} section.  The masses and charges of DCs and DPs are computed
+from {phenol.dff}, as well as the DC-DP bond constants.  The file
+{phenol.dff} contains the polarizabilities of the atom types
+and the mass of the Drude particles, for instance:
 
 # units: kJ/mol, A, deg
 # kforce is in the form k/2 r_D^2
@@ -28,9 +36,12 @@ OH      0.4    -1.0    4184.0   0.6213   4
 CA      0.4    -1.0    4184.0   1.3226   4
 CAI     0.4    -1.0    4184.0   1.3226   4 :pre
 
-The hydrogen atoms are absent from this file, so they will be treated as non-polarizable atoms.
-The non-polarizable data file {data.102494.lmp} has to specify the names of the atom types as comments at the end of lines of the {Masses} section.
-You probably need to edit it to add these names. It should look like
+The hydrogen atoms are absent from this file, so they will be treated
+as non-polarizable atoms.  In the non-polarizable data file
+{data.102494.lmp}, atom names corresponding to the atom type numbers
+have to be specified as comments at the end of lines of the {Masses}
+section.  You probably need to edit it to add these names. It should
+look like
 
 Masses :pre
 
@@ -43,98 +54,120 @@ Masses :pre
 :line
 [Basic input file]
 
-The polarizer script also outputs a few lines related to the {input} file. 
-We will explain later how to use this output.
-In order for LAMMPS to recognize that you are using Drude oscillators, you should use the atom style {drude}.
+The {polarizer} tool also outputs certain lines related to the input
+script (the use of these lines will be explained below).  In order for
+LAMMPS to recognize that you are using Drude oscillators, you should
+use the atom style {drude}.
 
 atom_style drude :pre
 
-This atom style is similar to {full}. You can defined thus atomic charges and molecular bonds, angles, dihedrals...
-In addition, LAMMPS will understand the {Drude Types} section of the new data file.
-It will find and store matching DC-DP pairs and will treat DP as equivalent to their DC in the {special bonds} relations.
-It may be necessary to extend the space for storing such special relations.
-In this case extra space should be reserved by using the {extra} keyword of the {special_bonds} command.
-With our phenol, there is 1 more special neighbor for which space is required.
-Otherwise LAMMPS crashes and gives the required value.
+This atom style is similar to {full}. Thus, you can define atomic
+charges and molecular bonds, angles, dihedrals...  In addition, LAMMPS
+will understand the {Drude Types} section of the new data file.  It
+will find and store matching DC-DP pairs and will treat DP as
+equivalent to their DC in the {special bonds} relations.  It may be
+necessary to extend the space for storing such special relations.  In
+this case extra space should be reserved by using the {extra} keyword
+of the {special_bonds} command.  With our phenol, there is 1 more
+special neighbor for which space is required.  Otherwise LAMMPS
+crashes and gives the required value.
 
 special_bonds lj/coul 0.0 0.0 0.5 extra 1 :pre
 
-Let us assume we want to run a simple NVT simulation at 300 K.
-Note that Drude oscillators need to be thermalized at a low temperature in order to approximate a self-consistent field (SCF), 
-so it is not possible to simulate an NVE ensemble with this package.
-Since dipoles are approximated by a charged DC-DP pair, the {pair_style} must include charge interactions, 
-for instance {lj/cut/coul/long} with {kspace_style pppm}. For example with a cutoff of 10. and a precision 1.e-4:
+Let us assume we want to run a simple NVT simulation at 300 K.  Note
+that Drude oscillators need to be thermalized at a low temperature in
+order to approximate a self-consistent field (SCF), therefore it is not
+possible to simulate an NVE ensemble with this package.  Since dipoles
+are approximated by a charged DC-DP pair, the {pair_style} must
+include Coulomb interactions, for instance {lj/cut/coul/long} with
+{kspace_style pppm}. For example, with a cutoff of 10. and a precision
+1.e-4:
 
 pair_style lj/cut/coul/long 10.0
 kspace_style pppm 1.0e-4 :pre
 
-As compared to the non-polarizable input file, you need to add {pair_coeff} lines for the DPs. 
-Since the DPs have no Lennard-Jones interactions, their {epsilon} is 0.
-So the only {pair_coeff} line you need to add is
+As compared to the non-polarizable input file, {pair_coeff} lines need
+to be added for the DPs.  Since the DPs have no Lennard-Jones
+interactions, their {epsilon} is 0. so the only {pair_coeff} line
+that needs to be added is
 
 pair_coeff * 6* 0.0 0.0 # All-DPs :pre
 
-Now for the thermalization, the simplest choice is to use the "fix langevin/drude"_fix_langevin_drude.html.
+Now for the thermalization, the simplest choice is to use the "fix
+langevin/drude"_fix_langevin_drude.html.
 
-fix LANG all langevin/drude 300. 100. 12435 1. 20. 13977 :pre
+fix LANG all langevin/drude 300. 100 12435 1. 20 13977 :pre
 
-This applies a Langevin thermostat at temperature 300. to the centers of mass of the DC-DP pairs, 
-with relaxation time 100. and with random seed 12345.
-This applies also a Langevin thermostat at temperature 1. to the relative motion of the DPs around their DCs, 
-with relaxation time 20. and random seed 13977. 
-Only the DCs and non-polarizable atoms need to be in the fix group. 
-LAMMPS will thermostate the DPs together with their DC.
-For this, ghost atoms need to know their velocities. Thus you need to add the following command:
+This applies a Langevin thermostat at temperature 300. to the centers
+of mass of the DC-DP pairs, with relaxation time 100 and with random
+seed 12345.  This fix applies also a Langevin thermostat at temperature
+1. to the relative motion of the DPs around their DCs, with relaxation
+time 20 and random seed 13977.  Only the DCs and non-polarizable
+atoms need to be in this fix's group.  LAMMPS will thermostate the DPs
+together with their DC.  For this, ghost atoms need to know their
+velocities. Thus you need to add the following command:
 
 comm_modify vel yes :pre
 
-If you want to avoid that the center of mass of the whole system drifts due to the random forces of the Langevin thermostat on DCs, 
-you can add the {zero yes} option at the end of the fix line.
-If you want to use the fix {shake} to constrain the C-H bonds, you should add it after the fix {langevin/drude} for more accuracy.
-Since the fix {langevin/drude} does not time-integrate (just forces modifications, no position/velocity updates), 
-the {nve} fix should be used in conjunction.
+If you want to avoid that the center of mass of the whole system
+drifts due to the random forces of the Langevin thermostat on DCs, you
+can add the {zero yes} option at the end of the fix line.  If you want
+to use the fix {shake} to constrain the C-H bonds, you should add it
+after the fix {langevin/drude} for more accuracy.  Since the fix
+{langevin/drude} does not perform time integration (just modification
+of forces but no position/velocity updates), the {nve} fix should be
+used in conjunction.
 
 fix NVE all nve :pre
 
-Finally, do not forget to update the atom type elements if you use them in a {dump_modify ... element ...} command,
-by adding the element type of the DPs. Here for instance
+Finally, do not forget to update the atom type elements if you use
+them in a {dump_modify ... element ...} command, by adding the element
+type of the DPs. Here for instance
 
 dump DUMP all custom 10 dump.lammpstrj id mol type element x y z ix iy iz
 dump_modify DUMP element C C O H H D D D :pre
 
-
 The input file should now be ready for use!
 
-You will notice that the global temperature {thermo_temp} computed by LAMMPS is not 300. K as wanted.
-This is because LAMMPS treats DPs as standard atoms in his default compute.
-If you want to output the temperatures of the DC-DP pair centers of mass and of the DPs relative to their DCs, you should
-use {thermo_style custom} with respectively {f_LANG\[1\]} and {f_LANG\[2\]}. These should be close to 300. and 1. on average.
+You will notice that the global temperature {thermo_temp} computed by
+LAMMPS is not 300. K as wanted.  This is because LAMMPS treats DPs as
+standard atoms in his default compute.  If you want to output the
+temperatures of the DC-DP pair centers of mass and of the DPs relative
+to their DCs, you should use {thermo_style custom} with respectively
+{f_LANG\[1\]} and {f_LANG\[2\]}. These should be close to 300. and
+1. on average.
 
 thermo_style custom step temp f_LANG\[1\] f_LANG\[2\] :pre
 
 :line
 [Thole screening]
 
-Standard dipole-dipole interactions are not stable in general.
-If the atomic polarizability is too high for instance, a DP can escape from its DC and be captured by another DC, 
-which makes the force and energy diverge and the simulation crash.
-Often, special bond relations prevent bonded neighbors to see the charge of each other's DP, 
-so that the problem does not always appear.
-It is possible to use screened dipole dipole interactions by using the "{pair_style thole}"_pair_thole.html.
-This is a correction to the coulomb pair_styles which stabilizes the interactions between those charges which represent dipoles.
-It is to be used as {hybrid/overlay} with any standard {coul} pair style.
-In our example, we would use
+Dipolar interactions represented by point charges on springs may not
+be stable, for example if the atomic polarizability is too high for
+instance, a DP can escape from its DC and be captured by another DC,
+which makes the force and energy diverge and the simulation
+crash. Even without reaching this extreme case, the correlation
+between nearby dipoles on the same molecule may be exagerated.  Often,
+special bond relations prevent bonded neighboring atoms to see the
+charge of each other's DP, so that the problem does not always appear.
+It is possible to use screened dipole dipole interactions by using the
+"{pair_style thole}"_pair_thole.html.  This is implemented as a
+correction to the Coulomb pair_styles, which dampens at short distance
+the interactions between the charges representing the induced dipoles.
+It is to be used as {hybrid/overlay} with any standard {coul} pair
+style.  In our example, we would use
 
 pair_style hybrid/overlay lj/cut/coul/long 10.0 thole 2.6 10.0 :pre
 
-This tells LAMMPS that we are using two pair_style. 
-The first one is as above ({lj/cut/coul/long 10.0}).
-The second one is a {thole} pair_style with screening factor 2.6 and cutoff 10.0.
+This tells LAMMPS that we are using two pair_styles.  The first one is
+as above ({lj/cut/coul/long 10.0}).  The second one is a {thole}
+pair_style with screening factor 2.6 and cutoff 10.0.
 
-Since {hybrid/overlay} does not support mixing rules, the interaction coefficients of all the pairs 
-of atom types with i < j should be explicitly defined.
-The output of the {polarizer} script can be used to complete the {pair_coeff} section of the input file.
-In our example, this will look like
+Since {hybrid/overlay} does not support mixing rules, the interaction
+coefficients of all the pairs of atom types with i < j should be
+explicitly defined.  The output of the {polarizer} script can be used
+to complete the {pair_coeff} section of the input file.  In our
+example, this will look like:
 
 pair_coeff    1    1 lj/cut/coul/long    0.0700   3.550
 pair_coeff    1    2 lj/cut/coul/long    0.0700   3.550
@@ -172,36 +205,44 @@ pair_coeff    8    8 thole     0.621     :pre
 
 For the {thole} pair style the coefficients are 
 
-the atom polarizability in cubic length unit
-the screening factor of the Thole function (optional, default defined by the pair_style command)
-the cutoff (optional, default defined by the pair_style command) :ol
+the atom polarizability in units of cubic length
+the screening factor of the Thole function (optional, default value specified by the pair_style command)
+the cutoff (optional, default value defined by the pair_style command) :ol
 
-The special neighbors have charge-charge and charge-dipole interactions screened by the {coul} factors 
-of the {special_bonds} command (0., 0., and 0.5 in the example above).
-Without using the pair_style {thole}, dipole-dipole interactions are screened by the same factor.
-By using the pair_style {thole}, dipole-dipole interactions are screened by Thole's function, whatever
-their special relationship (except inside the DC-DP pair of course). 
-Consider for example 1-2 neighbors: using the pair_style {thole}, their dipoles will see each other (despite the {coul} factor being 0)
-and the interactions between these dipoles will be stabilized by Thole's function.
+The special neighbors have charge-charge and charge-dipole
+interactions screened by the {coul} factors of the {special_bonds}
+command (0., 0., and 0.5 in the example above).  Without using the
+pair_style {thole}, dipole-dipole interactions are screened by the
+same factor.  By using the pair_style {thole}, dipole-dipole
+interactions are screened by Thole's function, whatever their special
+relationship (except within each DC-DP pair of course).  Consider for
+example 1-2 neighbors: using the pair_style {thole}, their dipoles
+will see each other (despite the {coul} factor being 0.) and the
+interactions between these dipoles will be damped by Thole's
+function.
 
 :line
 [Thermostats and barostats]
 
-Using a Nose-Hoover barostat with the {langevin/drude} thermostat is straightforward using fix {nph} instead of {nve}.
-For example:
+Using a Nose-Hoover barostat with the {langevin/drude} thermostat is
+straightforward using fix {nph} instead of {nve}.  For example:
 
-fix NPH all nph iso 1. 1. 500. :pre
+fix NPH all nph iso 1. 1. 500 :pre
 
-It is also possible to use a Nose-Hoover instead of Langevin thermostat.
-This requires to use the fixes "{drude/transform}"_drude_transform.html just before and after the time intergation fixes.
-The fixes {drude/transform/direct} converts the atomic mass, position, velocities and forces into a reduced 
-representation, where the DCs transform into the centers of mass of the DC-DP pairs and the DPs transform into their relative
-position with respect to their DC. The fix {drude/transform/inverse} does the same backwards.
-For a NVT simulation, with the DCs and atoms at 300 K and the DPs at 1 K relative to their DC one would use
+It is also possible to use a Nose-Hoover instead of a Langevin
+thermostat.  This requires to use "{fix
+drude/transform}"_fix_drude_transform.html just before and after the
+time intergation fixes.  The {fix drude/transform/direct} converts the
+atomic masses, positions, velocities and forces into a reduced
+representation, where the DCs transform into the centers of mass of
+the DC-DP pairs and the DPs transform into their relative position
+with respect to their DC. The {fix drude/transform/inverse} performs
+the reverse transformation.  For a NVT simulation, with the DCs and
+atoms at 300 K and the DPs at 1 K relative to their DC one would use
 
 fix DIRECT all drude/transform/direct
-fix NVT1 ATOMS nvt temp 300. 300. 100.
-fix NVT2 DRUDES nvt temp 1. 1. 20.
+fix NVT1 ATOMS nvt temp 300. 300. 100
+fix NVT2 DRUDES nvt temp 1. 1. 20
 fix INVERSE all drude/transform/inverse :pre
 
 For our phenol example, the groups would be defined as
@@ -210,67 +251,77 @@ group ATOMS  type 1 2 3 4 5 # DCs and non-polarizable atoms
 group CORES  type 1 2 3     # DCs
 group DRUDES type 6 7 8     # DPs :pre
 
-Note that with the fixes {drude/transform}, it is not required to specify {comm_modify vel yes} because the fixes do it anyway
-(several times and for the forces also).
-To avoid the flying ice cube artifact, where the atoms progressively freeze and the center of mass of the whole system drifts faster and faster, 
-the fix {momentum} can be used. For instance:
+Note that with the fixes {drude/transform}, it is not required to
+specify {comm_modify vel yes} because the fixes do it anyway (several
+times and for the forces also).  To avoid the flying ice cube artifact
+"(Lamoureux)"_#Lamoureux, where the atoms progressively freeze and the
+center of mass of the whole system drifts faster and faster, the {fix
+momentum} can be used. For instance:
 
 fix MOMENTUM all momentum 100 linear 1 1 1 :pre
 
-It is a bit more tricky to run a NPT simulation with Nose-Hoover barostat and thermostat.
-First, the volume should be integrated only once. So the fix for DCs and atoms should be {npt}
-while the fix for DPs should be {nvt} (or vice versa).
-Second, the fix {npt} computes a global pressure and thus a global temperature whatever the fix group.
-We do want the pressure to correspond to the whole system, but we want the temperature to correspond to the fix group only.
-We must then use the {fix_modify} command for this.
-In the end, the block of instructions for thermostating and barostating will look like
+It is a bit more tricky to run a NPT simulation with Nose-Hoover
+barostat and thermostat.  First, the volume should be integrated only
+once. So the fix for DCs and atoms should be {npt} while the fix for
+DPs should be {nvt} (or vice versa).  Second, the {fix npt} computes a
+global pressure and thus a global temperature whatever the fix group.
+We do want the pressure to correspond to the whole system, but we want
+the temperature to correspond to the fix group only.  We must then use
+the {fix_modify} command for this.  In the end, the block of
+instructions for thermostating and barostating will look like
 
 compute TATOMS ATOMS temp
 fix DIRECT all drude/transform/direct
-fix NPT ATOMS npt temp 300. 300. 100. iso 1. 1. 500.
+fix NPT ATOMS npt temp 300. 300. 100 iso 1. 1. 500
 fix_modify NPT temp TATOMS press thermo_press
-fix NVT DRUDES nvt temp 1. 1. 20.
+fix NVT DRUDES nvt temp 1. 1. 20
 fix INVERSE all drude/transform/inverse :pre
 
 :line
 [Rigid bodies]
 
-You may want to simulate phenol as a rigid body (but polarizable).
-Another common use case is the water model called SWM4-NDP, which is a kind of polarizable TIP4P.
-In this case, the rigid bodies and the DPs should be integrated separately, even with the Langevin thermostat.
-Let us review the different thermostats and ensemble combinations.
+You may want to simulate molecules as rigid bodies (but polarizable).
+Common cases are water models such as "SWM4-NDP"_#SWM4-NDP, which is a
+kind of polarizable TIP4P water.  The rigid bodies and the DPs should
+be integrated separately, even with the Langevin thermostat.  Let us
+review the different thermostats and ensemble combinations.
 
 NVT ensemble using Langevin thermostat:
 
-fix LANG all langevin/drude 300. 100. 12435 1. 20. 13977
+comm_modify vel yes
+fix LANG all langevin/drude 300. 100 12435 1. 20 13977
 fix RIGID ATOMS rigid/nve/small molecule
 fix NVE DRUDES nve :pre
 
 NVT ensemble using Nose-Hoover thermostat:
 
 fix DIRECT all drude/transform/direct
-fix RIGID ATOMS rigid/nvt/small molecule temp 300. 300. 100.
-fix NVT DRUDES nvt temp 1. 1. 20.
+fix RIGID ATOMS rigid/nvt/small molecule temp 300. 300. 100
+fix NVT DRUDES nvt temp 1. 1. 20
 fix INVERSE all drude/transform/inverse :pre
 
-NPT ensemble  with Langevin thermostat:
+NPT ensemble with Langevin thermostat:
 
-fix LANG all langevin/drude 300. 100. 12435 1. 20. 13977
-fix RIGID ATOMS rigid/nph/small molecule iso 1. 1. 500.
+comm_modify vel yes
+fix LANG all langevin/drude 300. 100 12435 1. 20 13977
+fix RIGID ATOMS rigid/nph/small molecule iso 1. 1. 500
 fix NVE DRUDES nve :pre
 
 NPT ensemble using Nose-Hoover thermostat:
 
 compute TATOM ATOMS temp
 fix DIRECT all drude/transform/direct
-fix RIGID ATOMS rigid/npt/small molecule temp 300. 300. 100. iso 1. 1. 500.
+fix RIGID ATOMS rigid/npt/small molecule temp 300. 300. 100 iso 1. 1. 500
 fix_modify RIGID temp TATOM press thermo_press
-fix NVT DRUDES nvt temp 1. 1. 20.
+fix NVT DRUDES nvt temp 1. 1. 20
 fix INVERSE all drude/transform/inverse :pre
 
 :line
 
+:link(Lamoureux)
+[(Lamoureux)] Lamoureux and Roux, J Chem Phys, 119, 3025-3039 (2003)
 
-
-
+:link(SWM4-NDP)
+[(SWM4-NDP)] Lamoureux, Harder, Vorobyov, Roux, MacKerell, Chem Phys
+Let, 418, 245-249 (2006)
 
