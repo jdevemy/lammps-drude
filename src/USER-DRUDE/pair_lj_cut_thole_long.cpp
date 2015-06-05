@@ -141,6 +141,7 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
       factor_lj = special_lj[sbmask(j)];
       factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
+      if (drudetype[type[i]] && j == di_closest) continue;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -179,18 +180,16 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
           }
           
           if (drudetype[type[i]] && drudetype[type[j]]){
-            if (j != di_closest){
-              if (drudetype[type[j]] == 1){
-                dj = atom->map(drudeid[j]);
-                dqj = -q[dj];
-              } else dqj = qj;
-              asr = ascreen[type[i]][type[j]] * r;
-              exp_asr = exp(-asr);
-              dcoul = qqrd2e * dqi * dqj / r;
-              factor_f = 0.5*(2. + (exp_asr * (-2. - asr * (2. + asr)))) - factor_coul;
-              if (eflag) factor_e = 0.5*(2. - (exp_asr * (2. + asr))) - factor_coul;
-              forcecoul += factor_f * dcoul;
-            } 
+            if (drudetype[type[j]] == 1){
+              dj = atom->map(drudeid[j]);
+              dqj = -q[dj];
+            } else dqj = qj;
+            asr = ascreen[type[i]][type[j]] * r;
+            exp_asr = exp(-asr);
+            dcoul = qqrd2e * dqi * dqj / r;
+            factor_f = 0.5*(2. + (exp_asr * (-2. - asr * (2. + asr)))) - factor_coul;
+            if (eflag) factor_e = 0.5*(2. - (exp_asr * (2. + asr))) - factor_coul;
+            forcecoul += factor_f * dcoul;
           }
         } else forcecoul = 0.0;
 
