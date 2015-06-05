@@ -184,7 +184,7 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
                 dj = atom->map(drudeid[j]);
                 dqj = -q[dj];
               } else dqj = qj;
-              asr = ascreen[i][j] * r;
+              asr = ascreen[type[i]][type[j]] * r;
               exp_asr = exp(-asr);
               dcoul = qqrd2e * dqi * dqj / r;
               factor_f = 0.5*(2. + (exp_asr * (-2. - asr * (2. + asr)))) - factor_coul;
@@ -631,7 +631,7 @@ double PairLJCutTholeLong::single(int i, int j, int itype, int jtype,
           dj = atom->map(drudeid[j]);
           dqj = -atom->q[dj];
         } else if (drudetype[j] == 2) dqj = atom->q[j];
-        asr = ascreen[i][j] * r; // = thole[itype][jtype] / pow(polar[itype][jtype], 1./3.);
+        asr = ascreen[itype][jtype] * r;
         exp_asr = exp(-asr);
         dcoul = force->qqrd2e * dqi * dqj / r;
         factor_f = 0.5*(2. + (exp_asr * (-2. - asr * (2. + asr)))) - factor_coul;
