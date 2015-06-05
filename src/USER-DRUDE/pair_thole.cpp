@@ -41,6 +41,7 @@ PairThole::~PairThole()
     memory->destroy(cutsq);
     memory->destroy(polar);
     memory->destroy(thole);
+    memory->destroy(ascreen);
     memory->destroy(cut);
     memory->destroy(scale);
   }
@@ -54,8 +55,9 @@ void PairThole::compute(int eflag, int vflag)
   double qi,qj,xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair;
   double r,rsq,r2inv,rinv,forcecoul,factor_coul;
   int *ilist,*jlist,*numneigh,**firstneigh;
-  double factor_f,factor_e,a_screen;
+  double factor_f,factor_e;
   int di,dj;
+  double dcoul,asr,exp_asr;
 
   ecoul = 0.0;
   if (eflag || vflag) ev_setup(eflag,vflag);
@@ -128,11 +130,12 @@ void PairThole::compute(int eflag, int vflag)
         rinv = sqrt(r2inv);
 
         r = sqrt(rsq);
-        a_screen = thole[itype][jtype] / pow(polar[itype][jtype], 1./3.);
-        factor_f = 0.5*(2 + (exp(-a_screen * r) * (-2 - a_screen*r * (2 + a_screen*r)))) - factor_coul;
-        factor_e = 0.5*(2 - (exp(-a_screen * r) * (2 + a_screen*r))) - factor_coul;
-        forcecoul = qqrd2e * scale[itype][jtype] * qi*qj*rinv;
-        fpair = factor_f*forcecoul * r2inv;
+        asr = ascreen[itype][jtype] * r;
+        exp_asr = exp(-asr);
+        dcoul = qqrd2e * qi * qj *scale[itype][jtype] * rinv;
+        factor_f = 0.5*(2. + (exp_asr * (-2. - asr * (2. + asr)))) - factor_coul;
+        if(eflag) factor_e = 0.5*(2. - (exp_asr * (2. + asr))) - factor_coul;
+        fpair = factor_f * dcoul * r2inv;
 
         f[i][0] += delx*fpair;
         f[i][1] += dely*fpair;
@@ -144,7 +147,7 @@ void PairThole::compute(int eflag, int vflag)
         }
 
         if (eflag)
-          ecoul = factor_e * qqrd2e * scale[itype][jtype] * qi*qj*rinv;
+          ecoul = factor_e * dcoul;
 
         if (evflag) ev_tally(i,j,nlocal,newton_pair,
                              0.0,ecoul,fpair,delx,dely,delz);
@@ -173,6 +176,7 @@ void PairThole::allocate()
 
   memory->create(cut,n+1,n+1,"pair:cut");
   memory->create(scale,n+1,n+1,"pair:scale");
+  memory->create(ascreen,n+1,n+1,"pair:ascreen");
   memory->create(thole,n+1,n+1,"pair:thole");
   memory->create(polar,n+1,n+1,"pair:polar");
 }
@@ -226,6 +230,7 @@ void PairThole::coeff(int narg, char **arg)
     for (int j = MAX(jlo,i); j <= jhi; j++) {
       polar[i][j] = polar_one;
       thole[i][j] = thole_one;
+      ascreen[i][j] = thole[i][j] / pow(polar[i][j], 1./3.);
       cut[i][j] = cut_one;
       scale[i][j] = 1.0;
       setflag[i][j] = 1;
@@ -260,6 +265,7 @@ double PairThole::init_one(int i, int j)
 
   polar[j][i] = polar[i][j];
   thole[j][i] = thole[i][j];
+  ascreen[j][i] = ascreen[i][j];
   scale[j][i] = scale[i][j];
 
   return cut[i][j];
@@ -301,13 +307,15 @@ void PairThole::read_restart(FILE *fp)
       if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-          if (me == 0) {
-            fread(&polar[i][j],sizeof(double),1,fp);
-            fread(&thole[i][j],sizeof(double),1,fp);
-            fread(&cut[i][j],sizeof(double),1,fp);
+        if (me == 0) {
+          fread(&polar[i][j],sizeof(double),1,fp);
+          fread(&thole[i][j],sizeof(double),1,fp);
+          fread(&cut[i][j],sizeof(double),1,fp);
+          ascreen[i][j] = thole[i][j] / pow(polar[i][j], 1./3.);
           }
         MPI_Bcast(&polar[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&thole[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&ascreen[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
@@ -350,7 +358,7 @@ double PairThole::single(int i, int j, int itype, int jtype,
                          double &fforce)
 {
   double r2inv,rinv,r,forcecoul,phicoul;
-  double qi,qj,factor_f,factor_e,a_screen;
+  double qi,qj,factor_f,factor_e,dcoul,asr,exp_asr;
   int di, dj;
 
   int *drudetype = atom->drudetype;
@@ -379,16 +387,17 @@ double PairThole::single(int i, int j, int itype, int jtype,
   if (rsq < cutsq[itype][jtype]) {
     rinv = sqrt(r2inv);
     r = sqrt(rsq);
-    a_screen = thole[itype][jtype] / pow(polar[itype][jtype], 1./3.);
-    factor_f = 0.5*(2 + (exp(-a_screen * r) *
-                         (-2 - a_screen*r * (2 + a_screen*r)))) - factor_coul;
-    forcecoul = force->qqrd2e * qi*qj*rinv;
+    asr = ascreen[itype][jtype] * r;
+    exp_asr = exp(-asr);
+    dcoul = force->qqrd2e * qi * qj * rinv;
+    factor_f = 0.5*(2. + (exp_asr * (-2. - asr * (2. + asr)))) - factor_coul;
+    forcecoul += factor_f * dcoul;
+    factor_e = 0.5*(2. - (exp_asr * (2. + asr))) - factor_coul; 
   } else forcecoul= 0.0;
   fforce = factor_f*forcecoul * r2inv;
 
   if (rsq < cutsq[itype][jtype]) {
-    factor_e = 0.5*(2 - (exp(-a_screen * r) * (2 + a_screen*r))) - factor_coul;
-    phicoul = factor_e * force->qqrd2e * qi*qj*rinv;
+    phicoul = factor_e * dcoul;
   } else phicoul = 0.0;
 
   return phicoul;
@@ -398,9 +407,10 @@ double PairThole::single(int i, int j, int itype, int jtype,
 
 void *PairThole::extract(const char *str, int &dim)
 {
-  dim = 2;
+  dim = 4;
   if (strcmp(str,"scale") == 0) return (void *) scale;
   if (strcmp(str,"polar") == 0) return (void *) polar;
   if (strcmp(str,"thole") == 0) return (void *) thole;
+  if (strcmp(str,"ascreen") == 0) return (void *) ascreen;
   return NULL;
 }
