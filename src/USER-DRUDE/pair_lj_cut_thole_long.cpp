@@ -37,12 +37,13 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 
 #define EWALD_F   1.12837917
-#define EWALD_P   0.3275911
-#define A1        0.254829592
-#define A2       -0.284496736
-#define A3        1.421413741
-#define A4       -1.453152027
-#define A5        1.061405429
+#define EWALD_P   9.95473818e-1
+#define B0       -0.1335096380159268
+#define B1       -2.57839507e-1
+#define B2       -1.37203639e-1
+#define B3       -8.88822059e-3
+#define B4       -5.80844129e-3
+#define B5        1.14652755e-1
 
 /* ---------------------------------------------------------------------- */
 
@@ -86,7 +87,7 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
   double qi,qj,xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair,evdwl;
   double r,rsq,r2inv,forcecoul,factor_coul,forcelj,factor_lj,r6inv;
   double fraction,table;
-  double grij,expm2,prefactor,t,erfc;
+  double grij,expm2,prefactor,t,erfc,u;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double factor_f,factor_e;
   int di,dj;
@@ -113,9 +114,8 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-
+  
   // loop over neighbors of my atoms
-
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     qi = q[i];
@@ -141,7 +141,6 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
       factor_lj = special_lj[sbmask(j)];
       factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
-      if (drudetype[type[i]] && j == di_closest) continue;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
@@ -160,7 +159,8 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
             grij = g_ewald * r;
             expm2 = exp(-grij*grij);
             t = 1.0 / (1.0 + EWALD_P*grij);
-            erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+            u = 1. - t;
+            erfc = t * (1.+u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
             prefactor = qqrd2e * qi*qj/r;
             forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
             if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
@@ -180,16 +180,18 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
           }
           
           if (drudetype[type[i]] && drudetype[type[j]]){
-            if (drudetype[type[j]] == 1){
-              dj = atom->map(drudeid[j]);
-              dqj = -q[dj];
-            } else dqj = qj;
-            asr = ascreen[type[i]][type[j]] * r;
-            exp_asr = exp(-asr);
-            dcoul = qqrd2e * dqi * dqj / r;
-            factor_f = 0.5*(2. + (exp_asr * (-2. - asr * (2. + asr)))) - factor_coul;
-            if (eflag) factor_e = 0.5*(2. - (exp_asr * (2. + asr))) - factor_coul;
-            forcecoul += factor_f * dcoul;
+            if (j != di_closest){
+              if (drudetype[type[j]] == 1){
+                dj = atom->map(drudeid[j]);
+                dqj = -q[dj];
+              } else dqj = qj;
+              asr = ascreen[type[i]][type[j]] * r;
+              exp_asr = exp(-asr);
+              dcoul = qqrd2e * dqi * dqj / r;
+              factor_f = 0.5*(2. + (exp_asr * (-2. - asr * (2. + asr)))) - factor_coul;
+              if (eflag) factor_e = 0.5*(2. - (exp_asr * (2. + asr))) - factor_coul;
+              forcecoul += factor_f * dcoul;
+            }
           }
         } else forcecoul = 0.0;
 
@@ -235,7 +237,7 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
       }
     }
   }
-
+  
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
@@ -584,7 +586,7 @@ double PairLJCutTholeLong::single(int i, int j, int itype, int jtype,
                                  double rsq, double factor_coul, double factor_lj,
                                  double &fforce)
 {
-  double r2inv,r6inv,r,grij,expm2,t,erfc,prefactor;
+  double r2inv,r6inv,r,grij,expm2,t,erfc,prefactor,u;
   double fraction,table,forcecoul,forcelj,phicoul,philj;
   int itable;
   double factor_f,factor_e;
@@ -602,7 +604,8 @@ double PairLJCutTholeLong::single(int i, int j, int itype, int jtype,
       grij = g_ewald * r;
       expm2 = exp(-grij*grij);
       t = 1.0 / (1.0 + EWALD_P*grij);
-      erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
+      u = 1. - t;
+      erfc = t * (1.+u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
       prefactor = force->qqrd2e * atom->q[i]*atom->q[j]/r;
       forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
       if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
