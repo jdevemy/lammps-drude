@@ -37,10 +37,7 @@ or 2 (Drude particle).
 
 """
 
-import sys
 import argparse
-import random
-from copy import deepcopy
 
 
 # keywords of header and main sections (from data.py in Pizza.py)
@@ -92,8 +89,8 @@ def bondline(bd):
 # --------------------------------------
 
 
-class Data:
-    
+class Data(object):
+
     def __init__(self, datafile):
         '''read LAMMPS data file (from data.py in Pizza.py)'''
 
@@ -102,7 +99,7 @@ class Data:
         self.bondtypes = []
         self.atoms = []
         self.bonds = []
-        
+
         self.nselect = 1
 
         f = open(datafile, "r")
@@ -132,7 +129,7 @@ class Data:
                         headers[keyword] = int(words[0])
             if not found:
                 break
-    
+
         sections = {}
         while 1:
             if len(line) > 0:
@@ -146,7 +143,7 @@ class Data:
                                                " header value".format(line))
                         f.readline()
                         list_data = []
-                        for i in range(headers[length]):
+                        for _ in range(headers[length]):
                             list_data.append(f.readline())
                         sections[keyword] = list_data
                 if not found:
@@ -159,11 +156,11 @@ class Data:
             if '#' in line:
                 line = line[:line.index('#')]
             line = line.strip()
-        
+
         f.close()
         self.headers = headers
         self.sections = sections
-        
+
     def write(self, filename):
         '''write out a LAMMPS data file (from data.py in Pizza.py)'''
 
@@ -184,7 +181,7 @@ class Data:
                                 keyword + '\n')
             for pair in skeywords:
                 keyword = pair[0]
-                if keyword == "Drude Types": 
+                if keyword == "Drude Types":
                     continue
                 if keyword in self.sections:
                     f.write("\n{}\n\n".format(keyword))
@@ -193,7 +190,7 @@ class Data:
 
     def extract(self):
         """extract atom IDs, bond types and atoms from data"""
-        
+
         # extract atom IDs
         for line in self.sections['Masses']:
             tok = line.split()
@@ -214,7 +211,7 @@ class Data:
                 continue
             if self.atomtypes[itype]['id'] != int(tok[0]):
                 print("warning: Drude Types or Masses are in wrong order")
-            self.atomtypes[itype]['dflag'] = int(tok[1]) 
+            self.atomtypes[itype]['dflag'] = int(tok[1])
 
         # extract bond type data
         for line in self.sections['Bond Coeffs']:
@@ -256,7 +253,7 @@ class Data:
         """remove Drude particles"""
 
         self.extract()
-        
+
         atom_tp_map = {}
         bond_tp_map = {}
         atom_map = {}
@@ -281,7 +278,7 @@ class Data:
                     bond_tp_map[bond['id']] = len(bond_tp_map) + 1
             else:
                 if bond['i'] in atom_map:
-                    q[bond['i']] += q[bond['j']] 
+                    q[bond['i']] += q[bond['j']]
                     if atom_tp[bond['j']] in m:
                         m[atom_tp[bond['i']]] += m.pop(atom_tp[bond['j']])
                 else:
@@ -327,19 +324,14 @@ class Data:
                 bond['i'] = atom_map[bond['i']]
                 bond['j'] = atom_map[bond['j']]
 
-        natom = self.headers['atoms'] = len(self.atoms)
-        nbond = self.headers['bonds'] = len(self.bonds)
-        nattype = self.headers['atom types'] = len(self.atomtypes)
-        nbdtype = self.headers['bond types'] = len(self.bondtypes)
-
         self.sections['Atoms'] = []
         for atom in self.atoms:
-            self.sections['Atoms'].append(atomline(atom))        
+            self.sections['Atoms'].append(atomline(atom))
         self.sections['Masses'] = []
-        for att in self.atomtypes:                  
+        for att in self.atomtypes:
             self.sections['Masses'].append(massline(att))
         self.sections['Bonds'] = []
-        for bond in self.bonds:                  
+        for bond in self.bonds:
             self.sections['Bonds'].append(bondline(bond))
         self.sections['Bond Coeffs'] = []
         for bdt in self.bondtypes:

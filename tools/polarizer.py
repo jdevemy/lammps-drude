@@ -65,7 +65,7 @@ skeywords = [["Masses", "atom types"],
              ["AngleAngleTorsion Coeffs", "dihedral types"],
              ["BondBond13 Coeffs", "dihedral types"],
              ["AngleAngle Coeffs", "improper types"],
-             ["Atoms", "atoms"],  ["Velocities", "atoms"],
+             ["Atoms", "atoms"], ["Velocities", "atoms"],
              ["Ellipsoids", "ellipsoids"],
              ["Lines", "lines"], ["Triangles", "triangles"],
              ["Bodies", "bodies"],
@@ -100,8 +100,8 @@ def velline(at):
 # --------------------------------------
 
 
-class Data:
-    
+class Data(object):
+
     def __init__(self, datafile):
         '''read LAMMPS data file (from data.py in Pizza.py)'''
 
@@ -111,7 +111,7 @@ class Data:
         self.atoms = []
         self.bonds = []
         self.idmap = {}
-        
+
         self.nselect = 1
 
         f = open(datafile, "r")
@@ -141,7 +141,7 @@ class Data:
                         headers[keyword] = int(words[0])
             if not found:
                 break
-    
+
         sections = {}
         while 1:
             if len(line) > 0:
@@ -154,10 +154,10 @@ class Data:
                             raise RuntimeError("data section {} "\
                                   "has no matching header value".format(line))
                         f.readline()
-                        list = []
-                        for i in range(headers[length]):
-                            list.append(f.readline())
-                        sections[keyword] = list
+                        list_ = []
+                        for _ in range(headers[length]):
+                            list_.append(f.readline())
+                        sections[keyword] = list_
                 if not found:
                     raise RuntimeError("invalid section {} in data"\
                                        " file".format(line))
@@ -168,11 +168,11 @@ class Data:
             if '#' in line:
                 line = line[:line.index('#')]
             line = line.strip()
-        
+
         f.close()
         self.headers = headers
         self.sections = sections
-        
+
     def write(self, filename):
         '''write out a LAMMPS data file (from data.py in Pizza.py)'''
 
@@ -202,7 +202,7 @@ class Data:
 
     def extract_nonpol(self):
         """extract atom and bond info from nonpolarizable data"""
-        
+
         # extract atom IDs
         missinglabels = False
         for line in self.sections['Masses']:
@@ -220,7 +220,7 @@ class Data:
 
         if missinglabels:
             sys.exit(0)
-            
+
         # extract atom registers
         for line in self.sections['Atoms']:
             tok = line.split()
@@ -281,7 +281,7 @@ class Data:
         for att in self.atomtypes + newattypes:
             self.sections['Masses'].append(massline(att))
             self.sections['Drude Types'].append(drudeline(att))
-            
+
         # create new bond types for core-drude bonds
         newbdtypes = []
         for att in self.atomtypes:
@@ -318,13 +318,13 @@ class Data:
                     self.idmap[natom] = newatom
                     newatom['id'] = ddt['id']
                     newatom['q'] = ddt['dq']
-                    newatom['note'] = atom['note'] 
+                    newatom['note'] = atom['note']
                     if '#' not in newatom['note']:
                         newatom['note'] += ' #'
                     newatom['note'] += ' DP'
                     newatom['dflag'] = 2
                     newatom['dd'] = atom['n']
-                    
+
                     # avoid superposition of cores and Drudes
                     newatom['x'] += 0.1 * (random.random() - 0.5)
                     newatom['y'] += 0.1 * (random.random() - 0.5)
@@ -333,14 +333,15 @@ class Data:
                         newatom['vx'] = atom['vx']
                         newatom['vy'] = atom['vy']
                         newatom['vz'] = atom['vz']
-                    
+
                     newatoms.append(newatom)
                     atom['q'] -= ddt['dq']
                     atom['dflag'] = 1
                     atom['dd'] = natom
-                    if '#' not in atom['note']: atom['note'] += ' #'
+                    if '#' not in atom['note']:
+                        atom['note'] += ' #'
                     atom['note'] += ' DC'
-                                
+
                     nbond += 1
                     newbond = {}
                     newbond['n'] = nbond
@@ -348,15 +349,15 @@ class Data:
                     newbond['i'] = atom['n']
                     newbond['j'] = newatom['n']
                     newbond['note'] = '# ' + ddt['type'] + '-DP'
-                    newbonds.append(newbond) 
+                    newbonds.append(newbond)
                     break
-            
+
         self.headers['atoms'] += len(newatoms)
         self.headers['bonds'] += len(newbonds)
         self.sections['Atoms'] = []
         for atom in self.atoms + newatoms:
-            self.sections['Atoms'].append(atomline(atom))        
-        for bond in newbonds:                  
+            self.sections['Atoms'].append(atomline(atom))
+        for bond in newbonds:
             self.sections['Bonds'].append(bondline(bond))
         if 'Velocities' in self.sections:
             self.sections['Velocities'] = []
@@ -370,7 +371,7 @@ class Data:
 
     def extract_pol(self):
         """extract atom, drude, bonds info from polarizable data"""
-        
+
         # extract atom IDs
         for line in self.sections['Masses']:
             tok = line.split()
@@ -381,7 +382,7 @@ class Data:
                 atomtype['type'] = tok[3]
             else:
                 atomtype['type'] = ""
-            self.atomtypes.append(atomtype)            
+            self.atomtypes.append(atomtype)
 
         # extract atom drude types
         for itype, line in enumerate(self.sections['Drude Types']):
@@ -391,7 +392,7 @@ class Data:
                 continue
             if self.atomtypes[itype]['id'] != int(tok[0]):
                 print("warning: Drude Types or Masses are in wrong order")
-            self.atomtypes[itype]['dflag'] = int(tok[1]) 
+            self.atomtypes[itype]['dflag'] = int(tok[1])
 
         # extract bond type data
         for line in self.sections['Bond Coeffs']:
@@ -428,7 +429,7 @@ class Data:
                 atom['vx'] = float(tok[1])
                 atom['vy'] = float(tok[2])
                 atom['vz'] = float(tok[3])
-                
+
         # extract bond data
         for line in self.sections['Bonds']:
             tok = line.split()
@@ -448,12 +449,12 @@ class Data:
                 atom['vy'] = float(tok[2])
                 atom['vz'] = float(tok[3])
 
-            
+
     def depolarize(self):
         """remove Drude particles"""
 
         self.extract_pol()
-        
+
         atom_tp_map = {}
         bond_tp_map = {}
         atom_map = {}
@@ -478,7 +479,7 @@ class Data:
                     bond_tp_map[bond['id']] = len(bond_tp_map) + 1
             else:
                 if bond['i'] in atom_map:
-                    q[bond['i']] += q[bond['j']] 
+                    q[bond['i']] += q[bond['j']]
                     if atom_tp[bond['j']] in m:
                         m[atom_tp[bond['i']]] += m.pop(atom_tp[bond['j']])
                 else:
@@ -524,19 +525,14 @@ class Data:
                 bond['i'] = atom_map[bond['i']]
                 bond['j'] = atom_map[bond['j']]
 
-        natom = self.headers['atoms'] = len(self.atoms)
-        nbond = self.headers['bonds'] = len(self.bonds)
-        nattype = self.headers['atom types'] = len(self.atomtypes)
-        nbdtype = self.headers['bond types'] = len(self.bondtypes)
-
         self.sections['Atoms'] = []
         for atom in self.atoms:
             self.sections['Atoms'].append(atomline(atom))
         self.sections['Masses'] = []
-        for att in self.atomtypes:                  
+        for att in self.atomtypes:
             self.sections['Masses'].append(massline(att))
         self.sections['Bonds'] = []
-        for bond in self.bonds:                  
+        for bond in self.bonds:
             self.sections['Bonds'].append(bondline(bond))
         self.sections['Bond Coeffs'] = []
         for bdt in self.bondtypes:
@@ -549,7 +545,7 @@ class Data:
 
         del self.sections['Drude Types']
 
- 
+
     def thole(self, drude, outfile, thole = 2.6, cutoff = 12.0):
         """print lines for pair_style thole"""
 
@@ -620,7 +616,7 @@ eV   = 96.485                           # kJ/mol
 fpe0 =  0.000719756                     # (4 Pi eps0) in e^2/(kJ/mol A)
 
 
-class Drude:
+class Drude(object):
     """specification of drude oscillator types"""
 
     def __init__(self, drudefile, polar = '', positive = False, metal = False):
@@ -643,7 +639,7 @@ class Drude:
                     dq = (fpe0 * k * alpha)**0.5
                 elif polar == 'k':
                     k = dq*dq / (fpe0 * alpha)
-                
+
                 if positive:
                     drude['dq'] = abs(dq)
                 else:
@@ -653,7 +649,7 @@ class Drude:
                     drude['k'] = k / (2.0 * eV)
                 else:
                     drude['k'] = k / (2.0 * kcal)
-                    
+
                 self.types.append(drude)
 
 
@@ -703,6 +699,6 @@ def main():
     else:
         data.depolarize()
     data.write(args.outfile)
-                                    
+
 if __name__ == '__main__':
     main()
