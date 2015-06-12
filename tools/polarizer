@@ -248,6 +248,10 @@ class Data(object):
     def polarize(self, drude):
         """add Drude particles"""
 
+        if 'Pair Coeffs' in self.sections:
+            raise RuntimeError("cannot polarize a data with"\
+                               " Pair Coeffs")
+
         self.extract_nonpol()
 
         natom = self.headers['atoms']
