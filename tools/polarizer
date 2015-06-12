@@ -420,9 +420,10 @@ class Data(object):
             atom['y'] = float(tok[5])
             atom['z'] = float(tok[6])
             # atom['note'] = ''.join([s + ' ' for s in tok[7:-1]]).strip()
-            atom['note'] = ' '.join(tok[7:])
-            if tok[-1] != 'DC':
-                atom['note'] += ' ' + tok[-1]
+            if tok[-1] == 'DC':
+              atom['note'] = ' '.join(tok[7:-1])
+            else:
+              atom['note'] = ' '.join(tok[7:])
             self.atoms.append(atom)
             self.idmap[atom['n']] = atom
 
@@ -532,15 +533,19 @@ class Data(object):
         self.sections['Atoms'] = []
         for atom in self.atoms:
             self.sections['Atoms'].append(atomline(atom))
+        self.headers['atoms'] = len(self.atoms)
         self.sections['Masses'] = []
         for att in self.atomtypes:
             self.sections['Masses'].append(massline(att))
+        self.headers['atom types'] = len(self.atomtypes)
         self.sections['Bonds'] = []
         for bond in self.bonds:
             self.sections['Bonds'].append(bondline(bond))
+        self.headers['bonds'] = len(self.bonds)
         self.sections['Bond Coeffs'] = []
         for bdt in self.bondtypes:
             self.sections['Bond Coeffs'].append(bdtline(bdt))
+        self.headers['bond types'] = len(self.bondtypes)
 
         if 'Velocities' in self.sections:
             self.sections['Velocities'] = []
