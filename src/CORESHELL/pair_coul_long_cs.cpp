@@ -35,16 +35,13 @@
 using namespace LAMMPS_NS;
 
 #define EWALD_F   1.12837917
-#define EWALD_P   0.3275911
-#define A1        0.254829592
-#define A2       -0.284496736
-#define A3        1.421413741
-#define A4       -1.453152027
-#define A5        1.061405429
-
-#define EPSILON 1.0e-20
-#define EPS_EWALD 1.0e-6
-#define EPS_EWALD_SQR 1.0e-12
+#define EWALD_P   9.95473818e-1
+#define B0       -0.1335096380159268
+#define B1       -2.57839507e-1
+#define B2       -1.37203639e-1
+#define B3       -8.88822059e-3
+#define B4       -5.80844129e-3
+#define B5        1.14652755e-1
 
 /* ---------------------------------------------------------------------- */
 
@@ -58,7 +55,7 @@ void PairCoulLongCS::compute(int eflag, int vflag)
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair;
   double fraction,table;
   double r,r2inv,forcecoul,factor_coul;
-  double grij,expm2,prefactor,t,erfc;
+  double grij,expm2,prefactor,t,erfc,u;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double rsq;
 
@@ -104,28 +101,18 @@ void PairCoulLongCS::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cut_coulsq) {
-        rsq += EPSILON;         // add eps for the case r = 0
         r2inv = 1.0/rsq;
+        r = sqrt(rsq);
         if (!ncoultablebits || rsq <= tabinnersq) {
-          r = sqrt(rsq);
           prefactor = qqrd2e * scale[itype][jtype] * qtmp*q[j];
-          if (factor_coul < 1.0) {    
-            grij = g_ewald * (r + EPS_EWALD); // add eps for Ewald
-            expm2 = exp(-grij*grij);
-            t = 1.0 / (1.0 + EWALD_P*grij);
-            erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-            prefactor /= (r + EPS_EWALD);
-            forcecoul = prefactor * (erfc + EWALD_F*grij*expm2 -
-                                     (1.0-factor_coul));
-            r2inv = 1.0/(rsq + EPS_EWALD_SQR); // add eps^2 for force
-          } else {
-            grij = g_ewald * r;
-            expm2 = exp(-grij*grij);
-            t = 1.0 / (1.0 + EWALD_P*grij);
-            erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
-            prefactor /= r;
-            forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-          }
+          grij = g_ewald * r;
+          expm2 = exp(-grij*grij);
+          t = 1.0 / (1.0 + EWALD_P*grij);
+	  u = 1. - t;
+          erfc = t * (1.+u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
+          prefactor /= r;
+          forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+          if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
         } else {
           union_int_float_t rsq_lookup;
           rsq_lookup.f = rsq;
