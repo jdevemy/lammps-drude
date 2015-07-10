@@ -189,6 +189,9 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 
 Atom::~Atom()
 {
+  if (style_match("drude") != NULL) {
+    delete [] drudetype;
+  }
   delete [] atom_style;
   delete avec;
 
@@ -297,7 +300,6 @@ Atom::~Atom()
 
   delete [] mass;
   delete [] mass_setflag;
-  delete [] drudetype;
 
   // delete extra arrays
 
@@ -1258,7 +1260,7 @@ void Atom::allocate_type_arrays()
     mass_setflag = new int[ntypes+1];
     for (int itype = 1; itype <= ntypes; itype++) mass_setflag[itype] = 0;
   }
-  if (atom->style_match("drude") != NULL) {
+  if (style_match("drude") != NULL) {
     drudetype = new int[ntypes+1];
   }
 }
