@@ -16,7 +16,7 @@
 #include "special.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "atom_vec_drude.h"
+#include "fix_drude.h"
 #include "force.h"
 #include "comm.h"
 #include "accelerator_kokkos.h"
@@ -1141,13 +1141,13 @@ void Special::rebuild_drude(){
   int nlocal = atom->nlocal;
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
-  int *drudetype = atom->drudetype;
+  int *drudetype = fix_drude->drudetype;
   int *type = atom->type;
-  tagint *drudeid = atom->drudeid;
+  tagint *drudeid = fix_drude->drudeid;
 
   // Check if atom_style drude is used
-  AtomVecDrude *avec_drude = (AtomVecDrude *) atom->style_match("drude");
-  if (!avec_drude) return;
+  FixDrude *fix_drude = modify->find_fix("drude");
+  if (!fix_drude) return;
 
   // Make sure that drude partners know each other
   avec_drude->build_drudeid();
@@ -1229,7 +1229,7 @@ void Special::ring_remove_drude(int size, char *cbuf){
   int nlocal = atom->nlocal;
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
-  tagint *drudetype = atom->drudetype;
+  tagint *drudetype = fix_drude->drudetype;
   int *type = atom->type;
   tagint *first = (tagint *) cbuf;
   tagint *last = first + size;
@@ -1266,9 +1266,9 @@ void Special::ring_add_drude(int size, char *cbuf){
   int nlocal = atom->nlocal;
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
-  int *drudetype = atom->drudetype;
+  int *drudetype = fix_drude->drudetype;
   int *type = atom->type;
-  tagint *drudeid = atom->drudeid;
+  tagint *drudeid = fix_drude->drudeid;
   
   tagint *first = (tagint *) cbuf;
   tagint *last = first + size;
@@ -1321,9 +1321,9 @@ void Special::ring_copy_drude(int size, char *cbuf){
   int nlocal = atom->nlocal;
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
-  int *drudetype = atom->drudetype;
+  int *drudetype = fix_drude->drudetype;
   int *type = atom->type;
-  tagint *drudeid = atom->drudeid;
+  tagint *drudeid = fix_drude->drudeid;
   
   tagint *first = (tagint *) cbuf;
   tagint *last = first + size;

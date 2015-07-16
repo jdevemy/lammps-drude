@@ -21,6 +21,7 @@ ComputeStyle(temp/drude,ComputeTempDrude)
 #define LMP_COMPUTE_TEMP_DRUDE_H
 
 #include "compute.h"
+#include "fix_drude.h"
 
 namespace LAMMPS_NS {
 
@@ -42,6 +43,7 @@ class ComputeTempDrude : public Compute {
   int fix_dof;
   double tfactor;
   int maxatom;
+  FixDrude * fix_drude;
 
   void dof_compute();
 

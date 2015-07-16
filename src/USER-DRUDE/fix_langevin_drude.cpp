@@ -106,6 +106,7 @@ FixLangevinDrude::FixLangevinDrude(LAMMPS *lmp, int narg, char **arg) :
 
   tflag = 0; // no external compute/temp is specified yet (for bias)
   energy = 0.;
+  fix_drude = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -149,6 +150,9 @@ void FixLangevinDrude::init()
     else error->all(FLERR,"Variable for fix langevin/drude is invalid style");
   }
 
+  fix_drude = modify->find_fix("drude");
+  if (!fix_drude) error->warning(FLERR, "Fix drude/transform called without atom_style drude");
+
   // TODO: allow bias
   //if (temperature->tempbias) which = BIAS; // only for core
   //else which = NOBIAS;
@@ -166,7 +170,7 @@ void FixLangevinDrude::setup(int vflag)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int fix_dof = 0;
-  int *drudetype = atom->drudetype; 
+  int *drudetype = fix_drude->drudetype; 
   int *type = atom->type;
   int dim = domain->dimension;
 
@@ -221,8 +225,8 @@ void FixLangevinDrude::langevin(int /*vflag*/, bool thermalize=true)
   double ftm2v = force->ftm2v, mvv2e = force->mvv2e;
   double kb = force->boltz, dt = update->dt;
   
-  int *drudetype = atom->drudetype;
-  tagint *drudeid = atom->drudeid;
+  int *drudetype = fix_drude->drudetype;
+  tagint *drudeid = fix_drude->drudeid;
   double vdrude[3], vcore[3]; // velocities in reduced representation
   double fdrude[3], fcore[3]; // forces in reduced representation
   double Ccore, Cdrude, Gcore, Gdrude;

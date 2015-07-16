@@ -30,7 +30,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairThole::PairThole(LAMMPS *lmp) : Pair(lmp) {}
+PairThole::PairThole(LAMMPS *lmp) : Pair(lmp) {
+    fix_drude = NULL;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -71,8 +73,8 @@ void PairThole::compute(int eflag, int vflag)
   double *special_coul = force->special_coul;
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
-  int *drudetype = atom->drudetype;
-  tagint *drudeid = atom->drudeid;
+  int *drudetype = fix_drude->drudetype;
+  tagint *drudeid = fix_drude->drudeid;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -250,6 +252,8 @@ void PairThole::init_style()
 {
   if (!atom->q_flag)
     error->all(FLERR,"Pair style thole requires atom attribute q");
+  fix_drude = modify->find_fix("drude");
+  if (!fix_drude) error->warning(FLERR, "Fix drude/transform called without atom_style drude");
 
   neighbor->request(this,instance_me);
 }
@@ -361,8 +365,8 @@ double PairThole::single(int i, int j, int itype, int jtype,
   double qi,qj,factor_f,factor_e,dcoul,asr,exp_asr;
   int di, dj;
 
-  int *drudetype = atom->drudetype;
-  tagint *drudeid = atom->drudeid;
+  int *drudetype = fix_drude->drudetype;
+  tagint *drudeid = fix_drude->drudeid;
   int *type = atom->type;
 
   // only on core-drude pair, but not on the same pair

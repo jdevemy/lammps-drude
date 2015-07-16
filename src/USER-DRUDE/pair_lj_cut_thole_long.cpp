@@ -53,6 +53,7 @@ PairLJCutTholeLong::PairLJCutTholeLong(LAMMPS *lmp) : Pair(lmp)
   writedata = 1;
   ftable = NULL;
   qdist = 0.0;
+  fix_drude = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -107,8 +108,8 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
-  int *drudetype = atom->drudetype;
-  tagint *drudeid = atom->drudeid;
+  int *drudetype = fix_drude->drudetype;
+  tagint *drudeid = fix_drude->drudeid;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -347,6 +348,8 @@ void PairLJCutTholeLong::init_style()
 {
   if (!atom->q_flag)
     error->all(FLERR,"Pair style lj/cut/coul/long requires atom attribute q");
+  fix_drude = modify->find_fix("drude");
+  if (!fix_drude) error->warning(FLERR, "Fix drude/transform called without atom_style drude");
 
   int irequest = neighbor->request(this,instance_me);
 
@@ -593,8 +596,8 @@ double PairLJCutTholeLong::single(int i, int j, int itype, int jtype,
   double dqi,dqj,dcoul,asr,exp_asr;
   int di, dj, di_closest;
 
-  int *drudetype = atom->drudetype;
-  tagint *drudeid = atom->drudeid;
+  int *drudetype = fix_drude->drudetype;
+  tagint *drudeid = fix_drude->drudeid;
   int *type = atom->type;
 
   r2inv = 1.0/rsq;

@@ -70,7 +70,7 @@ int FixDrude::setmask()
 }
 
 /* ----------------------------------------------------------------------
-   look in bond lists for Drude partner tags and fill atom->drudeid
+   look in bond lists for Drude partner tags and fill drudeid
 ------------------------------------------------------------------------- */
 void FixDrude::build_drudeid(){
   int nlocal = atom->nlocal;

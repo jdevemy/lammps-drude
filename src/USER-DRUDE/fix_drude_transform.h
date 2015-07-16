@@ -22,7 +22,7 @@ FixStyle(drude/transform/inverse,FixDrudeTransform<true>)
 #define LMP_FIX_DRUDE_TRANSFORM_H
 
 #include "fix.h"
-#include "atom_vec_drude.h"
+#include "fix_drude.h"
 
 namespace LAMMPS_NS {
 
@@ -42,7 +42,7 @@ class FixDrudeTransform : public Fix {
   void unpack_forward_comm(int n, int first, double *buf);
  protected:
   double * mcoeff;
-  AtomVecDrude * avec_drude;
+  FixDrude * avec_drude;
 };
 
 }

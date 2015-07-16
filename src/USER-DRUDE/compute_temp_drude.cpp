@@ -45,6 +45,7 @@ ComputeTempDrude::ComputeTempDrude(LAMMPS *lmp, int narg, char **arg) :
   vector = new double[6];
   maxatom = 0;
   vbiasall = NULL;
+  fix_drude = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -58,7 +59,10 @@ ComputeTempDrude::~ComputeTempDrude()
 /* ---------------------------------------------------------------------- */
 
 void ComputeTempDrude::init()
-{}
+{
+  fix_drude = modify->find_fix("drude");
+  if (!fix_drude) error->warning(FLERR, "Fix drude/transform called without atom_style drude");  
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -104,7 +108,7 @@ double ComputeTempDrude::compute_scalar()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int flag;
-  int *drudeid = atom->drudeid;
+  int *drudeid = fix_drude->drudeid;
 
   double t = 0.0;
   for (int i = 0; i < nlocal; i++)
@@ -152,7 +156,7 @@ void ComputeTempDrude::compute_vector()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int flag;
-  int *drudeid = atom->drudeid;
+  int *drudeid = fix_drude->drudeid;
 
   double massone,t[6];
   for (i = 0; i < 6; i++) t[i] = 0.0;

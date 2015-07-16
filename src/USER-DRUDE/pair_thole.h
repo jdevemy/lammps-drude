@@ -21,6 +21,7 @@ PairStyle(thole,PairThole)
 #define LMP_PAIR_THOLE_H
 
 #include "pair.h"
+#include "fix_drude.h"
 
 namespace LAMMPS_NS {
 
@@ -45,6 +46,7 @@ class PairThole : public Pair {
   double cut_global;
   double **cut,**scale;
   double **polar,**thole,**ascreen;
+  FixDrude * fix_drude;
 
   virtual void allocate();
 };
