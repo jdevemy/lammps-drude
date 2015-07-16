@@ -347,9 +347,11 @@ void PairLJCutTholeLong::coeff(int narg, char **arg)
 void PairLJCutTholeLong::init_style()
 {
   if (!atom->q_flag)
-    error->all(FLERR,"Pair style lj/cut/coul/long requires atom attribute q");
-  int ifix = modify->find_fix("drude");
-  if (ifix == -1) error->all(FLERR, "Fix drude/transform called without atom_style drude");  
+    error->all(FLERR,"Pair style lj/cut/thole/long requires atom attribute q");
+  int ifix;
+  for (ifix = 0; ifix < modify->nfix; ifix++)
+    if (strcmp(modify->fix[ifix]->style,"drude") == 0) break;
+  if (ifix == modify->nfix) error->all(FLERR, "Pair style lj/cut/thole/long requires fix drude");  
   fix_drude = (FixDrude *) modify->fix[ifix];
 
   int irequest = neighbor->request(this,instance_me);

@@ -150,8 +150,10 @@ void FixLangevinDrude::init()
     else error->all(FLERR,"Variable for fix langevin/drude is invalid style");
   }
 
-  int ifix = modify->find_fix("drude");
-  if (ifix == -1) error->all(FLERR, "Fix drude/transform called without atom_style drude");  
+  int ifix;
+  for (ifix = 0; ifix < modify->nfix; ifix++)
+    if (strcmp(modify->fix[ifix]->style,"drude") == 0) break;
+  if (ifix == modify->nfix) error->all(FLERR, "fix langevin/drude requires fix drude");  
   fix_drude = (FixDrude *) modify->fix[ifix];
 
   // TODO: allow bias

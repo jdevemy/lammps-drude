@@ -42,8 +42,10 @@ FixDrudeTransform<inverse>::~FixDrudeTransform()
 template <bool inverse>
 void FixDrudeTransform<inverse>::init()
 {
-  int ifix = modify->find_fix("drude");
-  if (ifix == -1) error->all(FLERR, "Fix drude/transform called without fix drude");  
+  int ifix;
+  for (ifix = 0; ifix < modify->nfix; ifix++)
+    if (strcmp(modify->fix[ifix]->style,"drude") == 0) break;
+  if (ifix == modify->nfix) error->all(FLERR, "fix drude/transform requires fix drude");  
   fix_drude = (FixDrude *) modify->fix[ifix];
 }
 

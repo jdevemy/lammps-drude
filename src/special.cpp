@@ -1139,9 +1139,11 @@ void Special::ring_eight(int ndatum, char *cbuf)
 ------------------------------------------------------------------------- */
 void Special::rebuild_drude(){
   // Check if atom_style drude is used
-  int ifix = modify->find_fix("drude");
-  if (ifix == -1) return; 
-  FixDrude *fix_drude = (FixDrude *) modify->fix[ifix];
+  int ifix;
+  for (ifix = 0; ifix < modify->nfix; ifix++)
+    if (strcmp(modify->fix[ifix]->style,"drude") == 0) break;
+  if (ifix == modify->nfix) error->all(FLERR, "fix langevin/drude requires fix drude");  
+  fix_drude = (FixDrude *) modify->fix[ifix];
 
   fix_drude->rebuild_special();
 }

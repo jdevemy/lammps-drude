@@ -60,6 +60,18 @@ FixDrude::~FixDrude()
 
 /* ---------------------------------------------------------------------- */
 
+int FixDrude::init()
+{
+  int count = 0;
+  for (i = 0; i < modify->nfix; i++)
+    if (strcmp(modify->fix[i]->style,"drude") == 0) count++;
+  if (count > 1) error->all(FLERR,"More than one fix drude");
+
+  rebuild_special();
+}
+
+/* ---------------------------------------------------------------------- */
+
 int FixDrude::setmask()
 {
   int mask = 0;
