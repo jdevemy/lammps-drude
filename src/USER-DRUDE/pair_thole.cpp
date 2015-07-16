@@ -253,7 +253,7 @@ void PairThole::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair style thole requires atom attribute q");
   int ifix = modify->find_fix("drude");
-  if (ifix == -1) error->all(FLERR, "Fix drude/transform called without atom_style drude");  
+  if (ifix == -1) error->all(FLERR, "Pair thole requires fix drude");  
   fix_drude = (FixDrude *) modify->fix[ifix];
 
   neighbor->request(this,instance_me);

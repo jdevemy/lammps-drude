@@ -43,7 +43,7 @@ template <bool inverse>
 void FixDrudeTransform<inverse>::init()
 {
   int ifix = modify->find_fix("drude");
-  if (ifix == -1) error->all(FLERR, "Fix drude/transform called without atom_style drude");  
+  if (ifix == -1) error->all(FLERR, "Fix drude/transform called without fix drude");  
   fix_drude = (FixDrude *) modify->fix[ifix];
 }
 

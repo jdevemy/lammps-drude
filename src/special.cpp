@@ -1143,9 +1143,6 @@ void Special::rebuild_drude(){
   if (ifix == -1) return; 
   FixDrude *fix_drude = (FixDrude *) modify->fix[ifix];
 
-  // Make sure that drude partners know each other
-  fix_drude->build_drudeid();
-  
   fix_drude->rebuild_special();
 }
 

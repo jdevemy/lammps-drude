@@ -39,10 +39,9 @@ FixDrude *FixDrude::sptr = NULL;
 FixDrude::FixDrude(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 2 + atom->ntypes) error->all(FLERR,"Illegal fix drude command");
+  if (narg != 3 + atom->ntypes) error->all(FLERR,"Illegal fix drude command");
   memory->create(drudetype, atom->ntypes+1, "fix_drude::drudetype");
-  for (int i=2; i<narg; i++) drudetype[i-1] = force->inumeric(FLERR,arg[i]);
-  memory->create(drudeid, atom->nmax, "fix_drude::drudeid");
+  for (int i=3; i<narg; i++) drudetype[i-2] = force->inumeric(FLERR,arg[i]);
   comm_border = 1; // drudeid
   
   grow_arrays(atom->nmax);
@@ -288,13 +287,8 @@ void FixDrude::rebuild_special(){
   tagint **special = atom->special;
   int *type = atom->type;
 
-  // Check if atom_style drude is used
-  int ifix = modify->find_fix("drude");
-  if (ifix == -1) return; 
-  FixDrude *fix_drude = (FixDrude *) modify->fix[ifix];
-
   // Make sure that drude partners know each other
-  fix_drude->build_drudeid();
+  build_drudeid();
 
   // Log info
   if (comm->me == 0) {
