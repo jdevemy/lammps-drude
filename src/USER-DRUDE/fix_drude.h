@@ -17,10 +17,15 @@ FixStyle(drude,FixDrude)
 
 #else
 
-#ifndef LMP_FIX__DRUDE_H
+#ifndef LMP_FIX_DRUDE_H
 #define LMP_FIX_DRUDE_H
 
 #include "fix.h"
+#include <set>
+
+#define NOPOL_TYPE 0
+#define CORE_TYPE  1
+#define DRUDE_TYPE 2
 
 namespace LAMMPS_NS {
 
@@ -42,12 +47,18 @@ class FixDrude : public Fix {
   int size_restart(int nlocal);
 
   void build_drudeid();
-  void ring_search_drudeid(int size, char *cbuf);
-  void ring_build_partner(int size, char *cbuf);
+  static void ring_search_drudeid(int size, char *cbuf);
+  static void ring_build_partner(int size, char *cbuf);
+  void rebuild_special();
+  static void ring_remove_drude(int size, char *cbuf);
+  static void ring_add_drude(int size, char *cbuf);
+  static void ring_copy_drude(int size, char *cbuf);
 
   tagint * drudeid;
   int * drudetype;
   bool is_reduced;
+  static FixDrude *sptr;
+  std::set<tagint> * partner_set;
 };
 
 }

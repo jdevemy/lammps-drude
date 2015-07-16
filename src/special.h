@@ -53,9 +53,6 @@ class Special : protected Pointers {
   static void ring_six(int, char *);
   static void ring_seven(int, char *);
   static void ring_eight(int, char *);
-  static void ring_remove_drude(int, char *);
-  static void ring_add_drude(int, char *);
-  static void ring_copy_drude(int, char *);
 };
 
 }

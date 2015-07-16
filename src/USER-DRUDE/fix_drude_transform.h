@@ -42,7 +42,7 @@ class FixDrudeTransform : public Fix {
   void unpack_forward_comm(int n, int first, double *buf);
  protected:
   double * mcoeff;
-  FixDrude * avec_drude;
+  FixDrude * fix_drude;
 };
 
 }

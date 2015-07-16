@@ -18,6 +18,7 @@
 #include "domain.h"
 #include "comm.h"
 #include "error.h"
+#include "modify.h"
 
 using namespace LAMMPS_NS;
 
@@ -41,8 +42,9 @@ FixDrudeTransform<inverse>::~FixDrudeTransform()
 template <bool inverse>
 void FixDrudeTransform<inverse>::init()
 {
-  fix_drude = modify->find_fix("drude");
-  if (!fix_drude) error->warning(FLERR, "Fix drude/transform called without atom_style drude");
+  int ifix = modify->find_fix("drude");
+  if (ifix == -1) error->all(FLERR, "Fix drude/transform called without atom_style drude");  
+  fix_drude = (FixDrude *) modify->fix[ifix];
 }
 
 template <bool inverse>
