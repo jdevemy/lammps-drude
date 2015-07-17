@@ -71,8 +71,8 @@ and the virial defined with absolute positions
 
 :line
 
-The atom style must be set to {drude} so that each atom knows whether it is a 
-Drude particle or not.
+This fix requires so that each atom knows whether it is a Drude particle or not.
+You must therefore use the fix "drude"_fix_drude.html to specify the Drude status of each atom type.
 
 Note: only the core atoms need to be in the group of this fix. The Drude particle
 will be transformed together with its core even if it is not itself in the group.

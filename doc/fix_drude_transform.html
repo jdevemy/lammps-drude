@@ -80,8 +80,8 @@ and the virial defined with absolute positions
 </P>
 <HR>
 
-<P>The atom style must be set to <I>drude</I> so that each atom knows whether it is a 
-Drude particle or not.
+<P>This fix requires so that each atom knows whether it is a Drude particle or not.
+You must therefore use the fix <A HREF = "fix_drude.html">drude</A> to specify the Drude status of each atom type.
 </P>
 <P>Note: only the core atoms need to be in the group of this fix. The Drude particle
 will be transformed together with its core even if it is not itself in the group.
