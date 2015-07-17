@@ -116,10 +116,10 @@ double ComputeTempDrude::compute_scalar()
   double t = 0.0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      int icoeur = atom->map(drudeid[i]);
-      vbiasall[i][0] = atom->v[icoeur][0];
-      vbiasall[i][1] = atom->v[icoeur][1];
-      vbiasall[i][2] = atom->v[icoeur][2];
+      int icore = atom->map(drudeid[i]);
+      vbiasall[i][0] = atom->v[icore][0];
+      vbiasall[i][1] = atom->v[icore][1];
+      vbiasall[i][2] = atom->v[icore][2];
       vthermal[0] = v[i][0] - vbiasall[i][0];
       vthermal[1] = v[i][1] - vbiasall[i][1];
       vthermal[2] = v[i][2] - vbiasall[i][2];
@@ -166,10 +166,10 @@ void ComputeTempDrude::compute_vector()
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      int icoeur = atom->map(drudeid[i]);
-      vbiasall[i][0] = atom->v[icoeur][0];
-      vbiasall[i][1] = atom->v[icoeur][1];
-      vbiasall[i][2] = atom->v[icoeur][2];
+      int icore = atom->map(drudeid[i]);
+      vbiasall[i][0] = atom->v[icore][0];
+      vbiasall[i][1] = atom->v[icore][1];
+      vbiasall[i][2] = atom->v[icore][2];
       vthermal[0] = v[i][0] - vbiasall[i][0];
       vthermal[1] = v[i][1] - vbiasall[i][1];
       vthermal[2] = v[i][2] - vbiasall[i][2];

@@ -127,11 +127,11 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
-    if (drudetype[type[i]]){
+    if (drudetype[type[i]] != NOPOL_TYPE){
       di = atom->map(drudeid[i]);
       if (di < 0) error->all(FLERR, "Drude partner not found");
       di_closest = domain->closest_image(i, di);
-      if (drudetype[type[i]] == 1)
+      if (drudetype[type[i]] == CORE_TYPE)
         dqi = -q[di];
       else 
         dqi = qi;
@@ -180,17 +180,20 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
             }
           }
           
-          if (drudetype[type[i]] && drudetype[type[j]]){
+          if (drudetype[type[i]] != NOPOL_TYPE &&
+              drudetype[type[j]] != NOPOL_TYPE){
             if (j != di_closest){
-              if (drudetype[type[j]] == 1){
+              if (drudetype[type[j]] == CORE_TYPE){
                 dj = atom->map(drudeid[j]);
                 dqj = -q[dj];
               } else dqj = qj;
               asr = ascreen[type[i]][type[j]] * r;
               exp_asr = exp(-asr);
               dcoul = qqrd2e * dqi * dqj / r;
-              factor_f = 0.5*(2. + (exp_asr * (-2. - asr * (2. + asr)))) - factor_coul;
-              if (eflag) factor_e = 0.5*(2. - (exp_asr * (2. + asr))) - factor_coul;
+              factor_f = 0.5*(2. + (exp_asr * (-2. - asr * (2. + asr))))
+                  - factor_coul;
+              if (eflag) factor_e = 0.5*(2. - (exp_asr * (2. + asr)))
+                             - factor_coul;
               forcecoul += factor_f * dcoul;
             }
           }
@@ -221,7 +224,8 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
               ecoul = qi*qj * table;
             }
             if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
-            if (drudetype[type[i]] && drudetype[type[j]] && j != di_closest){
+            if (drudetype[type[i]] != NOPOL_TYPE &&
+                drudetype[type[j]] != NOPOL_TYPE && j != di_closest){
               ecoul += factor_e * dcoul;
             }
           } else ecoul = 0.0;
@@ -351,7 +355,8 @@ void PairLJCutTholeLong::init_style()
   int ifix;
   for (ifix = 0; ifix < modify->nfix; ifix++)
     if (strcmp(modify->fix[ifix]->style,"drude") == 0) break;
-  if (ifix == modify->nfix) error->all(FLERR, "Pair style lj/cut/thole/long requires fix drude");  
+  if (ifix == modify->nfix)
+      error->all(FLERR, "Pair style lj/cut/thole/long requires fix drude");
   fix_drude = (FixDrude *) modify->fix[ifix];
 
   int irequest = neighbor->request(this,instance_me);
@@ -589,8 +594,8 @@ void PairLJCutTholeLong::write_data_all(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairLJCutTholeLong::single(int i, int j, int itype, int jtype,
-                                 double rsq, double factor_coul, double factor_lj,
-                                 double &fforce)
+                                 double rsq, double factor_coul,
+                                 double factor_lj, double &fforce)
 {
   double r2inv,r6inv,r,grij,expm2,t,erfc,prefactor,u;
   double fraction,table,forcecoul,forcelj,phicoul,philj;
@@ -629,20 +634,21 @@ double PairLJCutTholeLong::single(int i, int j, int itype, int jtype,
         forcecoul -= (1.0-factor_coul)*prefactor;
       }
     }
-    if (drudetype[type[i]] && drudetype[type[j]]){
+    if (drudetype[type[i]] != NOPOL_TYPE && drudetype[type[j]] != NOPOL_TYPE) {
       di = atom->map(drudeid[i]);
       di_closest = domain->closest_image(i, di);
       if (di_closest != dj){
-        if (drudetype[i] == 1) dqi = -atom->q[di];
-        else if (drudetype[i] == 2) dqi = atom->q[i];
-        if (drudetype[j] == 1) {
+        if (drudetype[i] == CORE_TYPE) dqi = -atom->q[di];
+        else if (drudetype[i] == DRUDE_TYPE) dqi = atom->q[i];
+        if (drudetype[j] == CORE_TYPE) {
           dj = atom->map(drudeid[j]);
           dqj = -atom->q[dj];
-        } else if (drudetype[j] == 2) dqj = atom->q[j];
+        } else if (drudetype[j] == DRUDE_TYPE) dqj = atom->q[j];
         asr = ascreen[itype][jtype] * r;
         exp_asr = exp(-asr);
         dcoul = force->qqrd2e * dqi * dqj / r;
-        factor_f = 0.5*(2. + (exp_asr * (-2. - asr * (2. + asr)))) - factor_coul;
+        factor_f = 0.5*(2. + (exp_asr * (-2. - asr * (2. + asr))))
+            - factor_coul;
         forcecoul += factor_f * dcoul;
         factor_e = 0.5*(2. - (exp_asr * (2. + asr))) - factor_coul; 
       }
@@ -665,7 +671,8 @@ double PairLJCutTholeLong::single(int i, int j, int itype, int jtype,
       phicoul = atom->q[i]*atom->q[j] * table;
     }
     if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor;
-    if (drudetype[type[i]] && drudetype[type[j]] && di_closest != dj)
+    if (drudetype[type[i]] != NOPOL_TYPE && drudetype[type[j]] != NOPOL_TYPE &&
+        di_closest != dj)
       phicoul += factor_e * dcoul;
     eng += phicoul;
   }

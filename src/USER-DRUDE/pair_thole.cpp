@@ -87,12 +87,12 @@ void PairThole::compute(int eflag, int vflag)
     i = ilist[ii];
 
     // only on core-drude pair
-    if (!drudetype[type[i]])
+    if (drudetype[type[i]] == NOPOL_TYPE)
       continue;
 
     di = domain->closest_image(i, atom->map(drudeid[i]));
     // get dq of the core via the drude charge
-    if (drudetype[type[i]] == 2)
+    if (drudetype[type[i]] == DRUDE_TYPE)
       qi = q[i];
     else
       qi = -q[di];
@@ -110,11 +110,11 @@ void PairThole::compute(int eflag, int vflag)
       j &= NEIGHMASK;
 
       // only on core-drude pair, but not into the same pair
-      if (!drudetype[type[j]] || j == di)
+      if (drudetype[type[j]] == NOPOL_TYPE || j == di)
         continue;
 
       // get dq of the core via the drude charge
-      if (drudetype[type[j]] == 2)
+      if (drudetype[type[j]] == DRUDE_TYPE)
         qj = q[j];
       else {
         dj = domain->closest_image(j, atom->map(drudeid[j]));
@@ -373,17 +373,18 @@ double PairThole::single(int i, int j, int itype, int jtype,
   int *type = atom->type;
 
   // only on core-drude pair, but not on the same pair
-  if (!drudetype[type[i]] || !drudetype[type[j]] || j == i)
+  if (drudetype[type[i]] == NOPOL_TYPE || drudetype[type[j]] == NOPOL_TYPE ||
+      j == i)
     return 0.0;
 
   // get dq of the core via the drude charge
-  if (drudetype[type[i]] == 2)
+  if (drudetype[type[i]] == DRUDE_TYPE)
     qi = atom->q[i];
   else {
     di = domain->closest_image(i, atom->map(drudeid[i]));
     qi = -atom->q[di];
   }
-  if (drudetype[type[j]] == 2)
+  if (drudetype[type[j]] == DRUDE_TYPE)
     qj = atom->q[j];
   else {
     dj = domain->closest_image(j, atom->map(drudeid[j]));

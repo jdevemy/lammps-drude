@@ -183,10 +183,10 @@ void FixLangevinDrude::setup(int vflag)
   bigint dof_core_loc = 0, dof_drude_loc = 0;
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) { // Only the cores need to be in the group.
-      if (drudetype[type[i]] == 0) // Non-polarizable atom
+      if (drudetype[type[i]] == NOPOL_TYPE) // Non-polarizable atom
           dof_core_loc++;
       else {
-          if (drudetype[type[i]] == 2) continue;
+          if (drudetype[type[i]] == DRUDE_TYPE) continue;
           dof_core_loc++;
           dof_drude_loc++;
       }
@@ -274,7 +274,7 @@ void FixLangevinDrude::langevin(int /*vflag*/, bool thermalize=true)
   // NB : the masses are the real masses, not the reduced ones
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) { // only the cores need to be in the group
-      if (drudetype[type[i]] == 0) { // Non-polarizable atom
+      if (drudetype[type[i]] == NOPOL_TYPE) { // Non-polarizable atom
         double mi;
         if (rmass)
           mi = rmass[i];
@@ -291,7 +291,7 @@ void FixLangevinDrude::langevin(int /*vflag*/, bool thermalize=true)
         }
         kineng_core_loc += mi * (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
       } else {
-        if (drudetype[type[i]] == 2) continue; // Done together with the core
+        if (drudetype[type[i]] == DRUDE_TYPE) continue; // do with the core
         
         int j = atom->map(drudeid[i]);
         double mi, mj, mtot, mu; // i is core, j is drude
@@ -343,10 +343,10 @@ void FixLangevinDrude::langevin(int /*vflag*/, bool thermalize=true)
     for (int k=0; k<dim; k++) fcoresum[k] /= ncore;
     for (int i=0; i<nlocal; i++) {
       if (mask[i] & groupbit) { // only the cores need to be in the group
-        if (drudetype[type[i]] == 0) {
+        if (drudetype[type[i]] == NOPOL_TYPE) {
           for (int k=0; k<dim; k++) f[i][k] -= fcoresum[k];
         } else {
-          if (drudetype[type[i]] == 2) continue; // Done together with the core
+          if (drudetype[type[i]] == DRUDE_TYPE) continue; // do with the core
           int j = atom->map(drudeid[i]);
           double mi, mj, mtot; // i is core, j is drude
           if (rmass) {

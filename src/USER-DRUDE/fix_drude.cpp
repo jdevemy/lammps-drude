@@ -41,7 +41,14 @@ FixDrude::FixDrude(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 3 + atom->ntypes) error->all(FLERR,"Illegal fix drude command");
   memory->create(drudetype, atom->ntypes+1, "fix_drude::drudetype");
-  for (int i=3; i<narg; i++) drudetype[i-2] = force->inumeric(FLERR,arg[i]);
+  for (int i=3; i<narg; i++) {
+      if (arg[i][0] == 'c' || arg[i][0] == 'C')
+          drudetype[i-2] = CORE_TYPE;
+      else if (arg[i][0] == 'd' || arg[i][0] == 'D')
+          drudetype[i-2] = DRUDE_TYPE;
+      else
+          drudetype[i-2] = NOPOL_TYPE;
+  }
   comm_border = 1; // drudeid
   drudeid = NULL; 
   grow_arrays(atom->nmax);
@@ -275,9 +282,9 @@ void FixDrude::rebuild_special(){
   // Build lists of drude and core-drude pairs
   std::vector<tagint> drude_vec, core_drude_vec, core_special_vec;
   for (int i=0; i<nlocal; i++) {
-    if (drudetype[type[i]] == 2) {
+    if (drudetype[type[i]] == DRUDE_TYPE) {
       drude_vec.push_back(atom->tag[i]);
-    } else if (drudetype[type[i]] == 1){
+    } else if (drudetype[type[i]] == CORE_TYPE){
       core_drude_vec.push_back(atom->tag[i]);
       core_drude_vec.push_back(drudeid[i]);
     }
@@ -309,7 +316,7 @@ void FixDrude::rebuild_special(){
 
   // Build list of cores' special lists to communicate to ghost drude particles
   for (int i=0; i<nlocal; i++) {
-    if (drudetype[type[i]] != 1) continue;
+    if (drudetype[type[i]] != CORE_TYPE) continue;
     core_special_vec.push_back(atom->tag[i]);
     core_special_vec.push_back((tagint) nspecial[i][0]);
     core_special_vec.push_back((tagint) nspecial[i][1]);
@@ -340,7 +347,7 @@ void FixDrude::ring_remove_drude(int size, char *cbuf){
   int *drudetype = sptr->drudetype;
 
   for (int i=0; i<nlocal; i++) {
-    if (drudetype[type[i]] == 2) continue;
+    if (drudetype[type[i]] == DRUDE_TYPE) continue;
     for (int j=0; j<nspecial[i][2]; j++) {
       if (drude_set.count(special[i][j]) > 0) { // I identify a drude in my special list, remove it
         // left shift
@@ -386,7 +393,7 @@ void FixDrude::ring_add_drude(int size, char *cbuf){
   }
   
   for (int i=0; i<nlocal; i++) {
-    if (drudetype[type[i]] == 2) continue;
+    if (drudetype[type[i]] == DRUDE_TYPE) continue;
     if (core_drude_map.count(atom->tag[i]) > 0) { // I identify myself as a core, add my own drude
       // right shift
       for (int k=nspecial[i][2]-1; k>=0; k--)
@@ -442,7 +449,7 @@ void FixDrude::ring_copy_drude(int size, char *cbuf){
   }
   
   for (int i=0; i<nlocal; i++) {
-    if (drudetype[type[i]] != 2) continue;
+    if (drudetype[type[i]] != DRUDE_TYPE) continue;
     if (core_special_map.count(drudeid[i]) > 0) { // My core is in this list, copy its special info
       it = core_special_map[drudeid[i]];
       nspecial[i][0] = (int) *it;
