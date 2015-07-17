@@ -1142,9 +1142,9 @@ void Special::rebuild_drude(){
   int ifix;
   for (ifix = 0; ifix < modify->nfix; ifix++)
     if (strcmp(modify->fix[ifix]->style,"drude") == 0) break;
-  if (ifix == modify->nfix) error->all(FLERR, "fix langevin/drude requires fix drude");  
-  fix_drude = (FixDrude *) modify->fix[ifix];
+  if (ifix == modify->nfix) return;  // Not polarizable
 
+  FixDrude *fix_drude = (FixDrude *) modify->fix[ifix];
   fix_drude->rebuild_special();
 }
 

@@ -34,6 +34,7 @@ class FixDrude : public Fix {
   FixDrude(class LAMMPS *, int, char **);
   virtual ~FixDrude();
   int setmask();
+  void init();
 
   void grow_arrays(int nmax);
   void copy_arrays(int i, int j, int delflag);

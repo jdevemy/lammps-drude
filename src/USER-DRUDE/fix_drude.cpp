@@ -60,10 +60,10 @@ FixDrude::~FixDrude()
 
 /* ---------------------------------------------------------------------- */
 
-int FixDrude::init()
+void FixDrude::init()
 {
   int count = 0;
-  for (i = 0; i < modify->nfix; i++)
+  for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"drude") == 0) count++;
   if (count > 1) error->all(FLERR,"More than one fix drude");
 
