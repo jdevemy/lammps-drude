@@ -24,16 +24,14 @@ action () {
 
 # list of files with optional dependencies
 
-action atom_vec_drude.cpp
-action atom_vec_drude.h
 action compute_temp_drude.cpp
 action compute_temp_drude.h
 action fix_drude_transform.cpp
 action fix_drude_transform.h
+action fix_drude.cpp
+action fix_drude.h
 action fix_langevin_drude.cpp
 action fix_langevin_drude.h
-action fix_special_drude.cpp
-action fix_special_drude.h
 action pair_thole.cpp
 action pair_thole.h
 action pair_lj_cut_thole_long.cpp

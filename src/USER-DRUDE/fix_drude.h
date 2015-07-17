@@ -42,10 +42,6 @@ class FixDrude : public Fix {
   int unpack_exchange(int nlocal, double *buf);
   int pack_border(int n, int *list, double *buf);
   int unpack_border(int n, int first, double *buf);
-  int pack_restart(int i, double *buf);
-  void unpack_restart(int nlocal, int nth);
-  int maxsize_restart();
-  int size_restart(int nlocal);
 
   void build_drudeid();
   static void ring_search_drudeid(int size, char *cbuf);

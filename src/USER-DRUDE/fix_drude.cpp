@@ -43,7 +43,7 @@ FixDrude::FixDrude(LAMMPS *lmp, int narg, char **arg) :
   memory->create(drudetype, atom->ntypes+1, "fix_drude::drudetype");
   for (int i=3; i<narg; i++) drudetype[i-2] = force->inumeric(FLERR,arg[i]);
   comm_border = 1; // drudeid
-  
+  drudeid = NULL; 
   grow_arrays(atom->nmax);
   atom->add_callback(0);
   atom->add_callback(1);
@@ -241,52 +241,6 @@ int FixDrude::unpack_border(int n, int first, double *buf)
         drudeid[i] = (tagint) ubuf(buf[m++]).i;
     }
     return m;
-}
-
-/* ----------------------------------------------------------------------
-   pack values in local atom-based arrays for restart file
-------------------------------------------------------------------------- */
-
-int FixDrude::pack_restart(int i, double *buf)
-{
-    int m = 1;
-    buf[m++] = ubuf(drudeid[i]).d;
-    buf[0] = m; // first is the size, then the values
-    return m;
-}
-
-/* ----------------------------------------------------------------------
-   unpack values from atom->extra array to restart the fix
-------------------------------------------------------------------------- */
-
-void FixDrude::unpack_restart(int nlocal, int nth)
-{
-    double **extra = atom->extra;
-
-    // skip to Nth set of extra values
-    int m = 0;
-    for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);
-    m++;
-
-    drudeid[nlocal] = (tagint) ubuf(extra[nlocal][m++]).i;
-}
-
-/* ----------------------------------------------------------------------
-   maxsize of any atom's restart data
-------------------------------------------------------------------------- */
-
-int FixDrude::maxsize_restart()
-{
-  return 2;
-}
-
-/* ----------------------------------------------------------------------
-   size of atom nlocal's restart data
-------------------------------------------------------------------------- */
-
-int FixDrude::size_restart(int nlocal)
-{
-  return 2;
 }
 
 /* ----------------------------------------------------------------------

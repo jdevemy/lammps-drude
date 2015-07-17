@@ -22,9 +22,6 @@
 #include "accelerator_kokkos.h"
 #include "memory.h"
 #include "error.h"
-#include <vector>
-#include <set>
-#include <map>
 
 using namespace LAMMPS_NS;
 
