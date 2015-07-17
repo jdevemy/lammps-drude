@@ -101,8 +101,8 @@ thermostating.
 
 :line
 
-The atom style must be set to {drude} so that each atom knows whether it is a
-Drude particle or not.
+This fix requires so that each atom knows whether it is a Drude particle or not.
+You must therefore use the fix "drude"_fix_drude.html to specify the Drude status of each atom type.
 
 Ghost atoms need to know their velocity for this fix to act correctly.
 So you must use in addition the {comm_modify} command, like :b

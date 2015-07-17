@@ -119,8 +119,8 @@ thermostating.
 </P>
 <HR>
 
-<P>The atom style must be set to <I>drude</I> so that each atom knows whether it is a
-Drude particle or not.
+<P>This fix requires so that each atom knows whether it is a Drude particle or not.
+You must the fix <A HREF = "fix_drude.html">drude</A> to specify the Drude status of each atom type.
 </P>
 Ghost atoms need to know their velocity for this fix to act correctly.
 So you must use in addition the <I>comm_modify</I> command, like 

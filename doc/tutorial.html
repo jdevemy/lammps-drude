@@ -12,11 +12,8 @@ modified to include the Drude dipoles and how to handle them.
 
 <P><B>Preparation of the data file</B>
 </P>
-<P>The data file is similar to a standard LAMMPS data file for
-<I>atom_style full</I>, except for an additional section <I>Drude Types</I>
-identifying which types are non-polarizable atoms (0), cores of
-polarizable atoms (DC: 1) or Drude particles (DP: 2).  The DPs and the
-<I>harmonic bonds</I> connecting them to their DC should appear in the data
+<P>The data file is similar to a standard LAMMPS data file for <I>atom_style full</I>.
+The DPs and the <I>harmonic bonds</I> connecting them to their DC should appear in the data
 file as normal atoms and bonds.
 </P>
 <P>You can use the <I>polarizer</I> tool (Python script distributed with the
@@ -25,8 +22,8 @@ USER-DRUDE package) to convert a non-polarizable data file (here
 </P>
 <PRE>polarizer -q -f phenol.dff data.102494.lmp data-p.lmp 
 </PRE>
-<P>This will automatically insert the new atoms and bonds and the <I>Drude
-Types</I> section.  The masses and charges of DCs and DPs are computed
+<P>This will automatically insert the new atoms and bonds.
+The masses and charges of DCs and DPs are computed
 from <I>phenol.dff</I>, as well as the DC-DP bond constants.  The file
 <I>phenol.dff</I> contains the polarizabilities of the atom types
 and the mass of the Drude particles, for instance:
@@ -57,17 +54,24 @@ look like
 
 <P><B>Basic input file</B>
 </P>
+<P>The atom style should be set to (or derive from) <I>full</I>, so that you can define atomic
+charges and molecular bonds, angles, dihedrals...  
+</P>
 <P>The <I>polarizer</I> tool also outputs certain lines related to the input
 script (the use of these lines will be explained below).  In order for
 LAMMPS to recognize that you are using Drude oscillators, you should
-use the atom style <I>drude</I>.
+use the fix <I>drude</I>. The command is
 </P>
-<PRE>atom_style drude 
+<PRE>fix DRUDE all drude 1 1 1 0 0 2 2 2 
 </PRE>
-<P>This atom style is similar to <I>full</I>. Thus, you can define atomic
-charges and molecular bonds, angles, dihedrals...  In addition, LAMMPS
-will understand the <I>Drude Types</I> section of the new data file.  It
-will find and store matching DC-DP pairs and will treat DP as
+<P>The 0, 1, 2 following the <I>drude</I> keyword have the following meaning:
+There is one number for each atom type. This number is 1 for DCs,
+2 for DPs and 0 for non-polarizable atoms.
+Here the atom types 1 to 3 (C and O atoms) are DC, atom types 4 and 5
+(H atoms) are non-polarizable and the atom types 6 to 8 are the newly
+created DPs.
+</P>
+<P>By recognizing the fix <I>drude</I>, LAMMPS will find and store matching DC-DP pairs and will treat DP as
 equivalent to their DC in the <I>special bonds</I> relations.  It may be
 necessary to extend the space for storing such special relations.  In
 this case extra space should be reserved by using the <I>extra</I> keyword
@@ -116,7 +120,13 @@ velocities. Thus you need to add the following command:
 drifts due to the random forces of the Langevin thermostat on DCs, you
 can add the <I>zero yes</I> option at the end of the fix line.  If you want
 to use the fix <I>shake</I> to constrain the C-H bonds, you should add it
-after the fix <I>langevin/drude</I> for more accuracy.  Since the fix
+after the fix <I>langevin/drude</I> for more accuracy. 
+Note that the group of the fix <I>shake</I> must not include the DPs.
+If the group <I>ATOMS</I> is defined by non-DPs atom types, you could use
+</P>
+<PRE>fix SHAKE ATOMS shake 0.0001 20 0 t 4 5 
+</PRE>
+<P>Since the fix
 <I>langevin/drude</I> does not perform time integration (just modification
 of forces but no position/velocity updates), the <I>nve</I> fix should be
 used in conjunction.
