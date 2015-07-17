@@ -3,7 +3,7 @@
 units real
 boundary p p p
 
-atom_style drude
+atom_style full
 bond_style harmonic
 angle_style harmonic
 dihedral_style opls
@@ -40,7 +40,9 @@ variable vPRESS  equal 1.0
 velocity gCORES  create ${vTEMP} 12345
 velocity gDRUDES create ${vTEMP_D} 12345
 
-fix fSHAKE all shake 0.0001 20 0 b 2 4
+fix fDRUDE all drude 1 1 0 2 2
+
+fix fSHAKE gCORES shake 0.0001 20 0 b 2 4
 
 compute cTEMP_DRUDE gDRUDES temp
 compute cTEMP_DRUDE_DRUDE gDRUDES temp/drude

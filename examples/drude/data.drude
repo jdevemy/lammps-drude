@@ -22,14 +22,6 @@ Masses
    4    0.8000 # D_C3H
    5    0.8000 # D_C2H
 
-Drude Types
-
-   1 1 # C3H
-   2 1 # C2H
-   3 0 # H
-   4 2 # D_C3H
-   5 2 # D_C2H
-
 Bond Coeffs
 
    1  267.9907    1.5290 # C3H-C2H

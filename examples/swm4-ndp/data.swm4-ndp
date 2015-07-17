@@ -17,13 +17,6 @@ Masses
    3    1.e-16  # M
    4    0.800  # ODw DP
 
-Drude Types
-
-   1 1
-   2 0
-   3 0
-   4 2
-
 Bond Coeffs
 
    1   517.630258     0.957200  # Ow-Hw

@@ -25,17 +25,6 @@ Masses
    7    0.4000 # D_CTO
    8    0.4000 # D_OH
 
-Drude Types
-
-   1    1 # C3H
-   2    1 # CTO
-   3    0 # H
-   4    1 # OH
-   5    0 # HO
-   6    2 # D_C3H
-   7    2 # D_CTO
-   8    2 # D_OH
-
 Bond Coeffs
 
    1  267.9907    1.5290 # C3H-CTO
