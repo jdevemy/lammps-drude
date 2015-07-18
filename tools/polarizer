@@ -603,13 +603,6 @@ class Data(object):
             ifound = False
         print("")
 
-        print("# flag for each atom type: [c]ore, [d]rude, [n]on-polarizable")
-        drudetypes = ""
-        for att in self.atomtypes:
-            drudetypes += " {0}".format(att['dflag'])
-        print("fix DRUDE all drude" + drudetypes)
-        print("")
-
         print("# atom groups convenient for thermostats (see package "
               "documentation), etc.")
         gatoms = gcores = gdrudes = ""
@@ -624,6 +617,14 @@ class Data(object):
         print("group CORES type" + gcores)
         print("group DRUDES type" + gdrudes)
         print("")
+
+        print("# flag for each atom type: [c]ore, [d]rude, [n]on-polarizable")
+        drudetypes = ""
+        for att in self.atomtypes:
+            drudetypes += " {0}".format(att['dflag'])
+        print("fix DRUDE all drude" + drudetypes)
+        print("")
+
         print("# ATTENTION!")
         print("#  * special_bonds may need 'extra' keyword, LAMMPS will exit "
               "with a message")
