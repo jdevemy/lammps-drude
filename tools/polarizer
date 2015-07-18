@@ -607,7 +607,7 @@ class Data(object):
         drudetypes = ""
         for att in self.atomtypes:
             drudetypes += " {0}".format(att['dflag'])
-        print("fix drude" + drudetypes)
+        print("fix DRUDE all drude" + drudetypes)
         print("")
 
         print("# atom groups convenient for thermostats (see package "
