@@ -558,21 +558,19 @@ class Data(object):
             print("# No polarizable atoms found.")
             return
 
-        print("# Commands for the LAMMPS input script")
-        print("# if special_bonds needs extra keyword LAMMPS will exit with "
-              "a message")
-        
+        print("# Commands to include in the LAMMPS input script\n")
+
         print("# adapt the pair_style line as needed")
         print("pair_style hybrid/overlay ... coul/long {0:.1f} "\
               "thole {1:.3f} {0:.1f}\n".format(cutoff, thole))
 
         print("read_data {0}\n".format(outfile))
 
-        print("# interactions between any atoms and Drude particles")
+        print("# add interactions between any atoms and Drude particles")
         print("pair_coeff    *   {0}* coul/long".format(att['id']))
 
         # Thole parameters for I,J pairs
-        print("# thole screening only necessary if >1 Drude per molecule")
+        print("# add Thole screening if more than 1 Drude per molecule")
         ifound = False
         for atti in self.atomtypes:
             itype = atti['type'].split()[0]
@@ -626,9 +624,13 @@ class Data(object):
         print("group CORES type" + gcores)
         print("group DRUDES type" + gdrudes)
         print("")
-        print("# Caveat: if using fix shake the group-ID must not include "
+        print("# ATTENTION!")
+        print("#  * special_bonds may need 'extra' keyword, LAMMPS will exit "
+              "with a message")
+        print("#  * give all I<=J pair interactions, no mixing")
+        print("#  * if using fix shake the group-ID must not include "
               "Drude particles")
-        print("#         use group ATOMS for example")
+        print("#    use group ATOMS for example")
 
 # --------------------------------------
 
