@@ -42,12 +42,14 @@ FixDrude::FixDrude(LAMMPS *lmp, int narg, char **arg) :
   if (narg != 3 + atom->ntypes) error->all(FLERR,"Illegal fix drude command");
   memory->create(drudetype, atom->ntypes+1, "fix_drude::drudetype");
   for (int i=3; i<narg; i++) {
-      if (arg[i][0] == 'c' || arg[i][0] == 'C')
+      if (arg[i][0] == 'n' || arg[i][0] == 'N' || arg[i][0] == '0')
+          drudetype[i-2] = NOPOL_TYPE;
+      else if (arg[i][0] == 'c' || arg[i][0] == 'C' || arg[i][0] == '1')
           drudetype[i-2] = CORE_TYPE;
-      else if (arg[i][0] == 'd' || arg[i][0] == 'D')
+      else if (arg[i][0] == 'd' || arg[i][0] == 'D' || arg[i][0] == '2')
           drudetype[i-2] = DRUDE_TYPE;
       else
-          drudetype[i-2] = NOPOL_TYPE;
+          error->all(FLERR, "Illegal fix drude command");
   }
   comm_border = 1; // drudeid
   drudeid = NULL; 
