@@ -618,10 +618,10 @@ class Data(object):
         print("group DRUDES type" + gdrudes)
         print("")
 
-        print("# flag for each atom type: [c]ore, [d]rude, [n]on-polarizable")
+        print("# flag for each atom type: [C]ore, [D]rude, [N]on-polarizable")
         drudetypes = ""
         for att in self.atomtypes:
-            drudetypes += " {0}".format(att['dflag'])
+            drudetypes += " {0}".format(att['dflag'].upper())
         print("fix DRUDE all drude" + drudetypes)
         print("")
 

@@ -1,0 +1,57 @@
+
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
+fix drude command :h3
+
+[Syntax:]
+
+fix ID group-ID drude tag ... :pre
+
+ID, group-ID are documented in "fix"_fix.html command :ulb,l
+drude = style name of this fix command :l
+tag = specification of the particle type for the purpose of the Drude
+polarization model. :l
+:ule
+
+[Examples:]
+
+fix 1 all drude 1 1 0 1 0 2 2 2
+fix 1 all drude C C N C N D D D :pre
+
+[Description:]
+
+Define each atom type in the system as a non-polarizable atom type (0
+or N), a Drude core type (1 or C) or a Drude parcile type (2 or
+D). The number of tags must be the same as the number of atom types in
+the system.
+
+
+[Restrictions:]
+
+This fix should be invoked before any other commands that implement
+the Drude oscillator model, such as "fix
+langevin_drude"_fix_langevin_drude.html, "fix
+drude/transform"_fix_drude_transform.html, "compute
+temp/drude"_compute_temp_drude.html, "pair_style
+thole"_pair_thole.html.
+
+
+[Related commands:]
+
+"fix langevin_drude"_fix_langevin_drude.html,
+"fix drude/transform"_fix_drude_transform.html,
+"compute temp/drude"_compute_temp_drude.html,
+"pair_style thole"_pair_thole.html
+
+[Default:] None
+
+:line
+
+
+

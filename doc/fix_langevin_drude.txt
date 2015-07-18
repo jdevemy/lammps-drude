@@ -224,7 +224,10 @@ This fix is not invoked during "energy minimization"_minimize.html.
 
 [Related commands:]
 
-"fix langevin"_fix_langevin.html, "fix drude/transform/..."_fix_drude_transform.html
+"fix langevin"_fix_langevin.html,
+"fix drude/transform"_fix_drude_transform.html,
+"compute temp/drude"_compute_temp_drude.html,
+"pair_style thole"_pair_thole.html
 
 [Default:]
 

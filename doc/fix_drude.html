@@ -1,0 +1,59 @@
+<HTML>
+<CENTER><A HREF = "http://lammps.sandia.gov">LAMMPS WWW Site</A> - <A HREF = "Manual.html">LAMMPS Documentation</A> - <A HREF = "Section_commands.html#comm">LAMMPS Commands</A> 
+</CENTER>
+
+
+
+
+
+
+<HR>
+
+<H3>fix drude command 
+</H3>
+<P><B>Syntax:</B>
+</P>
+<PRE>fix ID group-ID drude tag ... 
+</PRE>
+<UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
+
+<LI>drude = style name of this fix command 
+
+<LI>tag = specification of the particle type for the purpose of the Drude
+polarization model. 
+
+
+</UL>
+<P><B>Examples:</B>
+</P>
+<PRE>fix 1 all drude 1 1 0 1 0 2 2 2
+fix 1 all drude C C N C N D D D 
+</PRE>
+<P><B>Description:</B>
+</P>
+<P>Define each atom type in the system as a non-polarizable atom type (0
+or N), a Drude core type (1 or C) or a Drude parcile type (2 or
+D). The number of tags must be the same as the number of atom types in
+the system.
+</P>
+<P><B>Restrictions:</B>
+</P>
+<P>This fix should be invoked before any other commands that implement
+the Drude oscillator model, such as <A HREF = "fix_langevin_drude.html">fix
+langevin_drude</A>, <A HREF = "fix_drude_transform.html">fix
+drude/transform</A>, <A HREF = "compute_temp_drude.html">compute
+temp/drude</A>, <A HREF = "pair_thole.html">pair_style
+thole</A>.
+</P>
+<P><B>Related commands:</B>
+</P>
+<P><A HREF = "fix_langevin_drude.html">fix langevin_drude</A>,
+<A HREF = "fix_drude_transform.html">fix drude/transform</A>,
+<A HREF = "compute_temp_drude.html">compute temp/drude</A>,
+<A HREF = "pair_thole.html">pair_style thole</A>
+</P>
+<P><B>Default:</B> None
+</P>
+<HR>
+
+</HTML>

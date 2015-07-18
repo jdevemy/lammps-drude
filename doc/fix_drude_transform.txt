@@ -133,7 +133,10 @@ No information about this fix is written to "binary restart files"_restart.html
 
 [Related commands:]
 
-"fix langevin/drude"_fix_langevin_drude.html
+"fix drude"_fix_drude.html,
+"fix langevin/drude"_fix_langevin_drude.html,
+"compute temp/drude"_compute_temp_drude.html,
+"pair_style thole"_pair_thole.html
 
 [Default:] none
 
