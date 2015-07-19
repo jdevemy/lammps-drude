@@ -19,26 +19,40 @@
 #include "comm.h"
 #include "error.h"
 #include "modify.h"
+#include "force.h"
 
 using namespace LAMMPS_NS;
-
 using namespace FixConst;
 
+/* ---------------------------------------------------------------------- */
 template <bool inverse>
 FixDrudeTransform<inverse>::FixDrudeTransform(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), mcoeff(NULL)
 {
-  if (narg != 3) error->all(FLERR,"Illegal fix drude/transform command");
+  if (!inverse && narg != 3) error->all(FLERR,"Illegal fix drude/transform command");
+  if (narg != 3 && narg !=4) error->all(FLERR,"Illegal fix drude/transform command");
+  if (narg == 4){
+    if (!strcmp(arg[3], "temp")){
+      vector_flag = 1;
+      size_vector = 6;
+      temp = true;
+    } else error->all(FLERR,"Illegal fix drude/transform command");
+  } else {
+    vector_flag = 0;
+    temp = false;
+  }
   comm_forward = 9;
   fix_drude = NULL;
 }
 
+/* ---------------------------------------------------------------------- */
 template <bool inverse>
 FixDrudeTransform<inverse>::~FixDrudeTransform() 
 {
   if (mcoeff) delete [] mcoeff;
 }
     
+/* ---------------------------------------------------------------------- */
 template <bool inverse>
 void FixDrudeTransform<inverse>::init()
 {
@@ -49,6 +63,7 @@ void FixDrudeTransform<inverse>::init()
   fix_drude = (FixDrude *) modify->fix[ifix];
 }
 
+/* ---------------------------------------------------------------------- */
 template <bool inverse>
 int FixDrudeTransform<inverse>::setmask()
 {
@@ -58,6 +73,7 @@ int FixDrudeTransform<inverse>::setmask()
   return mask;
 }
 
+/* ---------------------------------------------------------------------- */
 template <bool inverse>
 void FixDrudeTransform<inverse>::setup(int) {
   int nlocal = atom->nlocal;
@@ -90,8 +106,32 @@ void FixDrudeTransform<inverse>::setup(int) {
     // 0 < mcoeff < 1 for drude
     // mcoeff < 0 for core
   }
+  if (temp) {
+      bigint fix_dof = 0;
+      for (int i = 0; i < modify->nfix; i++)
+        if (modify->fix[i]->dof_flag)
+          fix_dof += modify->fix[i]->dof(igroup);
+      bigint dof_core_loc = 0, dof_drude_loc = 0;
+      for (int i = 0; i < nlocal; i++) {
+        if (atom->mask[i] & groupbit) {
+          if (drudetype[type[i]] == DRUDE_TYPE) // Non-polarizable atom
+              dof_drude_loc++;
+          else
+              dof_core_loc++;
+        }
+      }
+      int dim = domain->dimension;
+      dof_core_loc *= dim;
+      dof_drude_loc *= dim;
+      MPI_Allreduce(&dof_core_loc,  &dof_core,  1, MPI_LMP_BIGINT, MPI_SUM, world);
+      MPI_Allreduce(&dof_drude_loc, &dof_drude, 1, MPI_LMP_BIGINT, MPI_SUM, world);
+      dof_core -= fix_dof;
+      real_to_reduced();
+      reduced_to_real(); // so that temperature is computed
+  }
 }
 
+/* ---------------------------------------------------------------------- */
 namespace LAMMPS_NS { // required for specialization
 template <>
 void FixDrudeTransform<false>::initial_integrate(int){
@@ -123,6 +163,7 @@ void FixDrudeTransform<true>::final_integrate(){
 
 } // end of namespace
 
+/* ---------------------------------------------------------------------- */
 template <bool inverse>
 void FixDrudeTransform<inverse>::real_to_reduced()
 {
@@ -180,6 +221,7 @@ void FixDrudeTransform<inverse>::real_to_reduced()
   fix_drude->is_reduced = true;
 }
 
+/* ---------------------------------------------------------------------- */
 template <bool inverse>
 void FixDrudeTransform<inverse>::reduced_to_real()
 {
@@ -194,9 +236,36 @@ void FixDrudeTransform<inverse>::reduced_to_real()
   tagint * drudeid = fix_drude->drudeid;
   int * drudetype = fix_drude->drudetype;
 
+  double kineng_core_loc = 0., kineng_drude_loc = 0.;
+  double mvv2e = force->mvv2e, kb = force->boltz;
+
+  if (temp) { // compute kinetic energy before mass and velocities are transformed back to real
+      for (int i=0; i<nlocal; i++) {
+        if (temp && mask[i] & groupbit) {
+          if (drudetype[type[i]] == DRUDE_TYPE) {
+            if (rmass)
+              kineng_drude_loc += rmass[i] * (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
+            else
+              kineng_drude_loc += mass[type[i]] * (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
+          } else {
+            if (rmass)
+              kineng_core_loc += rmass[i] * (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
+            else
+              kineng_core_loc += mass[type[i]] * (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
+          }
+        }
+      }
+      kineng_core_loc *= 0.5 * mvv2e;
+      kineng_drude_loc *= 0.5 * mvv2e;
+      MPI_Allreduce(&kineng_core_loc,&kineng_core,1,MPI_DOUBLE,MPI_SUM,world);
+      MPI_Allreduce(&kineng_drude_loc,&kineng_drude,1,MPI_DOUBLE,MPI_SUM,world);
+      temp_core = 2.0 * kineng_core / (dof_core * kb);
+      temp_drude = 2.0 * kineng_drude / (dof_drude * kb);
+  }
+
   for (int i=0; i<nlocal; i++) {
     if (mask[i] & groupbit && drudetype[type[i]] != NOPOL_TYPE) {
-      int j = (int) drudeid[i];
+      int j = (int) drudeid[i]; // local index of drude partner because drudeid is in reduced form
       if (drudetype[type[i]] == DRUDE_TYPE && j < nlocal) continue;
       
       if (drudetype[type[i]] == DRUDE_TYPE) {
@@ -246,6 +315,7 @@ void FixDrudeTransform<inverse>::reduced_to_real()
   fix_drude->is_reduced = false;
 }
 
+/* ---------------------------------------------------------------------- */
 template <bool inverse>
 int FixDrudeTransform<inverse>::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
 {
@@ -287,6 +357,7 @@ int FixDrudeTransform<inverse>::pack_forward_comm(int n, int *list, double *buf,
   return m;
 }
 
+/* ---------------------------------------------------------------------- */
 template <bool inverse>
 void FixDrudeTransform<inverse>::unpack_forward_comm(int n, int first, double *buf)
 {
@@ -301,6 +372,22 @@ void FixDrudeTransform<inverse>::unpack_forward_comm(int n, int first, double *b
   }
 }
 
+/* ---------------------------------------------------------------------- */
+template <bool inverse>
+double FixDrudeTransform<inverse>::compute_vector(int n)
+{
+    switch(n) {
+        case 0: return temp_core;
+        case 1: return temp_drude;
+        case 2: return dof_core;
+        case 3: return dof_drude;
+        case 4: return kineng_core;
+        case 5: return kineng_drude;
+        default: return 0.;
+    }
+}
+
+/* ---------------------------------------------------------------------- */
 template class FixDrudeTransform<false>;
 template class FixDrudeTransform<true>;
 
