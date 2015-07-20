@@ -63,6 +63,9 @@ FixDrude::FixDrude(LAMMPS *lmp, int narg, char **arg) :
 
 FixDrude::~FixDrude()
 {
+  atom->delete_callback(id,2);
+  atom->delete_callback(id,1);
+  atom->delete_callback(id,0);
   memory->destroy(drudetype);
   memory->destroy(drudeid);
 }
