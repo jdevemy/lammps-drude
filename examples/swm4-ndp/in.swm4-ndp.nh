@@ -26,7 +26,7 @@ neighbor 2.0 bin
 
 timestep 1.0
 
-fix DRUDE all drude 1 0 0 2
+fix DRUDE all drude Core NoPol NoPol Drude
 
 velocity ATOMS create ${TK} 12345
 velocity DRUDES create ${TDK} 12345
@@ -34,15 +34,14 @@ velocity DRUDES create ${TDK} 12345
 delete_bonds ATOMS multi
 
 compute TATOM ATOMS temp/com
-compute TDRUDE DRUDES temp/drude
 
 fix DTDIR all drude/transform/direct
 fix RIGID ATOMS rigid/npt/small molecule temp ${TK} ${TK} 100 iso ${PBAR} ${PBAR} 500
 fix_modify RIGID temp TATOM press thermo_press
 fix NVT DRUDES nvt temp ${TDK} ${TDK} 100.0
-fix DTINV all drude/transform/inverse
+fix DTINV all drude/transform/inverse temp
 
-thermo_style custom step cpu etotal ke pe ebond eangle evdwl ecoul elong press vol temp c_TATOM c_TDRUDE
+thermo_style custom step cpu etotal ke pe ebond eangle evdwl ecoul elong press vol temp f_DTINV[1] f_DTINV[2]
 thermo 20
 
 run 2000

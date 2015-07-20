@@ -40,23 +40,21 @@ variable vPRESS  equal 1.0
 velocity gCORES  create ${vTEMP} 12345
 velocity gDRUDES create ${vTEMP_D} 12345
 
-fix fDRUDE all drude 1 1 0 2 2
+fix fDRUDE all drude Core Core NoPol Drude Drude
 
 fix fSHAKE gCORES shake 0.0001 20 0 b 2 4
 
-compute cTEMP_DRUDE gDRUDES temp
-compute cTEMP_DRUDE_DRUDE gDRUDES temp/drude
 compute cTEMP_CORE gCORES temp/com
 
 fix fDIRECT all drude/transform/direct
 fix fNPT gCORES npt temp ${vTEMP} ${vTEMP} 100.0 iso ${vPRESS} ${vPRESS} 500.0
 fix_modify fNPT temp cTEMP_CORE press thermo_press
 fix fNVT gDRUDES nvt temp ${vTEMP_D} ${vTEMP_D} 100.0
-fix fINVERSE all drude/transform/inverse
+fix fINVERSE all drude/transform/inverse temp
 
 fix fMOMENTUM all momentum 100 linear 1 1 1
 
-thermo_style custom step cpu etotal ke temp pe ebond eangle edihed eimp evdwl ecoul elong press vol c_cTEMP_DRUDE c_cTEMP_DRUDE_DRUDE c_cTEMP_CORE
+thermo_style custom step cpu etotal ke temp pe ebond eangle edihed eimp evdwl ecoul elong press vol f_fINVERSE[1] f_fINVERSE[2]
 thermo 50
 
 timestep 0.5
