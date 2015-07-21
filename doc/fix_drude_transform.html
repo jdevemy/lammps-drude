@@ -24,53 +24,55 @@
 </P>
 <PRE>fix ID group-ID drude/transform/direct 
 </PRE>
-<PRE>fix ID group-ID drude/transform/inverse 
+<PRE>fix ID group-ID drude/transform/inverse keyword value 
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command 
 
-<LI>drude/transform/direct or drude/transform/inverse = name of this fix command 
+<LI>drude/transform/direct or drude/transform/inverse = name of this fix
+command 
 
+<LI>zero or one keywod may be appended to drude/transform/inverse 
+
+<LI>keyword = <I>temp</I> 
+
+<PRE>  <I>temp</I> value = <I>yes</I> or <I>no</I> = do or do not calculate reduced temperatures of core and Drude particles 
+</PRE>
 
 </UL>
 <P><B>Examples:</B>
 </P>
 <PRE>fix 3 all drude/transform/direct
-fix 1 all drude/transform/inverse  
+fix 1 all drude/transform/inverse temp yes 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Transform the coordinates of the Drude oscillators from real to reduced and back
-for thermalizing the Drude oscillators as described in <A HREF = "#Lamoureux">(Lamoureux)</A>
-using a Nose-Hoover thermostat.
+<P>Transform the coordinates of the Drude oscillators from real to
+reduced and back for thermalizing the Drude oscillators as described
+in <A HREF = "#Lamoureux">(Lamoureux)</A> using a Nose-Hoover thermostat.
 </P>
-<P>Drude oscillators are a pair of atoms representing a single polarizable atom.
-See <A HREF = "drude_oscillators.html">Drude oscillators</A> about how to use them in LAMMPS.
-Ideally, the mass of Drude particles would vanish and their positions would be 
-determined self-consistently by iterative minimization of the energy, the cores' 
-positions being fixed.
-It is however more efficient and it yields comparable results, if the Drude 
-oscillators (the motion of the Drude particle relative to the core) are thermalized 
-at a low temperature.
-In that case, the Drude particles need a small mass. 
+<P>Drude oscillators are a pair of atoms representing a single
+polarizable atom.  See <A HREF = "drude_oscillators.html">Drude oscillators</A>
+about how to use them in LAMMPS.  Ideally, the mass of Drude particles
+would vanish and their positions would be determined self-consistently
+by iterative minimization of the energy, the cores' positions being
+fixed.  It is however more efficient and it yields comparable results,
+if the Drude oscillators (the motion of the Drude particle relative to
+the core) are thermalized at a low temperature.  In that case, the
+Drude particles need a small mass.
 </P>
-The thermostats act on the reduced degrees of freedom, which are defined by 
-<BR>
-<I>In these equations upper case denotes atomic or center of mass values and lower 
-case denotes Drude particle or dipole values. Primes denote the transformed 
-(reduced) values, while bare letters denote the original values.</I> 
-<BR>
-<P>Masses:
-\begin{equation} M' = M + m \end{equation}
-\begin{equation} m' = \frac {M\, m } {M'} \end{equation}
-Positions:
-\begin{equation} X' = \frac {M\, X + m\, x} {M'} \end{equation}
-\begin{equation} x' = x - X \end{equation}
-Velocities:
-\begin{equation} V' = \frac {M\, V + m\, v} {M'} \end{equation}
-\begin{equation} v' = v - V \end{equation}
-Forces:
-\begin{equation} F' = F + f \end{equation}
-\begin{equation} f' = \frac { M\, f - m\, F} {M'} \end{equation}
+<P>The thermostats act on the reduced degrees of freedom, which are
+defined by :b <I>In these equations upper case denotes atomic or center
+of mass values and lower case denotes Drude particle or dipole
+values. Primes denote the transformed (reduced) values, while bare
+letters denote the original values.</I> :b Masses: \begin{equation} M'
+= M + m \end{equation} \begin{equation} m' = \frac {M\, m }
+{M'} \end{equation} Positions: \begin{equation} X' = \frac {M\,
+X + m\, x} {M'} \end{equation} \begin{equation} x' = x - X
+\end{equation} Velocities: \begin{equation} V' = \frac {M\, V +
+m\, v} {M'} \end{equation} \begin{equation} v' = v - V
+\end{equation} Forces: \begin{equation} F' = F + f
+\end{equation} \begin{equation} f' = \frac { M\, f - m\, F}
+{M'} \end{equation}
 </P>
 <P>This transform conserves the total kinetic energy
 \begin{equation} \frac 1 2 \, (M\, V^2\ + m\, v^2) 
@@ -78,31 +80,42 @@ Forces:
 and the virial defined with absolute positions
 \begin{equation} X\, F + x\, f = X'\, F' + x'\, f' \end{equation} 
 </P>
-<HR>
-
-<P>This fix requires so that each atom knows whether it is a Drude particle or not.
-You must therefore use the fix <A HREF = "fix_drude.html">drude</A> to specify the Drude status of each atom type.
-</P>
-<P>Note: only the core atoms need to be in the group of this fix. The Drude particle
-will be transformed together with its core even if it is not itself in the group.
-It is safe to include Drude particles or non-polarizable atoms in the group. The
-non-polarizable atoms will simply not be transformed.
-</P>
-<P>Note: It is necessary that each core of a given atom type is always connected to 
-a Drude particle of a corresponding atom type. I.e. there must be separate atom
-types for the Drude particles if they are connected to cores of different types.
+<P>The <I>temp</I> keyword specifies if the temperatures in reduced units of
+cores and Drude particles are calculated. If the <I>temp</I> option is set
+to <I>yes</I> the reduced temperatures, degrees of freedom and kinetic
+energies are calculated at cab ne accessed as explained below; If <I>no</I>
+they are not.
 </P>
 <HR>
 
-<P>This fix does NOT perform time integration. It only transform masses, coordinates, 
-velocities and forces. Thus you must use separate time Nose-Hoover integration fixes, 
-like <A HREF = "fix_nve.html">fix nve</A> or <A HREF = "fix_nh.html">fix npt</A> to actually update 
-the velocities and positions of atoms.
-In order to thermalize the reduced degrees of freedom at different temperatures, two
-Nose-Hoover thermostats must be defined, acting on two distinct groups.
+<P>This fix requires so that each atom knows whether it is a Drude
+particle or not.  You must therefore use the fix
+<A HREF = "fix_drude.html">drude</A> to specify the Drude status of each atom type.
 </P>
-The <I>fix drude/transform/direct</I> must appear before the Nose-Hoover thermostating fixes.
-The <I>fix drude/transform/inverse</I> must appear after the Nose-Hoover thermostating fixes. 
+<P>Note: only the core atoms need to be in the group of this fix. The
+Drude particle will be transformed together with its core even if it
+is not itself in the group.  It is safe to include Drude particles or
+non-polarizable atoms in the group. The non-polarizable atoms will
+simply not be transformed.
+</P>
+<P>Note: It is necessary that each core of a given atom type is always
+connected to a Drude particle of a corresponding atom type. I.e. there
+must be separate atom types for the Drude particles if they are
+connected to cores of different types.
+</P>
+<HR>
+
+<P>This fix does NOT perform time integration. It only transform masses,
+coordinates, velocities and forces. Thus you must use separate time
+Nose-Hoover integration fixes, like <A HREF = "fix_nve.html">fix nve</A> or <A HREF = "fix_nh.html">fix
+npt</A> to actually update the velocities and positions of
+atoms.  In order to thermalize the reduced degrees of freedom at
+different temperatures, two Nose-Hoover thermostats must be defined,
+acting on two distinct groups.
+</P>
+The <I>fix drude/transform/direct</I> must appear before the Nose-Hoover
+thermostating fixes.  The <I>fix drude/transform/inverse</I> must appear
+after the Nose-Hoover thermostating fixes. 
 <BR>
 Example: 
 <BR>
@@ -111,14 +124,17 @@ fix fNVT gCORES nvt temp 300.0 300.0 100.0
 fix fNVT gDRUDES nvt temp 1.0 1.0 100.0
 fix fINVERSE all drude/transform/inverse 
 </PRE>
-<P>In this example, <I>gCORES</I> is the group of the atom cores and <I>gDRUDES</I> is the group of the 
-Drude particles. The centers of mass of the Drude oscillators will be thermostated at 
-300.0 and the internal degrees of freedom will be thermostated at 1.0.
+<P>In this example, <I>gCORES</I> is the group of the atom cores and <I>gDRUDES</I>
+is the group of the Drude particles. The centers of mass of the Drude
+oscillators will be thermostated at 300.0 and the internal degrees of
+freedom will be thermostated at 1.0.
 </P>
-In addition, if you want to use a barostat to simulate a system at constant pressure, 
-only one of the Nose-Hoover fixes must be <I>npt</I>, the other one should be <I>nvt</I>. You must
-add a <I>compute temp/com</I> and a <I>fix_modify</I> command so that the temperature of the <I>npt</I> 
-fix be just that of its group but the pressure be the overall pressure <I>thermo_press</I>. 
+In addition, if you want to use a barostat to simulate a system at
+constant pressure, only one of the Nose-Hoover fixes must be <I>npt</I>,
+the other one should be <I>nvt</I>. You must add a <I>compute temp/com</I> and a
+<I>fix_modify</I> command so that the temperature of the <I>npt</I> fix be just
+that of its group but the pressure be the overall pressure
+<I>thermo_press</I>. 
 <BR>
 Example: 
 <BR>
@@ -129,20 +145,33 @@ fix_modify fNPT temp cTEMP_CORE press thermo_press
 fix fNVT gDRUDES nvt temp 5.0 5.0 100.0
 fix fINVERSE all drude/transform/inverse 
 </PRE>
-<P>In this example, <I>gCORES</I> is the group of the atom cores and <I>gDRUDES</I> is the group of the 
-Drude particles. The centers of mass of the Drude oscillators will be thermostated at 
-298.0 and the internal degrees of freedom will be thermostated at 5.0. The whole system
-will be barostated at 1.0.
+<P>In this example, <I>gCORES</I> is the group of the atom cores and <I>gDRUDES</I>
+is the group of the Drude particles. The centers of mass of the Drude
+oscillators will be thermostated at 298.0 and the internal degrees of
+freedom will be thermostated at 5.0. The whole system will be
+barostated at 1.0.
 </P>
-In order to avoid the flying ice cube problem (irreversible transfer of linear momentum
-to the center of mass of the system), you may need to add a <I>fix momentum</I> command like 
-<BR>
-<PRE>fix fMOMENTUM all momentum 100 linear 1 1 1 
+<PRE>In order to avoid the flying ice cube problem (irreversible transfer
+of linear momentum to the center of mass of the system), you may need
+to add a <I>fix momentum</I> command like :b fix fMOMENTUM all momentum 100
+linear 1 1 1 
 </PRE>
 <HR>
 
 <P><B>Restart, fix_modify, output, run start/stop, minimize info:</B>
 </P>
+<P>If the <I>temp yes</I> keyword is used in <I>fix drude/transform/inverse</I> this
+fix computes a global vector of 6 components which can be accessed by
+various <A HREF = "Section_howto.html#howto_15">output commands</A>. The meaning of
+the components are
+</P>
+<PRE><B>1</B> temperature of the centers of mass (temperature units)
+<B>2</B> temperature of the dipoles (temperature units)
+<B>3</B> number of degrees of freedom of the centers of mass
+<B>4</B> number of degrees of freedom of the dipoles 
+<B>5</B> kinetic energy of the centers of mass (energy units)
+<B>6</B> kinetic energy of the dipoles (energy units) 
+</PRE>
 <P>No information about this fix is written to <A HREF = "restart.html">binary restart files</A>
 </P>
 <P><B>Restrictions:</B> none
@@ -154,7 +183,9 @@ to the center of mass of the system), you may need to add a <I>fix momentum</I> 
 <A HREF = "compute_temp_drude.html">compute temp/drude</A>,
 <A HREF = "pair_thole.html">pair_style thole</A>
 </P>
-<P><B>Default:</B> none
+<P><B>Default:</B>
+</P>
+<P>The option defaults are temp = no.
 </P>
 <HR>
 

@@ -30,17 +30,19 @@ FixDrudeTransform<inverse>::FixDrudeTransform(LAMMPS *lmp, int narg, char **arg)
   Fix(lmp, narg, arg), mcoeff(NULL)
 {
   if (!inverse && narg != 3) error->all(FLERR,"Illegal fix drude/transform command");
-  if (narg != 3 && narg !=4) error->all(FLERR,"Illegal fix drude/transform command");
-  if (narg == 4){
-    if (!strcmp(arg[3], "temp")){
+  if (narg == 3) {
+    vector_flag = 0;
+    temp = false;
+  } else if (narg == 5 && strcmp(arg[3], "temp") == 0) {
+    if (strcmp(arg[4], "yes") == 0) {
       vector_flag = 1;
       size_vector = 6;
       temp = true;
-    } else error->all(FLERR,"Illegal fix drude/transform command");
-  } else {
-    vector_flag = 0;
-    temp = false;
-  }
+    } else {
+      vector_flag = 0;
+      temp = false;
+    }
+  } else error->all(FLERR,"Illegal fix drude/transform command");
   comm_forward = 9;
   fix_drude = NULL;
 }
