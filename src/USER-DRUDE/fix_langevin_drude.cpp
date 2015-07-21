@@ -206,6 +206,32 @@ void FixLangevinDrude::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
+int FixLangevinDrude::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0],"temp") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
+    delete [] id_temp;
+    int n = strlen(arg[1]) + 1;
+    id_temp = new char[n];
+    strcpy(id_temp,arg[1]);
+
+    int icompute = modify->find_compute(id_temp);
+    if (icompute < 0)
+      error->all(FLERR,"Could not find fix_modify temperature ID");
+    temperature = modify->compute[icompute];
+
+    if (temperature->tempflag == 0)
+      error->all(FLERR,
+                 "Fix_modify temperature ID does not compute temperature");
+    if (temperature->igroup != igroup && comm->me == 0)
+      error->warning(FLERR,"Group for fix_modify temp != fix group");
+    return 2;
+  }
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixLangevinDrude::post_force(int vflag)
 {
   langevin(vflag, true);
@@ -283,11 +309,13 @@ void FixLangevinDrude::langevin(int /*vflag*/, bool thermalize=true)
         if (thermalize) {
           Gcore  = mi / t_period_core  / ftm2v;
           Ccore  = sqrt(2.0 * Gcore  * kb * t_target_core  / dt / ftm2v / mvv2e);
+          if (temperature) temperature->remove_bias(i, v[i]);
           for(int k = 0; k < dim; k++){
             fcore[k] = Ccore  * random_core->gaussian()  - Gcore  * v[i][k];
             if (zero) fcoreloc[k] += fcore[k];
             f[i][k] += fcore[k];
           }
+          if (temperature) temperature->restore_bias(i, v[i]);
         }
         kineng_core_loc += mi * (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
       } else {
@@ -314,6 +342,10 @@ void FixLangevinDrude::langevin(int /*vflag*/, bool thermalize=true)
           Cdrude = sqrt(2.0 * Gdrude * kb * t_target_drude / dt / ftm2v / mvv2e);
         }
 
+        if (temperature) {
+            temperature->remove_bias(i, v[i]);
+            temperature->remove_bias(j, v[j]);
+        }
         for (int k=0; k<dim; k++) {
           // TODO check whether a fix_modify temp can subtract a bias velocity
           vcore[k] = mi * v[i][k] + mj * v[j][k]; 
@@ -333,6 +365,10 @@ void FixLangevinDrude::langevin(int /*vflag*/, bool thermalize=true)
 
             // TODO tally energy if asked
           }
+        }
+        if (temperature) {
+            temperature->restore_bias(i, v[i]);
+            temperature->restore_bias(j, v[j]);
         }
       }
     }

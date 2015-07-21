@@ -31,19 +31,17 @@ class ComputeTempDrude : public Compute {
   ~ComputeTempDrude();
   void init();
   void setup();
-  double compute_scalar();
   void compute_vector();
-
-  void remove_bias(int, double *);
-  void remove_bias_all();
-  void restore_bias(int, double *);
-  void restore_bias_all();
+  int modify_param(int, char **);
 
  private:
   int fix_dof;
-  double tfactor;
-  int maxatom;
   FixDrude * fix_drude;
+  char *id_temp;
+  class Compute *temperature;
+  bigint dof_core, dof_drude;
+  double kineng_core, kineng_drude;
+  double temp_core, temp_drude;
 
   void dof_compute();
 

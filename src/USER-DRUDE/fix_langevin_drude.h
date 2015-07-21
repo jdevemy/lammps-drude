@@ -39,6 +39,7 @@ class FixLangevinDrude : public Fix {
   double compute_vector(int);
   int pack_reverse_comm(int, int, double*);
   void unpack_reverse_comm(int, int*, double*);
+  int modify_param(int, char **);
 
  protected:
   double t_start_core,t_period_core,t_target_core;
@@ -56,6 +57,8 @@ class FixLangevinDrude : public Fix {
   int zero;
   bigint ncore;
   FixDrude * fix_drude;
+  class Compute *temperature;
+  char *id_temp;
 };
 
 }

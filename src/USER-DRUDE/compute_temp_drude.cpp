@@ -25,6 +25,7 @@
 #include "lattice.h"
 #include "memory.h"
 #include "error.h"
+#include "comm.h"
 
 using namespace LAMMPS_NS;
 
@@ -35,17 +36,19 @@ ComputeTempDrude::ComputeTempDrude(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 3) error->all(FLERR,"Illegal compute temp command");
 
-  scalar_flag = vector_flag = 1;
+  vector_flag = 1;
   size_vector = 6;
   extscalar = 0;
-  extvector = 1;
-  tempflag = 1;
-  tempbias = 1;
+  extvector = -1;
+  extlist = new int[6];
+  extlist[0] = extlist[1] = 0;
+  extlist[2] = extlist[3] = extlist[4] = extlist[5] = 1;
+  tempflag = 0; // because does not compute a single temperature (scalar and vector)
 
   vector = new double[6];
-  maxatom = 0;
-  vbiasall = NULL;
   fix_drude = NULL;
+  id_temp = NULL;
+  temperature = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -53,7 +56,8 @@ ComputeTempDrude::ComputeTempDrude(LAMMPS *lmp, int narg, char **arg) :
 ComputeTempDrude::~ComputeTempDrude()
 {
   delete [] vector;
-  memory->destroy(vbiasall);
+  delete [] extlist;
+  delete [] id_temp;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -65,15 +69,15 @@ void ComputeTempDrude::init()
     if (strcmp(modify->fix[ifix]->style,"drude") == 0) break;
   if (ifix == modify->nfix) error->all(FLERR, "compute temp/drude requires fix drude");  
   fix_drude = (FixDrude *) modify->fix[ifix];
+  
+  if (!comm->ghost_velocity)
+    error->all(FLERR,"compute temp/drude requires ghost velocities. Use comm_modify vel yes");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ComputeTempDrude::setup()
 {
-  fix_dof = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    fix_dof += modify->fix[i]->dof(igroup);
   dof_compute();
 }
 
@@ -81,65 +85,140 @@ void ComputeTempDrude::setup()
 
 void ComputeTempDrude::dof_compute()
 {
-  double natoms = group->count(igroup);
-  int nper = domain->dimension;
-  dof = nper * natoms;
-  dof -= extra_dof + fix_dof;
-  if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
-  else tfactor = 0.0;
+  int nlocal = atom->nlocal;
+  int *type = atom->type;
+  int dim = domain->dimension;
+  int *drudetype = fix_drude->drudetype;
+
+  fix_dof = 0;
+  for (int i = 0; i < modify->nfix; i++)
+    fix_dof += modify->fix[i]->dof(igroup);
+
+  bigint dof_core_loc = 0, dof_drude_loc = 0;
+  for (int i = 0; i < nlocal; i++) {
+    if (atom->mask[i] & groupbit) {
+      if (drudetype[type[i]] == DRUDE_TYPE) // Non-polarizable atom
+          dof_drude_loc++;
+      else
+          dof_core_loc++;
+    }
+  }
+  dof_core_loc *= dim;
+  dof_drude_loc *= dim;
+  MPI_Allreduce(&dof_core_loc,  &dof_core,  1, MPI_LMP_BIGINT, MPI_SUM, world);
+  MPI_Allreduce(&dof_drude_loc, &dof_drude, 1, MPI_LMP_BIGINT, MPI_SUM, world);
+  dof_core -= fix_dof;
+  vector[2] = dof_core;
+  vector[3] = dof_drude;
 }
 
 /* ---------------------------------------------------------------------- */
 
-double ComputeTempDrude::compute_scalar()
+int ComputeTempDrude::modify_param(int narg, char **arg)
 {
-  //char idtag[] = "drudeid";
-  double vthermal[3];
+  if (strcmp(arg[0],"temp") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
+    delete [] id_temp;
+    int n = strlen(arg[1]) + 1;
+    id_temp = new char[n];
+    strcpy(id_temp,arg[1]);
 
-  if (atom->nlocal > maxatom) {
-    maxatom = atom->nmax;
-    memory->destroy(vbiasall);
-    memory->create(vbiasall,maxatom,3,"temp/profile:vbiasall");
+    int icompute = modify->find_compute(id_temp);
+    if (icompute < 0)
+      error->all(FLERR,"Could not find fix_modify temperature ID");
+    temperature = modify->compute[icompute];
+
+    if (temperature->tempflag == 0)
+      error->all(FLERR,
+                 "Fix_modify temperature ID does not compute temperature");
+    if (temperature->igroup != igroup && comm->me == 0)
+      error->warning(FLERR,"Group for fix_modify temp != fix group");
+    return 2;
   }
-
-  invoked_scalar = update->ntimestep;
-
-  double **v = atom->v;
-  double *mass = atom->mass;
-  double *rmass = atom->rmass;
-  int *type = atom->type;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-  int flag;
-  int *drudeid = fix_drude->drudeid;
-
-  double t = 0.0;
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
-      int icore = atom->map(drudeid[i]);
-      vbiasall[i][0] = atom->v[icore][0];
-      vbiasall[i][1] = atom->v[icore][1];
-      vbiasall[i][2] = atom->v[icore][2];
-      vthermal[0] = v[i][0] - vbiasall[i][0];
-      vthermal[1] = v[i][1] - vbiasall[i][1];
-      vthermal[2] = v[i][2] - vbiasall[i][2];
-      if (rmass)
-        t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] +
-              vthermal[2]*vthermal[2]) * rmass[i];
-      else
-        t += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] +
-              vthermal[2]*vthermal[2]) * mass[type[i]];
-    }
-
-  MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
-  if (dynamic) dof_compute();
-  scalar *= tfactor;
-  return scalar;
+  return 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ComputeTempDrude::compute_vector()
+{
+    invoked_vector = update->ntimestep;
+  
+    int nlocal = atom->nlocal;
+    int *mask = atom->mask;
+    int *type = atom->type;
+    double *rmass = atom->rmass, *mass = atom->mass;
+    double **v = atom->v;
+    tagint *drudeid = fix_drude->drudeid;
+    int *drudetype = fix_drude->drudetype;
+    int dim = domain->dimension;
+    double mvv2e = force->mvv2e, kb = force->boltz;
+
+    double mcore, mdrude;
+    double ecore, edrude;
+    double *vcore, *vdrude;
+    double kineng_core_loc = 0., kineng_drude_loc = 0.;
+    for (int i=0; i<nlocal; i++){
+        if (groupbit & mask[i] && drudetype[type[i]] != DRUDE_TYPE){            
+            if (drudetype[type[i]] == NOPOL_TYPE) {
+                ecore = 0.;
+                vcore = v[i];
+                if (temperature) temperature->remove_bias(i, vcore);
+                for (int k=0; k<dim; k++) ecore += vcore[k]*vcore[k]; 
+                if (temperature) temperature->restore_bias(i, vcore);
+                if (rmass) mcore = rmass[i];
+                else mcore = mass[type[i]];
+                kineng_core_loc += mcore * ecore;
+            } else { // CORE_TYPE
+                int j = atom->map(drudeid[i]);
+                if (rmass) {
+                    mcore = rmass[i];
+                    mdrude = rmass[j];
+                } else {
+                    mcore = mass[type[i]];
+                    mdrude = mass[type[j]];
+                }
+                double mtot_inv = 1. / (mcore + mdrude);
+                ecore = 0.;
+                edrude = 0.;
+                vcore = v[i];
+                vdrude = v[j];
+                if (temperature) {
+                    temperature->remove_bias(i, vcore);
+                    temperature->remove_bias(j, vdrude);
+                }
+                for (int k=0; k<dim; k++) {
+                    double v1 = mdrude * vdrude[k] + mcore * vcore[k];
+                    ecore += v1 * v1;
+                    double v2 = vdrude[k] - vcore[k];
+                    edrude += v2 * v2;
+                }
+                if (temperature) {
+                    temperature->restore_bias(i, vcore);
+                    temperature->restore_bias(j, vdrude);
+                }
+                kineng_core_loc += mtot_inv * ecore;
+                kineng_drude_loc += mtot_inv * mcore * mdrude * edrude;
+            }
+        }
+    }
+    
+    if (dynamic) dof_compute();
+    kineng_core_loc *= 0.5 * mvv2e;
+    kineng_drude_loc *= 0.5 * mvv2e;
+    MPI_Allreduce(&kineng_core_loc,&kineng_core,1,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(&kineng_drude_loc,&kineng_drude,1,MPI_DOUBLE,MPI_SUM,world);
+    temp_core = 2.0 * kineng_core / (dof_core * kb);
+    temp_drude = 2.0 * kineng_drude / (dof_drude * kb);
+    vector[0] = temp_core;
+    vector[1] = temp_drude;
+    vector[4] = kineng_core;
+    vector[5] = kineng_drude;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/*void ComputeTempDrude::compute_vector()
 {
   int i;
   double vthermal[3];
@@ -186,64 +265,5 @@ void ComputeTempDrude::compute_vector()
 
   MPI_Allreduce(t,vector,6,MPI_DOUBLE,MPI_SUM,world);
   for (i = 0; i < 6; i++) vector[i] *= force->mvv2e;
-}
+}*/
 
-/* ----------------------------------------------------------------------
-   remove velocity bias from atom I to leave thermal velocity
-------------------------------------------------------------------------- */
-
-void ComputeTempDrude::remove_bias(int i, double *v)
-{
-  v[0] -= vbiasall[i][0];
-  v[1] -= vbiasall[i][1];
-  v[2] -= vbiasall[i][2];
-}
-
-/* ----------------------------------------------------------------------
-   remove velocity bias from all atoms to leave thermal velocity
-------------------------------------------------------------------------- */
-
-void ComputeTempDrude::remove_bias_all()
-{
-  double **v = atom->v;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
-      v[i][0] -= vbiasall[i][0];
-      v[i][1] -= vbiasall[i][1];
-      v[i][2] -= vbiasall[i][2];
-    }
-}
-
-/* ----------------------------------------------------------------------
-   add back in velocity bias to atom I removed by remove_bias()
-   assume remove_bias() was previously called
-------------------------------------------------------------------------- */
-
-void ComputeTempDrude::restore_bias(int i, double *v)
-{
-  v[0] += vbiasall[i][0];
-  v[1] += vbiasall[i][1];
-  v[2] += vbiasall[i][2];
-}
-
-/* ----------------------------------------------------------------------
-   add back in velocity bias to all atoms removed by remove_bias_all()
-   assume remove_bias_all() was previously called
-------------------------------------------------------------------------- */
-
-void ComputeTempDrude::restore_bias_all()
-{
-  double **v = atom->v;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
-      v[i][0] += vbiasall[i][0];
-      v[i][1] += vbiasall[i][1];
-      v[i][2] += vbiasall[i][2];
-    }
-}
