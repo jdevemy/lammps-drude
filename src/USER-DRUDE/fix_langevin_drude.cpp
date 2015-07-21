@@ -107,6 +107,8 @@ FixLangevinDrude::FixLangevinDrude(LAMMPS *lmp, int narg, char **arg) :
   tflag = 0; // no external compute/temp is specified yet (for bias)
   energy = 0.;
   fix_drude = NULL;
+  temperature = NULL;
+  id_temp = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
