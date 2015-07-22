@@ -40,14 +40,9 @@ class FixDrudeTransform : public Fix {
   void final_integrate();
   int pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc);
   void unpack_forward_comm(int n, int first, double *buf);
-  double compute_vector(int);
  protected:
   double * mcoeff;
   FixDrude * fix_drude;
-  bool temp;
-  bigint dof_core, dof_drude;
-  double kineng_core, kineng_drude;
-  double temp_core, temp_drude;
 };
 
 }
