@@ -144,51 +144,73 @@ the local electric field exerted by the neighbouring atoms. The optimal value
 probably depends on the temperature of the centers of mass and on the mass of 
 the Drude particles.
 
-{damp_com} is the characteristic time for reaching thermal equilibrium of the 
-centers of mass.
-For example, a value of 100.0 means to relax the temperature of the centers of 
-mass in a timespan of (roughly) 100 time units (tau or fmsec or psec - see the 
-"units"_units.html command).
-{damp_drude} is the characteristic time for reaching thermal equilibrium of the
-dipoles. It is typically a few timesteps.
+{damp_com} is the characteristic time for reaching thermal equilibrium
+of the centers of mass.  For example, a value of 100.0 means to relax
+the temperature of the centers of mass in a timespan of (roughly) 100
+time units (tau or fmsec or psec - see the "units"_units.html
+command).  {damp_drude} is the characteristic time for reaching
+thermal equilibrium of the dipoles. It is typically a few timesteps.
 
-The number {seed_com} and {seed_drude} are positive integers. They set the seeds
- of the Marsaglia random number generators used for generating the random forces 
- on centers of mass and on the dipoles. Each processor uses the input seed to 
- generate its own unique seed and its own stream of random numbers.
-Thus the dynamics of the system will not be identical on two runs on
-different numbers of processors.
+The number {seed_com} and {seed_drude} are positive integers. They set
+the seeds of the Marsaglia random number generators used for
+generating the random forces on centers of mass and on the
+dipoles. Each processor uses the input seed to generate its own unique
+seed and its own stream of random numbers.  Thus the dynamics of the
+system will not be identical on two runs on different numbers of
+processors.
 
-The keyword {zero} can be used to eliminate drift due to the thermostat on 
-centers of mass. Because the random forces on different centers of mass are
-independent, they do not sum exactly to zero.  As a result, this fix
-applies a small random force to the entire system, and the
-momentum of the total center of mass of the system undergoes a slow random walk. 
-If the keyword {zero} is set to {yes}, the total random force on the centers of 
-mass is set exactly to zero by subtracting off an equal part of it from each 
-center of mass in the group. As a result, the total center of mass of a system 
-with zero initial momentum will not drift over time.
+The keyword {zero} can be used to eliminate drift due to the
+thermostat on centers of mass. Because the random forces on different
+centers of mass are independent, they do not sum exactly to zero.  As
+a result, this fix applies a small random force to the entire system,
+and the momentum of the total center of mass of the system undergoes a
+slow random walk.  If the keyword {zero} is set to {yes}, the total
+random force on the centers of mass is set exactly to zero by
+subtracting off an equal part of it from each center of mass in the
+group. As a result, the total center of mass of a system with zero
+initial momentum will not drift over time.
+
+The actual temperatures of cores and Drude particles, in
+center-of-mass and relatice coordinates, respectively, can be
+calculated using "compute temp/drude"_compute_temp_drude.html.
 
 :line
 
-Use example: rigid bodies in the NPT ensemble
+Usage example: rigid bodies in the NPT ensemble
 
 comm_modify vel yes
-fix TEMP all langevin/drude 300. 100. 1256 1. 20. 13977 zero yes
-fix NPH ATOMS rigid/nph/small molecule iso 1. 1. 500.
+fix TEMP all langevin/drude 300.0 100 1256 1.0 50 13977 zero yes
+fix NPH ATOMS rigid/nph/small molecule iso 1.0 1.0 500
 fix NVE DRUDES nve
-thermo_style custom step cpu etotal ke pe ebond ecoul elong press vol temp c_TATOM c_TDRUDE f_TEMP\[1\] f_TEMP\[2\] :pre
+compute TDRUDE all temp/drude
+thermo_style custom step cpu etotal ke pe ebond ecoul elong press vol temp c_TDRUDE\[1\] c_TDRUDE\[2\] :pre
 
 Comments:
 
-Drude particles should not be in the rigid group, otherwise the Drude oscillators will be frozen and the system will lose its polarizability.
-{zero yes} avoids a drift of the center of mass of the system, but is a bit slower.
-use two different random seeds to avoid unphysical correlations.
-temperature is controlled by the fix {langevin/drude}, so the time-integration fixes do not thermostate.
-don't forget to time-integrate both cores and Drude particles.
-pressure is time-integrated only once by using {nve} for Drude particles and {nph} for atoms/cores (or vice versa). Do not use {nph} for both.
-contrary to the alternative thermostating using Nose-Hoover thermostat fix {npt} and fix {drude/transform}, the {fix_modify} command is not required here, because the fix {nph} computes the global pressure even if its group is {ATOMS}. This is what we want. If we thermostated {ATOMS} using {npt}, the pressure should be the global one, but the temperature should be only that of the cores. That's why the command {fix_modify} should be called in that case.
-f_TEMP\[1\] and f_TEMP\[2\] contain the reduced temperatures of the cores/atoms and of the Drude particles (see below). They should be 300. and 1. on average here. :ul
+Drude particles should not be in the rigid group, otherwise the Drude
+oscillators will be frozen and the system will lose its
+polarizability. :ulb,l
+Option {zero yes} avoids a drift of the center
+of mass of the system, but is a bit slower. :l
+Use two different
+random seeds to avoid unphysical correlations.  temperature is
+controlled by the fix {langevin/drude}, so the time-integration fixes
+do not thermostate. :l
+Don't forget to time-integrate both cores and
+Drude particles.  pressure is time-integrated only once by using {nve}
+for Drude particles and {nph} for atoms/cores (or vice versa). Do not
+use {nph} for both. :l
+Contrary to the alternative thermostating using
+Nose-Hoover thermostat fix {npt} and fix {drude/transform}, the
+{fix_modify} command is not required here, because the fix {nph}
+computes the global pressure even if its group is {ATOMS}. This is
+what we want. If we thermostated {ATOMS} using {npt}, the pressure
+should be the global one, but the temperature should be only that of
+the cores. That's why the command {fix_modify} should be called in
+that case. :l
+The temperatures of cores and Drude particles, in
+center-of-mass and relatice coordinates, are calculated using "compute
+temp/drude"_compute_temp_drude.html :l,ule
 
 :line
 
@@ -207,17 +229,6 @@ you have defined to this fix which will be used in its thermostating
 procedure, as described above. For consistency, the group used by the compute 
 should include the group of this fix and the Drude particles. -- NOT TESTED -- 
 
-This fix computes a global vector of 6 components which can be accessed by 
-various "output commands"_Section_howto.html#howto_15. The meaning of the
-components are
-
-[1] temperature of the centers of mass (temperature units)
-[2] temperature of the dipoles (temperature units)
-[3] number of degrees of freedom of the centers of mass
-[4] number of degrees of freedom of the dipoles 
-[5] kinetic energy of the centers of mass (energy units)
-[6] kinetic energy of the dipoles (energy units) :pre
-
 This fix is not invoked during "energy minimization"_minimize.html.
 
 [Restrictions:] none
@@ -225,6 +236,7 @@ This fix is not invoked during "energy minimization"_minimize.html.
 [Related commands:]
 
 "fix langevin"_fix_langevin.html,
+"fix drude"_fix_drude.html,
 "fix drude/transform"_fix_drude_transform.html,
 "compute temp/drude"_compute_temp_drude.html,
 "pair_style thole"_pair_thole.html

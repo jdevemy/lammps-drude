@@ -240,11 +240,16 @@ You will notice that the global temperature {thermo_temp} computed by
 LAMMPS is not 300. K as wanted.  This is because LAMMPS treats DPs as
 standard atoms in his default compute.  If you want to output the
 temperatures of the DC-DP pair centers of mass and of the DPs relative
-to their DCs, you should use {thermo_style custom} with respectively
-{f_LANG\[1\]} and {f_LANG\[2\]}. These should be close to 300. and
-1. on average.
+to their DCs, you should use the "compute
+temp_drude"_compute_temp_drude.html
 
-thermo_style custom step temp f_LANG\[1\] f_LANG\[2\] :pre
+compute TDRUDE all temp/drude :pre
+
+And then output the correct temperatures of the Drude oscillators
+using {thermo_style custom} with respectively {c_TDRUDE\[1\]} and
+{c_TDRUDE\[2\]}. These should be close to 300.0 and 1.0 on average.
+
+thermo_style custom step temp c_TDRUDE\[1\] c_TDRUDE\[2\] :pre
 
 :line
 [Thole screening]
