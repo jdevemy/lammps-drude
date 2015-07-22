@@ -27,7 +27,7 @@ neighbor 2.0 bin
 
 timestep 1.0
 
-fix DRUDE all drude Core NoPol NoPol Drude
+fix DRUDE all drude C N N D
 
 velocity ATOMS create ${TK} 12345
 velocity DRUDES create ${TDK} 12345
@@ -38,7 +38,9 @@ fix TEMP all langevin/drude ${TK} 100. 1256 ${TDK} 20. 13977 zero yes
 fix NPH ATOMS rigid/nph/small molecule iso ${PBAR} ${PBAR} 500.
 fix NVE DRUDES nve
 
-thermo_style custom step cpu etotal ke pe ebond eangle evdwl ecoul elong press vol temp f_TEMP[1] f_TEMP[2]
+compute TEMP all temp/drude
+
+thermo_style custom step cpu etotal ke pe ebond eangle evdwl ecoul elong press vol temp c_TEMP[1] c_TEMP[2]
 thermo 20
 
 run 2000
