@@ -311,7 +311,7 @@ pair_coeff    8    8 thole   0.630   0.670 :pre
 
 For the {thole} pair style the coefficients are 
 
-the atom polarizability in units of cubic length :l,olb
+the atom polarizability in units of cubic length :olb,l
 the screening factor of the Thole function (optional, default value
 specified by the pair_style command) :l
 the cutoff (optional, default value defined by the pair_style command)
