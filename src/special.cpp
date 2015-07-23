@@ -16,9 +16,10 @@
 #include "special.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "fix_drude.h"
 #include "force.h"
 #include "comm.h"
+#include "modify.h"
+#include "fix.h"
 #include "accelerator_kokkos.h"
 #include "memory.h"
 #include "error.h"
@@ -192,6 +193,7 @@ void Special::build()
       force->special_lj[3] == 1.0 && force->special_coul[3] == 1.0) {
     dedup();
     combine();
+    fix_alteration();
     return;
   }
 
@@ -308,6 +310,7 @@ void Special::build()
     dedup();
     if (force->special_angle) angle_trim();
     combine();
+    fix_alteration();
     return;
   }
 
@@ -420,7 +423,7 @@ void Special::build()
   if (force->special_angle) angle_trim();
   if (force->special_dihedral) dihedral_trim();
   combine();
-  rebuild_drude();
+  fix_alteration();
 }
 
 /* ----------------------------------------------------------------------
@@ -1131,17 +1134,15 @@ void Special::ring_eight(int ndatum, char *cbuf)
 }
 
 /* ----------------------------------------------------------------------
-   Rebuild the list of special neighbors if atom_style is Drude
-   so that each Drude particle is equivalent to its core atom.
+   allow fixes to alter special list
+   currently, only fix drude does this
+     so that both the Drude core and electron are same level of neighbor
 ------------------------------------------------------------------------- */
-void Special::rebuild_drude(){
-  // Check if atom_style drude is used
-  int ifix;
-  for (ifix = 0; ifix < modify->nfix; ifix++)
-    if (strcmp(modify->fix[ifix]->style,"drude") == 0) break;
-  if (ifix == modify->nfix) return;  // Not polarizable
 
-  FixDrude *fix_drude = (FixDrude *) modify->fix[ifix];
-  fix_drude->rebuild_special();
+void Special::fix_alteration()
+{
+  for (int ifix = 0; ifix < modify->nfix; ifix++)
+    if (modify->fix[ifix]->special_alter_flag)
+      modify->fix[ifix]->rebuild_special();
 }
 

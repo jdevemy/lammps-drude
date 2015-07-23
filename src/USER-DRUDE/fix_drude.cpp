@@ -31,7 +31,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-
 FixDrude *FixDrude::sptr = NULL;
 
 /* ---------------------------------------------------------------------- */
@@ -40,6 +39,10 @@ FixDrude::FixDrude(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (narg != 3 + atom->ntypes) error->all(FLERR,"Illegal fix drude command");
+
+  comm_border = 1; // drudeid
+  special_alter_flag = 1;
+
   memory->create(drudetype, atom->ntypes+1, "fix_drude::drudetype");
   for (int i=3; i<narg; i++) {
       if (arg[i][0] == 'n' || arg[i][0] == 'N' || arg[i][0] == '0')
@@ -51,12 +54,20 @@ FixDrude::FixDrude(LAMMPS *lmp, int narg, char **arg) :
       else
           error->all(FLERR, "Illegal fix drude command");
   }
-  comm_border = 1; // drudeid
+
   drudeid = NULL; 
   grow_arrays(atom->nmax);
   atom->add_callback(0);
   atom->add_callback(1);
   atom->add_callback(2);
+
+  // one-time assignment of Drude partners
+
+  build_drudeid();
+
+  // set rebuildflag = 0 to indicate special lists have never been rebuilt
+
+  rebuildflag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -79,7 +90,7 @@ void FixDrude::init()
     if (strcmp(modify->fix[i]->style,"drude") == 0) count++;
   if (count > 1) error->all(FLERR,"More than one fix drude");
 
-  rebuild_special();
+  if (!rebuildflag) rebuild_special();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -260,6 +271,8 @@ int FixDrude::unpack_border(int n, int first, double *buf)
    so that each Drude particle is equivalent to its core atom.
 ------------------------------------------------------------------------- */
 void FixDrude::rebuild_special(){
+  rebuildflag = 1;
+
   int nlocal = atom->nlocal;
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;

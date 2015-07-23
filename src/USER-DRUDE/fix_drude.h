@@ -31,6 +31,10 @@ namespace LAMMPS_NS {
 
 class FixDrude : public Fix {
  public:
+  int * drudetype;
+  tagint * drudeid;
+  bool is_reduced;
+
   FixDrude(class LAMMPS *, int, char **);
   virtual ~FixDrude();
   int setmask();
@@ -43,6 +47,11 @@ class FixDrude : public Fix {
   int pack_border(int n, int *list, double *buf);
   int unpack_border(int n, int first, double *buf);
 
+private:
+  int rebuildflag;
+  static FixDrude *sptr;
+  std::set<tagint> * partner_set;
+
   void build_drudeid();
   static void ring_search_drudeid(int size, char *cbuf);
   static void ring_build_partner(int size, char *cbuf);
@@ -50,12 +59,6 @@ class FixDrude : public Fix {
   static void ring_remove_drude(int size, char *cbuf);
   static void ring_add_drude(int size, char *cbuf);
   static void ring_copy_drude(int size, char *cbuf);
-
-  tagint * drudeid;
-  int * drudetype;
-  bool is_reduced;
-  static FixDrude *sptr;
-  std::set<tagint> * partner_set;
 };
 
 }

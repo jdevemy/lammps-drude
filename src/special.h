@@ -37,7 +37,7 @@ class Special : protected Pointers {
   void angle_trim();
   void dihedral_trim();
   void combine();
-  void rebuild_drude();
+  void fix_alteration();
 
   // static variable for ring communication callback to access class data
   // callback functions for ring communication
