@@ -19,20 +19,16 @@ fix drude/transform/reverse command :h3
 [Syntax:]
 
 fix ID group-ID drude/transform/direct :pre
-fix ID group-ID drude/transform/inverse keyword value :pre
+fix ID group-ID drude/transform/inverse :pre
 
 ID, group-ID are documented in "fix"_fix.html command :ulb,l
 drude/transform/direct or drude/transform/inverse = name of this fix
-command :l
-zero or one keywod may be appended to drude/transform/inverse :l
-keyword = {temp} :l
-  {temp} value = {yes} or {no} = do or do not calculate reduced temperatures of core and Drude particles :pre
-:ule
+command :l,ule
 
 [Examples:]
 
 fix 3 all drude/transform/direct
-fix 1 all drude/transform/inverse temp yes :pre
+fix 1 all drude/transform/inverse :pre
 
 [Description:]
 
@@ -70,12 +66,9 @@ This transform conserves the total kinetic energy
 and the virial defined with absolute positions
 \begin\{equation\} X\, F + x\, f = X'\, F' + x'\, f' \end\{equation\} 
 
-The {temp} keyword specifies if the temperatures in reduced units of
-cores and Drude particles are calculated. If the {temp} option is set
-to {yes} the reduced temperatures, degrees of freedom and kinetic
-energies are calculated at cab ne accessed as explained below; If {no}
-they are not.
-
+The actual temperatures of cores and Drude particles, in
+center-of-mass and relatice coordinates, respectively, can be
+calculated using "compute temp/drude"_compute_temp_drude.html.
 
 :line
 
@@ -111,14 +104,18 @@ after the Nose-Hoover thermostating fixes. :b
 Example: :b
 
 fix fDIRECT all drude/transform/direct
-fix fNVT gCORES nvt temp 300.0 300.0 100.0
-fix fNVT gDRUDES nvt temp 1.0 1.0 100.0
-fix fINVERSE all drude/transform/inverse :pre
+fix fNVT gCORES nvt temp 300.0 300.0 100
+fix fNVT gDRUDES nvt temp 1.0 1.0 100
+fix fINVERSE all drude/transform/inverse
+compute TDRUDE all temp/drude
+thermo_style custom step cpu etotal ke pe ebond ecoul elong press vol temp c_TDRUDE\[1\] c_TDRUDE\[2\] :pre
 
 In this example, {gCORES} is the group of the atom cores and {gDRUDES}
 is the group of the Drude particles. The centers of mass of the Drude
 oscillators will be thermostated at 300.0 and the internal degrees of
-freedom will be thermostated at 1.0.
+freedom will be thermostated at 1.0. The temperatures of cores and
+Drude particles, in center-of-mass and relatice coordinates, are
+calculated using "compute temp/drude"_compute_temp_drude.html
 
 In addition, if you want to use a barostat to simulate a system at
 constant pressure, only one of the Nose-Hoover fixes must be {npt},
@@ -131,9 +128,9 @@ Example: :b
 
 compute cTEMP_CORE gCORES temp/com
 fix fDIRECT all drude/transform/direct
-fix fNPT gCORES npt temp 298.0 298.0 100.0 iso 1.0 1.0 500.0
+fix fNPT gCORES npt temp 298.0 298.0 100 iso 1.0 1.0 500
 fix_modify fNPT temp cTEMP_CORE press thermo_press
-fix fNVT gDRUDES nvt temp 5.0 5.0 100.0
+fix fNVT gDRUDES nvt temp 5.0 5.0 100
 fix fINVERSE all drude/transform/inverse :pre
 
 In this example, {gCORES} is the group of the atom cores and {gDRUDES}
@@ -144,25 +141,16 @@ barostated at 1.0.
 
 In order to avoid the flying ice cube problem (irreversible transfer
 of linear momentum to the center of mass of the system), you may need
-to add a {fix momentum} command like :b fix fMOMENTUM all momentum 100
-linear 1 1 1 :pre
+to add a {fix momentum} command like :b
+
+fix fMOMENTUM all momentum 100 linear 1 1 1 :pre
+
+
+
 
 :line
 
 [Restart, fix_modify, output, run start/stop, minimize info:]
-
-If the {temp yes} keyword is used in {fix drude/transform/inverse} this
-fix computes a global vector of 6 components which can be accessed by
-various "output commands"_Section_howto.html#howto_15. The meaning of
-the components are
-
-[1] temperature of the centers of mass (temperature units)
-[2] temperature of the dipoles (temperature units)
-[3] number of degrees of freedom of the centers of mass
-[4] number of degrees of freedom of the dipoles 
-[5] kinetic energy of the centers of mass (energy units)
-[6] kinetic energy of the dipoles (energy units) :pre
-
 
 No information about this fix is written to "binary restart files"_restart.html
 
@@ -175,9 +163,7 @@ No information about this fix is written to "binary restart files"_restart.html
 "compute temp/drude"_compute_temp_drude.html,
 "pair_style thole"_pair_thole.html
 
-[Default:]
-
-The option defaults are temp = no.
+[Default:] none
 
 :line
 

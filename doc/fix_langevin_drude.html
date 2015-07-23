@@ -163,51 +163,78 @@ the local electric field exerted by the neighbouring atoms. The optimal value
 probably depends on the temperature of the centers of mass and on the mass of 
 the Drude particles.
 </P>
-<P><I>damp_com</I> is the characteristic time for reaching thermal equilibrium of the 
-centers of mass.
-For example, a value of 100.0 means to relax the temperature of the centers of 
-mass in a timespan of (roughly) 100 time units (tau or fmsec or psec - see the 
-<A HREF = "units.html">units</A> command).
-<I>damp_drude</I> is the characteristic time for reaching thermal equilibrium of the
-dipoles. It is typically a few timesteps.
+<P><I>damp_com</I> is the characteristic time for reaching thermal equilibrium
+of the centers of mass.  For example, a value of 100.0 means to relax
+the temperature of the centers of mass in a timespan of (roughly) 100
+time units (tau or fmsec or psec - see the <A HREF = "units.html">units</A>
+command).  <I>damp_drude</I> is the characteristic time for reaching
+thermal equilibrium of the dipoles. It is typically a few timesteps.
 </P>
-<P>The number <I>seed_com</I> and <I>seed_drude</I> are positive integers. They set the seeds
- of the Marsaglia random number generators used for generating the random forces 
- on centers of mass and on the dipoles. Each processor uses the input seed to 
- generate its own unique seed and its own stream of random numbers.
-Thus the dynamics of the system will not be identical on two runs on
-different numbers of processors.
+<P>The number <I>seed_com</I> and <I>seed_drude</I> are positive integers. They set
+the seeds of the Marsaglia random number generators used for
+generating the random forces on centers of mass and on the
+dipoles. Each processor uses the input seed to generate its own unique
+seed and its own stream of random numbers.  Thus the dynamics of the
+system will not be identical on two runs on different numbers of
+processors.
 </P>
-<P>The keyword <I>zero</I> can be used to eliminate drift due to the thermostat on 
-centers of mass. Because the random forces on different centers of mass are
-independent, they do not sum exactly to zero.  As a result, this fix
-applies a small random force to the entire system, and the
-momentum of the total center of mass of the system undergoes a slow random walk. 
-If the keyword <I>zero</I> is set to <I>yes</I>, the total random force on the centers of 
-mass is set exactly to zero by subtracting off an equal part of it from each 
-center of mass in the group. As a result, the total center of mass of a system 
-with zero initial momentum will not drift over time.
+<P>The keyword <I>zero</I> can be used to eliminate drift due to the
+thermostat on centers of mass. Because the random forces on different
+centers of mass are independent, they do not sum exactly to zero.  As
+a result, this fix applies a small random force to the entire system,
+and the momentum of the total center of mass of the system undergoes a
+slow random walk.  If the keyword <I>zero</I> is set to <I>yes</I>, the total
+random force on the centers of mass is set exactly to zero by
+subtracting off an equal part of it from each center of mass in the
+group. As a result, the total center of mass of a system with zero
+initial momentum will not drift over time.
+</P>
+<P>The actual temperatures of cores and Drude particles, in
+center-of-mass and relatice coordinates, respectively, can be
+calculated using <A HREF = "compute_temp_drude.html">compute temp/drude</A>.
 </P>
 <HR>
 
-<P>Use example: rigid bodies in the NPT ensemble
+<P>Usage example: rigid bodies in the NPT ensemble
 </P>
 <PRE>comm_modify vel yes
-fix TEMP all langevin/drude 300. 100. 1256 1. 20. 13977 zero yes
-fix NPH ATOMS rigid/nph/small molecule iso 1. 1. 500.
+fix TEMP all langevin/drude 300.0 100 1256 1.0 50 13977 zero yes
+fix NPH ATOMS rigid/nph/small molecule iso 1.0 1.0 500
 fix NVE DRUDES nve
-thermo_style custom step cpu etotal ke pe ebond ecoul elong press vol temp c_TATOM c_TDRUDE f_TEMP[1] f_TEMP[2] 
+compute TDRUDE all temp/drude
+thermo_style custom step cpu etotal ke pe ebond ecoul elong press vol temp c_TDRUDE[1] c_TDRUDE[2] 
 </PRE>
 <P>Comments:
 </P>
-<UL><LI>Drude particles should not be in the rigid group, otherwise the Drude oscillators will be frozen and the system will lose its polarizability.
-<LI><I>zero yes</I> avoids a drift of the center of mass of the system, but is a bit slower.
-<LI>use two different random seeds to avoid unphysical correlations.
-<LI>temperature is controlled by the fix <I>langevin/drude</I>, so the time-integration fixes do not thermostate.
-<LI>don't forget to time-integrate both cores and Drude particles.
-<LI>pressure is time-integrated only once by using <I>nve</I> for Drude particles and <I>nph</I> for atoms/cores (or vice versa). Do not use <I>nph</I> for both.
-<LI>contrary to the alternative thermostating using Nose-Hoover thermostat fix <I>npt</I> and fix <I>drude/transform</I>, the <I>fix_modify</I> command is not required here, because the fix <I>nph</I> computes the global pressure even if its group is <I>ATOMS</I>. This is what we want. If we thermostated <I>ATOMS</I> using <I>npt</I>, the pressure should be the global one, but the temperature should be only that of the cores. That's why the command <I>fix_modify</I> should be called in that case.
-<LI>f_TEMP[1] and f_TEMP[2] contain the reduced temperatures of the cores/atoms and of the Drude particles (see below). They should be 300. and 1. on average here. 
+<UL><LI>Drude particles should not be in the rigid group, otherwise the Drude
+oscillators will be frozen and the system will lose its
+polarizability. 
+
+<LI>Option <I>zero yes</I> avoids a drift of the center
+of mass of the system, but is a bit slower. 
+
+<LI>Use two different
+random seeds to avoid unphysical correlations.  temperature is
+controlled by the fix <I>langevin/drude</I>, so the time-integration fixes
+do not thermostate. 
+
+<LI>Don't forget to time-integrate both cores and
+Drude particles.  pressure is time-integrated only once by using <I>nve</I>
+for Drude particles and <I>nph</I> for atoms/cores (or vice versa). Do not
+use <I>nph</I> for both. 
+
+<LI>Contrary to the alternative thermostating using
+Nose-Hoover thermostat fix <I>npt</I> and fix <I>drude/transform</I>, the
+<I>fix_modify</I> command is not required here, because the fix <I>nph</I>
+computes the global pressure even if its group is <I>ATOMS</I>. This is
+what we want. If we thermostated <I>ATOMS</I> using <I>npt</I>, the pressure
+should be the global one, but the temperature should be only that of
+the cores. That's why the command <I>fix_modify</I> should be called in
+that case. 
+
+<LI>The temperatures of cores and Drude particles, in
+center-of-mass and relatice coordinates, are calculated using <A HREF = "compute_temp_drude.html">compute
+temp/drude</A> 
 </UL>
 <HR>
 
@@ -226,17 +253,6 @@ you have defined to this fix which will be used in its thermostating
 procedure, as described above. For consistency, the group used by the compute 
 should include the group of this fix and the Drude particles. -- NOT TESTED -- 
 </P>
-<P>This fix computes a global vector of 6 components which can be accessed by 
-various <A HREF = "Section_howto.html#howto_15">output commands</A>. The meaning of the
-components are
-</P>
-<PRE><B>1</B> temperature of the centers of mass (temperature units)
-<B>2</B> temperature of the dipoles (temperature units)
-<B>3</B> number of degrees of freedom of the centers of mass
-<B>4</B> number of degrees of freedom of the dipoles 
-<B>5</B> kinetic energy of the centers of mass (energy units)
-<B>6</B> kinetic energy of the dipoles (energy units) 
-</PRE>
 <P>This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
 </P>
 <P><B>Restrictions:</B> none
@@ -244,6 +260,7 @@ components are
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "fix_langevin.html">fix langevin</A>,
+<A HREF = "fix_drude.html">fix drude</A>,
 <A HREF = "fix_drude_transform.html">fix drude/transform</A>,
 <A HREF = "compute_temp_drude.html">compute temp/drude</A>,
 <A HREF = "pair_thole.html">pair_style thole</A>
