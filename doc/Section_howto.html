@@ -6,8 +6,8 @@
   MathJax.Hub.Config({ TeX: { equationNumbers: {autoNumber: "AMS"} } });
 </script>
 
-<H3>Thermalized Drude oscillators in LAMMPS: Tutorial 
-</H3>
+<A NAME = "howto_XX"></A><H4>6.XX Thermalized Drude oscillators 
+</H4>
 <P>This tutorial explains how to use <A HREF = "drude_oscillators.html">Drude
 oscillators</A> in LAMMPS to simulate polarizable
 systems.  As an illustration, the input files for a simulation of 250
@@ -16,8 +16,6 @@ compiled with the USER-DRUDE package activated. Then, the data file
 and input scripts have to be modified to include the Drude dipoles and
 how to handle them.
 </P>
-<HR>
-
 <P><B>Overview of Drude induced dipoles</B>
 </P>
 <P>Polarizable atoms acquire an induced electric dipole moment under the
@@ -101,13 +99,11 @@ may align too much.  To avoid this, damping at short of the
 interactions between the point charges composing the induced dipole
 can be done by <A HREF = "#Thole">Thole</A> functions. 
 </OL>
-<HR>
-
 <P><B>Preparation of the data file</B>
 </P>
-<P>The data file is similar to a standard LAMMPS data file for <I>atom_style full</I>.
-The DPs and the <I>harmonic bonds</I> connecting them to their DC should appear in the data
-file as normal atoms and bonds.
+<P>The data file is similar to a standard LAMMPS data file for
+<I>atom_style full</I>.  The DPs and the <I>harmonic bonds</I> connecting them
+to their DC should appear in the data file as normal atoms and bonds.
 </P>
 <P>You can use the <I>polarizer</I> tool (Python script distributed with the
 USER-DRUDE package) to convert a non-polarizable data file (here
@@ -143,38 +139,32 @@ look like
 4 1.008  # HA
 5 1.008  # HO 
 </PRE>
-<HR>
-
 <P><B>Basic input file</B>
 </P>
-<P>The atom style should be set to (or derive from) <I>full</I>, so that you can define atomic
-charges and molecular bonds, angles, dihedrals...  
+<P>The atom style should be set to (or derive from) <I>full</I>, so that you
+can define atomic charges and molecular bonds, angles, dihedrals...
 </P>
 <P>The <I>polarizer</I> tool also outputs certain lines related to the input
 script (the use of these lines will be explained below).  In order for
 LAMMPS to recognize that you are using Drude oscillators, you should
 use the fix <I>drude</I>. The command is
 </P>
-<PRE>fix DRUDE all drude 1 1 1 0 0 2 2 2 
-</PRE>
-<P>or, equivalently
-</P>
 <PRE>fix DRUDE all drude C C C N N D D D 
 </PRE>
-<P>The 0, 1, 2 (or N, C, D) following the <I>drude</I> keyword have the
-following meaning: There is one tag for each atom type. This tag is 1
-(or C) for DCs, 2 (or D) for DPs and 0 (or N) for non-polarizable
-atoms.  Here the atom types 1 to 3 (C and O atoms) are DC, atom types
-4 and 5 (H atoms) are non-polarizable and the atom types 6 to 8 are
-the newly created DPs.
+<P>The N, C, D following the <I>drude</I> keyword have the following meaning:
+There is one tag for each atom type. This tag is C for DCs, D for DPs
+and N for non-polarizable atoms.  Here the atom types 1 to 3 (C and O
+atoms) are DC, atom types 4 and 5 (H atoms) are non-polarizable and
+the atom types 6 to 8 are the newly created DPs.
 </P>
-<P>By recognizing the fix <I>drude</I>, LAMMPS will find and store matching DC-DP pairs and will treat DP as
-equivalent to their DC in the <I>special bonds</I> relations.  It may be
-necessary to extend the space for storing such special relations.  In
-this case extra space should be reserved by using the <I>extra</I> keyword
-of the <I>special_bonds</I> command.  With our phenol, there is 1 more
-special neighbor for which space is required.  Otherwise LAMMPS
-crashes and gives the required value.
+<P>By recognizing the fix <I>drude</I>, LAMMPS will find and store matching
+DC-DP pairs and will treat DP as equivalent to their DC in the
+<I>special bonds</I> relations.  It may be necessary to extend the space
+for storing such special relations.  In this case extra space should
+be reserved by using the <I>extra</I> keyword of the <I>special_bonds</I>
+command.  With our phenol, there is 1 more special neighbor for which
+space is required.  Otherwise LAMMPS crashes and gives the required
+value.
 </P>
 <PRE>special_bonds lj/coul 0.0 0.0 0.5 extra 1 
 </PRE>
@@ -255,8 +245,6 @@ using <I>thermo_style custom</I> with respectively <I>c_TDRUDE[1]</I> and
 </P>
 <PRE>thermo_style custom step temp c_TDRUDE[1] c_TDRUDE[2] 
 </PRE>
-<HR>
-
 <P><B>Thole screening</B>
 </P>
 <P>Dipolar interactions represented by point charges on springs may not
@@ -323,24 +311,25 @@ pair_coeff    8    8 thole   0.630   0.670
 </PRE>
 <P>For the <I>thole</I> pair style the coefficients are 
 </P>
-<OL><LI>the atom polarizability in units of cubic length
-<LI>the screening factor of the Thole function (optional, default value specified by the pair_style command)
-<LI>the cutoff (optional, default value defined by the pair_style command) 
+<LI><OL>the atom polarizability in units of cubic length 
+
+<LI>the screening factor of the Thole function (optional, default value
+specified by the pair_style command) 
+
+<LI>the cutoff (optional, default value defined by the pair_style command)
+
 </OL>
 <P>The special neighbors have charge-charge and charge-dipole
 interactions screened by the <I>coul</I> factors of the <I>special_bonds</I>
-command (0., 0., and 0.5 in the example above).  Without using the
+command (0.0, 0.0, and 0.5 in the example above).  Without using the
 pair_style <I>thole</I>, dipole-dipole interactions are screened by the
 same factor.  By using the pair_style <I>thole</I>, dipole-dipole
 interactions are screened by Thole's function, whatever their special
 relationship (except within each DC-DP pair of course).  Consider for
 example 1-2 neighbors: using the pair_style <I>thole</I>, their dipoles
 will see each other (despite the <I>coul</I> factor being 0.) and the
-interactions between these dipoles will be damped by Thole's
-function.
+interactions between these dipoles will be damped by Thole's function.
 </P>
-<HR>
-
 <P><B>Thermostats and barostats</B>
 </P>
 <P>Using a Nose-Hoover barostat with the <I>langevin/drude</I> thermostat is
@@ -396,8 +385,6 @@ fix_modify NPT temp TATOMS press thermo_press
 fix NVT DRUDES nvt temp 1. 1. 20
 fix INVERSE all drude/transform/inverse 
 </PRE>
-<HR>
-
 <P><B>Rigid bodies</B>
 </P>
 <P>You may want to simulate molecules as rigid bodies (but polarizable).

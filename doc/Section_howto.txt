@@ -5,7 +5,7 @@
   MathJax.Hub.Config({ TeX: { equationNumbers: {autoNumber: "AMS"} } });
 </script>
 
-Thermalized Drude oscillators in LAMMPS: Tutorial :h3
+6.XX Thermalized Drude oscillators :link(howto_XX),h4
 
 This tutorial explains how to use "Drude
 oscillators"_drude_oscillators.html in LAMMPS to simulate polarizable
@@ -15,7 +15,6 @@ compiled with the USER-DRUDE package activated. Then, the data file
 and input scripts have to be modified to include the Drude dipoles and
 how to handle them.
 
-:line
 [Overview of Drude induced dipoles]
 
 Polarizable atoms acquire an induced electric dipole moment under the
@@ -99,12 +98,12 @@ may align too much.  To avoid this, damping at short of the
 interactions between the point charges composing the induced dipole
 can be done by "Thole"_#Thole functions. :ole,l
 
-:line
+
 [Preparation of the data file]
 
-The data file is similar to a standard LAMMPS data file for {atom_style full}.
-The DPs and the {harmonic bonds} connecting them to their DC should appear in the data
-file as normal atoms and bonds.
+The data file is similar to a standard LAMMPS data file for
+{atom_style full}.  The DPs and the {harmonic bonds} connecting them
+to their DC should appear in the data file as normal atoms and bonds.
 
 You can use the {polarizer} tool (Python script distributed with the
 USER-DRUDE package) to convert a non-polarizable data file (here
@@ -140,37 +139,32 @@ Masses :pre
 4 1.008  # HA
 5 1.008  # HO :pre
 
-:line
 [Basic input file]
 
-The atom style should be set to (or derive from) {full}, so that you can define atomic
-charges and molecular bonds, angles, dihedrals...  
+The atom style should be set to (or derive from) {full}, so that you
+can define atomic charges and molecular bonds, angles, dihedrals...
 
 The {polarizer} tool also outputs certain lines related to the input
 script (the use of these lines will be explained below).  In order for
 LAMMPS to recognize that you are using Drude oscillators, you should
 use the fix {drude}. The command is
 
-fix DRUDE all drude 1 1 1 0 0 2 2 2 :pre
-
-or, equivalently
-
 fix DRUDE all drude C C C N N D D D :pre
 
-The 0, 1, 2 (or N, C, D) following the {drude} keyword have the
-following meaning: There is one tag for each atom type. This tag is 1
-(or C) for DCs, 2 (or D) for DPs and 0 (or N) for non-polarizable
-atoms.  Here the atom types 1 to 3 (C and O atoms) are DC, atom types
-4 and 5 (H atoms) are non-polarizable and the atom types 6 to 8 are
-the newly created DPs.
+The N, C, D following the {drude} keyword have the following meaning:
+There is one tag for each atom type. This tag is C for DCs, D for DPs
+and N for non-polarizable atoms.  Here the atom types 1 to 3 (C and O
+atoms) are DC, atom types 4 and 5 (H atoms) are non-polarizable and
+the atom types 6 to 8 are the newly created DPs.
 
-By recognizing the fix {drude}, LAMMPS will find and store matching DC-DP pairs and will treat DP as
-equivalent to their DC in the {special bonds} relations.  It may be
-necessary to extend the space for storing such special relations.  In
-this case extra space should be reserved by using the {extra} keyword
-of the {special_bonds} command.  With our phenol, there is 1 more
-special neighbor for which space is required.  Otherwise LAMMPS
-crashes and gives the required value.
+By recognizing the fix {drude}, LAMMPS will find and store matching
+DC-DP pairs and will treat DP as equivalent to their DC in the
+{special bonds} relations.  It may be necessary to extend the space
+for storing such special relations.  In this case extra space should
+be reserved by using the {extra} keyword of the {special_bonds}
+command.  With our phenol, there is 1 more special neighbor for which
+space is required.  Otherwise LAMMPS crashes and gives the required
+value.
 
 special_bonds lj/coul 0.0 0.0 0.5 extra 1 :pre
 
@@ -251,7 +245,6 @@ using {thermo_style custom} with respectively {c_TDRUDE\[1\]} and
 
 thermo_style custom step temp c_TDRUDE\[1\] c_TDRUDE\[2\] :pre
 
-:line
 [Thole screening]
 
 Dipolar interactions represented by point charges on springs may not
@@ -318,23 +311,23 @@ pair_coeff    8    8 thole   0.630   0.670 :pre
 
 For the {thole} pair style the coefficients are 
 
-the atom polarizability in units of cubic length
-the screening factor of the Thole function (optional, default value specified by the pair_style command)
-the cutoff (optional, default value defined by the pair_style command) :ol
+the atom polarizability in units of cubic length :l,olb
+the screening factor of the Thole function (optional, default value
+specified by the pair_style command) :l
+the cutoff (optional, default value defined by the pair_style command)
+:l,ole
 
 The special neighbors have charge-charge and charge-dipole
 interactions screened by the {coul} factors of the {special_bonds}
-command (0., 0., and 0.5 in the example above).  Without using the
+command (0.0, 0.0, and 0.5 in the example above).  Without using the
 pair_style {thole}, dipole-dipole interactions are screened by the
 same factor.  By using the pair_style {thole}, dipole-dipole
 interactions are screened by Thole's function, whatever their special
 relationship (except within each DC-DP pair of course).  Consider for
 example 1-2 neighbors: using the pair_style {thole}, their dipoles
 will see each other (despite the {coul} factor being 0.) and the
-interactions between these dipoles will be damped by Thole's
-function.
+interactions between these dipoles will be damped by Thole's function.
 
-:line
 [Thermostats and barostats]
 
 Using a Nose-Hoover barostat with the {langevin/drude} thermostat is
@@ -390,7 +383,6 @@ fix_modify NPT temp TATOMS press thermo_press
 fix NVT DRUDES nvt temp 1. 1. 20
 fix INVERSE all drude/transform/inverse :pre
 
-:line
 [Rigid bodies]
 
 You may want to simulate molecules as rigid bodies (but polarizable).
