@@ -49,9 +49,8 @@ compute cTEMP_CORE gCORES temp/com
 compute cTEMP all temp/drude
 
 fix fDIRECT all drude/transform/direct
-fix fNPT gCORES npt temp ${vTEMP} ${vTEMP} 100.0 iso ${vPRESS} ${vPRESS} 500.0
-fix_modify fNPT temp cTEMP_CORE press thermo_press
-fix fNVT gDRUDES nvt temp ${vTEMP_D} ${vTEMP_D} 100.0
+fix fNVT1 gCORES nvt temp ${vTEMP} ${vTEMP} 100.0
+fix fNVT2 gDRUDES nvt temp ${vTEMP_D} ${vTEMP_D} 20.0
 fix fINVERSE all drude/transform/inverse
 
 fix fMOMENTUM all momentum 100 linear 1 1 1
