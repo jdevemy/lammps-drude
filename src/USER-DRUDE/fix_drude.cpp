@@ -15,13 +15,8 @@
 #include "stdlib.h"
 #include "fix_drude.h"
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
-#include "input.h"
-#include "variable.h"
-#include "group.h"
 #include "modify.h"
-#include "compute.h"
 #include "error.h"
 #include "memory.h"
 

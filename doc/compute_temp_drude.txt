@@ -28,13 +28,15 @@ a Drude particle connected by a harmonic bond, and the relative motion
 of these Drude oscillators is usually maintained cold by a specific
 thermostat that acts on the relative motion of the core-Drude particle
 pairs. Therefore, because LAMMPS considers Drude particles as normal
-atoms in its default tmeperature compute, the reduced temperature of
+atoms in its default temperature compute, the reduced temperature of
 the core-Drude particle pairs is not calculated correctly.
 
 This compute calculates the temperature of the cores using
 center-of-mass velocities of the core-Drude pairs, and the reduced
 temperature of the Drude particles using the relative velocities of
-the Drude particles with respect to their cores.
+the Drude particles with respect to their cores. Non-polarizable atoms
+are considered as cores. Their velocities contribute to the temperature
+of the cores.
 
 
 [Output info:]
@@ -53,8 +55,9 @@ kinetic energy of the dipoles (energy units) :l,ole
 
 [Restrictions:]
 
-The number of core-Drude pairs contributing to the temperature is
-assumed to be constant for the duration of the run.
+The number of degrees of freedom contributing to the temperature is
+assumed to be constant for the duration of the run unless the 
+{fix_modify} command sets the option {dynamic yes}.
 
 [Related commands:]
 
