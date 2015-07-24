@@ -37,6 +37,7 @@ FixDrude::FixDrude(LAMMPS *lmp, int narg, char **arg) :
 
   comm_border = 1; // drudeid
   special_alter_flag = 1;
+  create_attribute = 1;
 
   memory->create(drudetype, atom->ntypes+1, "fix_drude::drudetype");
   for (int i=3; i<narg; i++) {
@@ -274,7 +275,7 @@ void FixDrude::rebuild_special(){
   int *type = atom->type;
 
   // Make sure that drude partners know each other
-  build_drudeid();
+  //build_drudeid();
 
   // Log info
   if (comm->me == 0) {
@@ -480,4 +481,16 @@ void FixDrude::ring_copy_drude(int size, char *cbuf){
   }
 }
 
+/* ---------------------------------------------------------------------- 
+ * Set drudeid when a new atom is created, 
+ * special list must be up-to-date
+ * ----------------------------------------------------------------------*/
+void FixDrude::set_arrays(int i){
+    if (drudetype[atom->type[i]] != NOPOL_TYPE){
+        if (atom->nspecial[i] ==0) error->all(FLERR, "Polarizable atoms cannot be inserted with special lists info from the molecule template");
+        drudeid[i] = atom->special[i][0]; // Drude partner should be at first place in the special list
+    } else {
+        drudeid[i] = 0;
+    }
+}
 
