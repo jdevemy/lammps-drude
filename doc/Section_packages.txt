@@ -113,13 +113,13 @@ on how to build LAMMPS with both kinds of auxiliary libraries.
 The current list of user-contributed packages is as follows:
 
 Package, Description, Author(s), Doc page, Example, Pic/movie, Library
-USER-ATC, atom-to-continuum coupling, Jones & Templeton & Zimmerman (2), "fix atc"_fix_atc.html, USER/atc, "atc"_atc, lib/atc
+USER-ATC, atom-to-continuum coupling, Jones & Templeton & Zimmerman (1), "fix atc"_fix_atc.html, USER/atc, "atc"_atc, lib/atc
 USER-AWPMD, wave-packet MD, Ilya Valuev (JIHT), "pair_style awpmd/cut"_pair_awpmd.html, USER/awpmd, -, lib/awpmd
 USER-CG-CMM, coarse-graining model, Axel Kohlmeyer (Temple U), "pair_style lj/sdk"_pair_sdk.html, USER/cg-cmm, "cg"_cg, -
-USER-COLVARS, collective variables, Fiorin & Henin & Kohlmeyer (3), "fix colvars"_fix_colvars.html, USER/colvars, "colvars"_colvars, lib/colvars
+USER-COLVARS, collective variables, Fiorin & Henin & Kohlmeyer (2), "fix colvars"_fix_colvars.html, USER/colvars, "colvars"_colvars, lib/colvars
 USER-CUDA, NVIDIA GPU styles, Christian Trott (U Tech Ilmenau), "Section accelerate"_accelerate_cuda.html, USER/cuda, -, lib/cuda
-USER-DIFFRACTION, virtual x-ray and electron diffraction, Shawn Coleman (ARL),"compute xrd"_compute_xrd.html, USER/diffraction, -, -
-USER-DRUDE, Drude oscillators, A. Dequidt & J. Devémy &  A. Padua (U Blaise Pascal Clermont-Ferrand), "tutorial"_drude_tutorial.html, USER/drude, -, -
+USER-DIFFRACTION, virutal x-ray and electron diffraction, Shawn Coleman (ARL),"compute xrd"_compute_xrd.html, USER/diffraction, -, -
+USER-DRUDE, Drude oscillators, Dequidt & Devemy &  Padua (3), "tutorial"_tutorial_drude.html, USER/drude, -, -
 USER-EFF, electron force field, Andres Jaramillo-Botero (Caltech), "pair_style eff/cut"_pair_eff.html, USER/eff, "eff"_eff, -
 USER-FEP, free energy perturbation, Agilio Padua (U Blaise Pascal Clermont-Ferrand), "compute fep"_compute_fep.html, USER/fep, -, -
 USER-INTEL, Vectorized CPU and Intel(R) coprocessor styles, W. Michael Brown (Intel), "Section accelerate"_accelerate_intel.html, examples/intel, -, -
@@ -129,6 +129,7 @@ USER-MOLFILE, "VMD"_VMD molfile plug-ins, Axel Kohlmeyer (Temple U), "dump molfi
 USER-OMP, OpenMP threaded styles, Axel Kohlmeyer (Temple U), "Section accelerate"_accelerate_omp.html, -, -, -
 USER-PHONON, phonon dynamical matrix, Ling-Ti Kong (Shanghai Jiao Tong U), "fix phonon"_fix_phonon.html, USER/phonon, -, -
 USER-QMMM, QM/MM coupling, Axel Kohlmeyer (Temple U), "fix qmmm"_fix_qmmm.html, USER/qmmm, -, lib/qmmm
+USER-QTB, quantum nuclear effects, Yuan Shen (Stanford), "fix qtb"_fix_qtb.html "fix_qbmsst"_fix_qbmsst.html, qtb, -, -
 USER-QUIP, QM/MM coupling, Albert Bartok-Partay (U Cambridge), "fix quip"_fix_quip.html, USER/quip, -, lib/quip
 USER-REAXC, C version of ReaxFF, Metin Aktulga (LBNL), "pair_style reaxc"_pair_reax_c.html, reax, -, -
 USER-SPH, smoothed particle hydrodynamics, Georg Ganzenmuller (EMI), "userguide.pdf"_USER/sph/SPH_LAMMPS_userguide.pdf, USER/sph, "sph"_sph, -
@@ -148,12 +149,16 @@ library not included in the LAMMPS distribution.  See the
 src/package/Makefile.lammps file for info on where to download the
 library from.
 
-(2) The ATC package was created by Reese Jones, Jeremy Templeton, and
+(1) The ATC package was created by Reese Jones, Jeremy Templeton, and
 Jon Zimmerman (Sandia).
 
-(3) The COLVARS package was created by Axel Kohlmeyer (Temple U) using
+(2) The COLVARS package was created by Axel Kohlmeyer (Temple U) using
 the colvars module library written by Giacomo Fiorin (Temple U) and
 Jerome Henin (LISM, Marseille, France).
+
+(3) The DRUDE package was created by Alain Dequidt (U Blaise Pascal
+Clermont-Ferrand) and co-authors Julien Devemy (CNRS) and Agilio Padua
+(U Blaise Pascal).
 
 The "Doc page" column links to either a portion of the
 "Section_howto"_Section_howto.html of the manual, or an input script
@@ -350,7 +355,7 @@ in LAMMPS using thermalized Drude oscillators.
 
 See these doc pages and their related commands to get started:
 
-"Drude tutorial"_drude_tutorial.html
+"Drude tutorial"_tutorial_drude.html
 "fix drude"_fix_drude.html
 "compute temp/drude"_compute_temp_drude.html
 "fix langevin/drude"_fix_langevin_drude.html
@@ -361,7 +366,7 @@ There are auxiliary tools for using this package in tools/drude.
 
 The person who created this package is Alain Dequidt at Universite
 Blaise Pascal Clermont-Ferrand (alain.dequidt at univ-bpclermont.fr)
-Contact him directly if you have questions. Co-authors: Julien Devémy,
+Contact him directly if you have questions. Co-authors: Julien Devemy,
 Agilio Padua.
 
 :line
@@ -556,6 +561,33 @@ as well as the lib/qmmm/README file.
 
 The person who created this package is Axel Kohlmeyer at Temple U
 (akohlmey at gmail.com).  Contact him directly if you have questions.
+
+:line
+
+USER-QTB package :h4
+
+This package provides a self-consistent quantum treatment of the
+vibrational modes in a classical molecular dynamics simulation.  By
+coupling the MD simulation to a colored thermostat, it introduces zero
+point energy into the system, alter the energy power spectrum and the
+heat capacity towards their quantum nature. This package could be of
+interest if one wants to model systems at temperatures lower than
+their classical limits or when temperatures ramp up across the
+classical limits in the simulation.
+
+See these two doc pages to get started:
+
+"fix qtb"_fix_qtb.html provides quantum nulcear correction through a
+colored thermostat and can be used with other time integration schemes
+like "fix nve"_fix_nve.html or "fix nph"_fix_nh.html.
+
+"fix qbmsst"_fix_qbmsst.html enables quantum nuclear correction of a
+multi-scale shock technique simulation by coupling the quantum thermal
+bath with the shocked system.
+
+The person who created this package is Yuan Shen (sy0302 at
+stanford.edu) at Stanford University.  Contact him directly if you
+have questions.
 
 :line
 

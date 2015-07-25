@@ -121,13 +121,13 @@ on how to build LAMMPS with both kinds of auxiliary libraries.
 </P>
 <DIV ALIGN=center><TABLE  BORDER=1 >
 <TR ALIGN="center"><TD >Package</TD><TD > Description</TD><TD > Author(s)</TD><TD > Doc page</TD><TD > Example</TD><TD > Pic/movie</TD><TD > Library</TD></TR>
-<TR ALIGN="center"><TD >USER-ATC</TD><TD > atom-to-continuum coupling</TD><TD > Jones & Templeton & Zimmerman (2)</TD><TD > <A HREF = "fix_atc.html">fix atc</A></TD><TD > USER/atc</TD><TD > <A HREF = "http://lammps.sandia.gov/pictures.html#atc">atc</A></TD><TD > lib/atc</TD></TR>
+<TR ALIGN="center"><TD >USER-ATC</TD><TD > atom-to-continuum coupling</TD><TD > Jones & Templeton & Zimmerman (1)</TD><TD > <A HREF = "fix_atc.html">fix atc</A></TD><TD > USER/atc</TD><TD > <A HREF = "http://lammps.sandia.gov/pictures.html#atc">atc</A></TD><TD > lib/atc</TD></TR>
 <TR ALIGN="center"><TD >USER-AWPMD</TD><TD > wave-packet MD</TD><TD > Ilya Valuev (JIHT)</TD><TD > <A HREF = "pair_awpmd.html">pair_style awpmd/cut</A></TD><TD > USER/awpmd</TD><TD > -</TD><TD > lib/awpmd</TD></TR>
 <TR ALIGN="center"><TD >USER-CG-CMM</TD><TD > coarse-graining model</TD><TD > Axel Kohlmeyer (Temple U)</TD><TD > <A HREF = "pair_sdk.html">pair_style lj/sdk</A></TD><TD > USER/cg-cmm</TD><TD > <A HREF = "http://lammps.sandia.gov/pictures.html#cg">cg</A></TD><TD > -</TD></TR>
-<TR ALIGN="center"><TD >USER-COLVARS</TD><TD > collective variables</TD><TD > Fiorin & Henin & Kohlmeyer (3)</TD><TD > <A HREF = "fix_colvars.html">fix colvars</A></TD><TD > USER/colvars</TD><TD > <A HREF = "colvars">colvars</A></TD><TD > lib/colvars</TD></TR>
+<TR ALIGN="center"><TD >USER-COLVARS</TD><TD > collective variables</TD><TD > Fiorin & Henin & Kohlmeyer (2)</TD><TD > <A HREF = "fix_colvars.html">fix colvars</A></TD><TD > USER/colvars</TD><TD > <A HREF = "colvars">colvars</A></TD><TD > lib/colvars</TD></TR>
 <TR ALIGN="center"><TD >USER-CUDA</TD><TD > NVIDIA GPU styles</TD><TD > Christian Trott (U Tech Ilmenau)</TD><TD > <A HREF = "accelerate_cuda.html">Section accelerate</A></TD><TD > USER/cuda</TD><TD > -</TD><TD > lib/cuda</TD></TR>
-<TR ALIGN="center"><TD >USER-DIFFRACTION</TD><TD > virtual x-ray and electron diffraction</TD><TD > Shawn Coleman (ARL)</TD><TD ><A HREF = "compute_xrd.html">compute xrd</A></TD><TD > USER/diffraction</TD><TD > -</TD><TD > -</TD></TR>
-<TR ALIGN="center"><TD >USER-DRUDE</TD><TD > Drude oscillators</TD><TD > A. Dequidt & J. Devémy &  A. Padua (U Blaise Pascal Clermont-Ferrand)</TD><TD > <A HREF = "drude_tutorial.html">tutorial</A></TD><TD > USER/drude</TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >USER-DIFFRACTION</TD><TD > virutal x-ray and electron diffraction</TD><TD > Shawn Coleman (ARL)</TD><TD ><A HREF = "compute_xrd.html">compute xrd</A></TD><TD > USER/diffraction</TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >USER-DRUDE</TD><TD > Drude oscillators</TD><TD > Dequidt & Devemy &  Padua (3)</TD><TD > <A HREF = "tutorial_drude.html">tutorial</A></TD><TD > USER/drude</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-EFF</TD><TD > electron force field</TD><TD > Andres Jaramillo-Botero (Caltech)</TD><TD > <A HREF = "pair_eff.html">pair_style eff/cut</A></TD><TD > USER/eff</TD><TD > <A HREF = "http://lammps.sandia.gov/movies.html#eff">eff</A></TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-FEP</TD><TD > free energy perturbation</TD><TD > Agilio Padua (U Blaise Pascal Clermont-Ferrand)</TD><TD > <A HREF = "compute_fep.html">compute fep</A></TD><TD > USER/fep</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-INTEL</TD><TD > Vectorized CPU and Intel(R) coprocessor styles</TD><TD > W. Michael Brown (Intel)</TD><TD > <A HREF = "accelerate_intel.html">Section accelerate</A></TD><TD > examples/intel</TD><TD > -</TD><TD > -</TD></TR>
@@ -137,6 +137,7 @@ on how to build LAMMPS with both kinds of auxiliary libraries.
 <TR ALIGN="center"><TD >USER-OMP</TD><TD > OpenMP threaded styles</TD><TD > Axel Kohlmeyer (Temple U)</TD><TD > <A HREF = "accelerate_omp.html">Section accelerate</A></TD><TD > -</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-PHONON</TD><TD > phonon dynamical matrix</TD><TD > Ling-Ti Kong (Shanghai Jiao Tong U)</TD><TD > <A HREF = "fix_phonon.html">fix phonon</A></TD><TD > USER/phonon</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-QMMM</TD><TD > QM/MM coupling</TD><TD > Axel Kohlmeyer (Temple U)</TD><TD > <A HREF = "fix_qmmm.html">fix qmmm</A></TD><TD > USER/qmmm</TD><TD > -</TD><TD > lib/qmmm</TD></TR>
+<TR ALIGN="center"><TD >USER-QTB</TD><TD > quantum nuclear effects</TD><TD > Yuan Shen (Stanford)</TD><TD > <A HREF = "fix_qtb.html">fix qtb</A> <A HREF = "fix_qbmsst.html">fix_qbmsst</A></TD><TD > qtb</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-QUIP</TD><TD > QM/MM coupling</TD><TD > Albert Bartok-Partay (U Cambridge)</TD><TD > <A HREF = "fix_quip.html">fix quip</A></TD><TD > USER/quip</TD><TD > -</TD><TD > lib/quip</TD></TR>
 <TR ALIGN="center"><TD >USER-REAXC</TD><TD > C version of ReaxFF</TD><TD > Metin Aktulga (LBNL)</TD><TD > <A HREF = "pair_reax_c.html">pair_style reaxc</A></TD><TD > reax</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-SPH</TD><TD > smoothed particle hydrodynamics</TD><TD > Georg Ganzenmuller (EMI)</TD><TD > <A HREF = "USER/sph/SPH_LAMMPS_userguide.pdf">userguide.pdf</A></TD><TD > USER/sph</TD><TD > <A HREF = "http://lammps.sandia.gov/movies.html#sph">sph</A></TD><TD > -</TD></TR>
@@ -161,12 +162,16 @@ library not included in the LAMMPS distribution.  See the
 src/package/Makefile.lammps file for info on where to download the
 library from.
 </P>
-<P>(2) The ATC package was created by Reese Jones, Jeremy Templeton, and
+<P>(1) The ATC package was created by Reese Jones, Jeremy Templeton, and
 Jon Zimmerman (Sandia).
 </P>
-<P>(3) The COLVARS package was created by Axel Kohlmeyer (Temple U) using
+<P>(2) The COLVARS package was created by Axel Kohlmeyer (Temple U) using
 the colvars module library written by Giacomo Fiorin (Temple U) and
 Jerome Henin (LISM, Marseille, France).
+</P>
+<P>(3) The DRUDE package was created by Alain Dequidt (U Blaise Pascal
+Clermont-Ferrand) and co-authors Julien Devemy (CNRS) and Agilio Padua
+(U Blaise Pascal).
 </P>
 <P>The "Doc page" column links to either a portion of the
 <A HREF = "Section_howto.html">Section_howto</A> of the manual, or an input script
@@ -363,7 +368,7 @@ in LAMMPS using thermalized Drude oscillators.
 </P>
 <P>See these doc pages and their related commands to get started:
 </P>
-<P><A HREF = "drude_tutorial.html">Drude tutorial</A>
+<P><A HREF = "tutorial_drude.html">Drude tutorial</A>
 <A HREF = "fix_drude.html">fix drude</A>
 <A HREF = "compute_temp_drude.html">compute temp/drude</A>
 <A HREF = "fix_langevin_drude.html">fix langevin/drude</A>
@@ -374,7 +379,7 @@ in LAMMPS using thermalized Drude oscillators.
 </P>
 <P>The person who created this package is Alain Dequidt at Universite
 Blaise Pascal Clermont-Ferrand (alain.dequidt at univ-bpclermont.fr)
-Contact him directly if you have questions. Co-authors: Julien Devémy,
+Contact him directly if you have questions. Co-authors: Julien Devemy,
 Agilio Padua.
 </P>
 <HR>
@@ -569,6 +574,33 @@ without changes to LAMMPS itself.
 </P>
 <P>The person who created this package is Axel Kohlmeyer at Temple U
 (akohlmey at gmail.com).  Contact him directly if you have questions.
+</P>
+<HR>
+
+<H4>USER-QTB package 
+</H4>
+<P>This package provides a self-consistent quantum treatment of the
+vibrational modes in a classical molecular dynamics simulation.  By
+coupling the MD simulation to a colored thermostat, it introduces zero
+point energy into the system, alter the energy power spectrum and the
+heat capacity towards their quantum nature. This package could be of
+interest if one wants to model systems at temperatures lower than
+their classical limits or when temperatures ramp up across the
+classical limits in the simulation.
+</P>
+<P>See these two doc pages to get started:
+</P>
+<P><A HREF = "fix_qtb.html">fix qtb</A> provides quantum nulcear correction through a
+colored thermostat and can be used with other time integration schemes
+like <A HREF = "fix_nve.html">fix nve</A> or <A HREF = "fix_nh.html">fix nph</A>.
+</P>
+<P><A HREF = "fix_qbmsst.html">fix qbmsst</A> enables quantum nuclear correction of a
+multi-scale shock technique simulation by coupling the quantum thermal
+bath with the shocked system.
+</P>
+<P>The person who created this package is Yuan Shen (sy0302 at
+stanford.edu) at Stanford University.  Contact him directly if you
+have questions.
 </P>
 <HR>
 

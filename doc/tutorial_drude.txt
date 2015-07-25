@@ -5,15 +5,17 @@
   MathJax.Hub.Config({ TeX: { equationNumbers: {autoNumber: "AMS"} } });
 </script>
 
-6.XX Thermalized Drude oscillators :link(howto_XX),h4
+Tutorial for Thermalized Drude oscillators in LAMMPS :h3
 
-This tutorial explains how to use "Drude
-oscillators"_drude_oscillators.html in LAMMPS to simulate polarizable
-systems.  As an illustration, the input files for a simulation of 250
-phenol molecules are documented. First of all, LAMMPS has to be
-compiled with the USER-DRUDE package activated. Then, the data file
-and input scripts have to be modified to include the Drude dipoles and
-how to handle them.
+This tutorial explains how to use Drude oscillators in LAMMPS to
+simulate polarizable systems using the USER-DRUDE package. As an
+illustration, the input files for a simulation of 250 phenol molecules
+are documented. First of all, LAMMPS has to be compiled with the
+USER-DRUDE package activated. Then, the data file and input scripts
+have to be modified to include the Drude dipoles and how to handle
+them.
+
+:line
 
 [Overview of Drude induced dipoles]
 
@@ -99,6 +101,8 @@ interactions between the point charges composing the induced dipole
 can be done by "Thole"_#Thole functions. :ole,l
 
 
+:line
+
 [Preparation of the data file]
 
 The data file is similar to a standard LAMMPS data file for
@@ -138,6 +142,9 @@ Masses :pre
 3 15.999 # OH
 4 1.008  # HA
 5 1.008  # HO :pre
+
+
+:line
 
 [Basic input file]
 
@@ -245,6 +252,9 @@ using {thermo_style custom} with respectively {c_TDRUDE\[1\]} and
 
 thermo_style custom step temp c_TDRUDE\[1\] c_TDRUDE\[2\] :pre
 
+
+:line
+
 [Thole screening]
 
 Dipolar interactions represented by point charges on springs may not
@@ -328,6 +338,9 @@ example 1-2 neighbors: using the pair_style {thole}, their dipoles
 will see each other (despite the {coul} factor being 0.) and the
 interactions between these dipoles will be damped by Thole's function.
 
+
+:line
+
 [Thermostats and barostats]
 
 Using a Nose-Hoover barostat with the {langevin/drude} thermostat is
@@ -383,6 +396,9 @@ fix_modify NPT temp TATOMS press thermo_press
 fix NVT DRUDES nvt temp 1. 1. 20
 fix INVERSE all drude/transform/inverse :pre
 
+
+:line
+
 [Rigid bodies]
 
 You may want to simulate molecules as rigid bodies (but polarizable).
@@ -420,6 +436,7 @@ fix RIGID ATOMS rigid/npt/small molecule temp 300. 300. 100 iso 1. 1. 500
 fix_modify RIGID temp TATOM press thermo_press
 fix NVT DRUDES nvt temp 1. 1. 20
 fix INVERSE all drude/transform/inverse :pre
+
 
 :line
 

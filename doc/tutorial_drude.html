@@ -6,16 +6,18 @@
   MathJax.Hub.Config({ TeX: { equationNumbers: {autoNumber: "AMS"} } });
 </script>
 
-<A NAME = "howto_XX"></A><H4>6.XX Thermalized Drude oscillators 
-</H4>
-<P>This tutorial explains how to use <A HREF = "drude_oscillators.html">Drude
-oscillators</A> in LAMMPS to simulate polarizable
-systems.  As an illustration, the input files for a simulation of 250
-phenol molecules are documented. First of all, LAMMPS has to be
-compiled with the USER-DRUDE package activated. Then, the data file
-and input scripts have to be modified to include the Drude dipoles and
-how to handle them.
+<H3>Tutorial for Thermalized Drude oscillators in LAMMPS 
+</H3>
+<P>This tutorial explains how to use Drude oscillators in LAMMPS to
+simulate polarizable systems using the USER-DRUDE package. As an
+illustration, the input files for a simulation of 250 phenol molecules
+are documented. First of all, LAMMPS has to be compiled with the
+USER-DRUDE package activated. Then, the data file and input scripts
+have to be modified to include the Drude dipoles and how to handle
+them.
 </P>
+<HR>
+
 <P><B>Overview of Drude induced dipoles</B>
 </P>
 <P>Polarizable atoms acquire an induced electric dipole moment under the
@@ -99,6 +101,8 @@ may align too much.  To avoid this, damping at short of the
 interactions between the point charges composing the induced dipole
 can be done by <A HREF = "#Thole">Thole</A> functions. 
 </OL>
+<HR>
+
 <P><B>Preparation of the data file</B>
 </P>
 <P>The data file is similar to a standard LAMMPS data file for
@@ -139,6 +143,8 @@ look like
 4 1.008  # HA
 5 1.008  # HO 
 </PRE>
+<HR>
+
 <P><B>Basic input file</B>
 </P>
 <P>The atom style should be set to (or derive from) <I>full</I>, so that you
@@ -245,6 +251,8 @@ using <I>thermo_style custom</I> with respectively <I>c_TDRUDE[1]</I> and
 </P>
 <PRE>thermo_style custom step temp c_TDRUDE[1] c_TDRUDE[2] 
 </PRE>
+<HR>
+
 <P><B>Thole screening</B>
 </P>
 <P>Dipolar interactions represented by point charges on springs may not
@@ -330,6 +338,8 @@ example 1-2 neighbors: using the pair_style <I>thole</I>, their dipoles
 will see each other (despite the <I>coul</I> factor being 0.) and the
 interactions between these dipoles will be damped by Thole's function.
 </P>
+<HR>
+
 <P><B>Thermostats and barostats</B>
 </P>
 <P>Using a Nose-Hoover barostat with the <I>langevin/drude</I> thermostat is
@@ -385,6 +395,8 @@ fix_modify NPT temp TATOMS press thermo_press
 fix NVT DRUDES nvt temp 1. 1. 20
 fix INVERSE all drude/transform/inverse 
 </PRE>
+<HR>
+
 <P><B>Rigid bodies</B>
 </P>
 <P>You may want to simulate molecules as rigid bodies (but polarizable).
