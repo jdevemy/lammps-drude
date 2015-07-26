@@ -2415,7 +2415,7 @@ the adiabatic core-shell method, implemented in the
 the thermalized Drude dipole method, implemented in the
 "USER-DRUDE"_#howto_27 package. :l,ule
 
-The fluctuating charge method calculates instantateous charges on
+The fluctuating charge method calculates instantaneous charges on
 interacting atoms based on the electronegativity equalization
 principle. It is implemented in the "fix qeq"_fix_qeq.html which is
 available in several variants. It is a relatively efficient technique
