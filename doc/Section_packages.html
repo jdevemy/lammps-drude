@@ -127,7 +127,7 @@ on how to build LAMMPS with both kinds of auxiliary libraries.
 <TR ALIGN="center"><TD >USER-COLVARS</TD><TD > collective variables</TD><TD > Fiorin & Henin & Kohlmeyer (2)</TD><TD > <A HREF = "fix_colvars.html">fix colvars</A></TD><TD > USER/colvars</TD><TD > <A HREF = "colvars">colvars</A></TD><TD > lib/colvars</TD></TR>
 <TR ALIGN="center"><TD >USER-CUDA</TD><TD > NVIDIA GPU styles</TD><TD > Christian Trott (U Tech Ilmenau)</TD><TD > <A HREF = "accelerate_cuda.html">Section accelerate</A></TD><TD > USER/cuda</TD><TD > -</TD><TD > lib/cuda</TD></TR>
 <TR ALIGN="center"><TD >USER-DIFFRACTION</TD><TD > virutal x-ray and electron diffraction</TD><TD > Shawn Coleman (ARL)</TD><TD ><A HREF = "compute_xrd.html">compute xrd</A></TD><TD > USER/diffraction</TD><TD > -</TD><TD > -</TD></TR>
-<TR ALIGN="center"><TD >USER-DRUDE</TD><TD > Drude oscillators</TD><TD > Dequidt & Devemy &  Padua (3)</TD><TD > <A HREF = "tutorial_drude.html">tutorial</A></TD><TD > USER/drude</TD><TD > -</TD><TD > -</TD></TR>
+<TR ALIGN="center"><TD >USER-DRUDE</TD><TD > Drude oscillators</TD><TD > Dequidt & Devemy & Padua (3)</TD><TD > <A HREF = "tutorial_drude.html">tutorial</A></TD><TD > USER/drude</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-EFF</TD><TD > electron force field</TD><TD > Andres Jaramillo-Botero (Caltech)</TD><TD > <A HREF = "pair_eff.html">pair_style eff/cut</A></TD><TD > USER/eff</TD><TD > <A HREF = "http://lammps.sandia.gov/movies.html#eff">eff</A></TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-FEP</TD><TD > free energy perturbation</TD><TD > Agilio Padua (U Blaise Pascal Clermont-Ferrand)</TD><TD > <A HREF = "compute_fep.html">compute fep</A></TD><TD > USER/fep</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-INTEL</TD><TD > Vectorized CPU and Intel(R) coprocessor styles</TD><TD > W. Michael Brown (Intel)</TD><TD > <A HREF = "accelerate_intel.html">Section accelerate</A></TD><TD > examples/intel</TD><TD > -</TD><TD > -</TD></TR>
@@ -138,7 +138,7 @@ on how to build LAMMPS with both kinds of auxiliary libraries.
 <TR ALIGN="center"><TD >USER-PHONON</TD><TD > phonon dynamical matrix</TD><TD > Ling-Ti Kong (Shanghai Jiao Tong U)</TD><TD > <A HREF = "fix_phonon.html">fix phonon</A></TD><TD > USER/phonon</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-QMMM</TD><TD > QM/MM coupling</TD><TD > Axel Kohlmeyer (Temple U)</TD><TD > <A HREF = "fix_qmmm.html">fix qmmm</A></TD><TD > USER/qmmm</TD><TD > -</TD><TD > lib/qmmm</TD></TR>
 <TR ALIGN="center"><TD >USER-QTB</TD><TD > quantum nuclear effects</TD><TD > Yuan Shen (Stanford)</TD><TD > <A HREF = "fix_qtb.html">fix qtb</A> <A HREF = "fix_qbmsst.html">fix_qbmsst</A></TD><TD > qtb</TD><TD > -</TD><TD > -</TD></TR>
-<TR ALIGN="center"><TD >USER-QUIP</TD><TD > QM/MM coupling</TD><TD > Albert Bartok-Partay (U Cambridge)</TD><TD > <A HREF = "fix_quip.html">fix quip</A></TD><TD > USER/quip</TD><TD > -</TD><TD > lib/quip</TD></TR>
+<TR ALIGN="center"><TD >USER-QUIP</TD><TD > QUIP/libatoms interface</TD><TD > Albert Bartok-Partay (U Cambridge)</TD><TD > <A HREF = "pair_quip.html">pair_style quip</A></TD><TD > USER/quip</TD><TD > -</TD><TD > lib/quip</TD></TR>
 <TR ALIGN="center"><TD >USER-REAXC</TD><TD > C version of ReaxFF</TD><TD > Metin Aktulga (LBNL)</TD><TD > <A HREF = "pair_reax_c.html">pair_style reaxc</A></TD><TD > reax</TD><TD > -</TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >USER-SPH</TD><TD > smoothed particle hydrodynamics</TD><TD > Georg Ganzenmuller (EMI)</TD><TD > <A HREF = "USER/sph/SPH_LAMMPS_userguide.pdf">userguide.pdf</A></TD><TD > USER/sph</TD><TD > <A HREF = "http://lammps.sandia.gov/movies.html#sph">sph</A></TD><TD > -</TD></TR>
 <TR ALIGN="center"><TD >
@@ -162,7 +162,7 @@ library not included in the LAMMPS distribution.  See the
 src/package/Makefile.lammps file for info on where to download the
 library from.
 </P>
-<P>(1) The ATC package was created by Reese Jones, Jeremy Templeton, and
+<P>(2) The ATC package was created by Reese Jones, Jeremy Templeton, and
 Jon Zimmerman (Sandia).
 </P>
 <P>(2) The COLVARS package was created by Axel Kohlmeyer (Temple U) using
@@ -368,13 +368,13 @@ in LAMMPS using thermalized Drude oscillators.
 </P>
 <P>See these doc pages and their related commands to get started:
 </P>
-<P><A HREF = "tutorial_drude.html">Drude tutorial</A>
-<A HREF = "fix_drude.html">fix drude</A>
-<A HREF = "compute_temp_drude.html">compute temp/drude</A>
-<A HREF = "fix_langevin_drude.html">fix langevin/drude</A>
-<A HREF = "fix_drude_transform.html">fix drude/transform/...</A>
-<A HREF = "pair_thole.html">pair thole</A>
-</P>
+<UL><LI><A HREF = "tutorial_drude.html">Drude tutorial</A>
+<LI><A HREF = "fix_drude.html">fix drude</A>
+<LI><A HREF = "compute_temp_drude.html">compute temp/drude</A>
+<LI><A HREF = "fix_langevin_drude.html">fix langevin/drude</A>
+<LI><A HREF = "fix_drude_transform.html">fix drude/transform/...</A>
+<LI><A HREF = "pair_thole.html">pair thole</A> 
+</UL>
 <P>There are auxiliary tools for using this package in tools/drude.
 </P>
 <P>The person who created this package is Alain Dequidt at Universite

@@ -11,13 +11,11 @@ fix drude command :h3
 
 [Syntax:]
 
-fix ID group-ID drude tag ... :pre
+fix ID group-ID drude flag1 flag2 ... flagN :pre
 
-ID, group-ID are documented in "fix"_fix.html command :ulb,l
-drude = style name of this fix command :l
-tag = specification of the particle type for the purpose of the Drude
-polarization model. :l
-:ule
+ID, group-ID are documented in "fix"_fix.html command
+drude = style name of this fix command
+tag = Drude flag for each atom type (1 to N) in the system :ul
 
 [Examples:]
 
@@ -26,11 +24,18 @@ fix 1 all drude C C N C N D D D :pre
 
 [Description:]
 
-Define each atom type in the system as a non-polarizable atom type (0
-or N), a Drude core type (1 or C) or a Drude particle type (2 or
-D). The number of tags must be the same as the number of atom types in
-the system.
+Assign each atom type in the system to be one of 3 kinds of atoms
+within the Drude polarization model.  This compute is designed to be
+used with the "thermalized Drude oscillator
+model"_tutorial_drude.html.  Polarizable models in LAMMPS
+are described in "this Section"_Section_howto.html#howto_25.
 
+The three possible types can be designated with an integer (0,1,2)
+or capital letter (N,C,D):
+
+0 or N = non-polarizable atom (not part of Drude model)
+1 or C = Drude core
+2 or D = Drude electron :ul
 
 [Restrictions:]
 
@@ -41,17 +46,11 @@ drude/transform"_fix_drude_transform.html, "compute
 temp/drude"_compute_temp_drude.html, "pair_style
 thole"_pair_thole.html.
 
-
 [Related commands:]
 
-"fix langevin_drude"_fix_langevin_drude.html,
-"fix drude/transform"_fix_drude_transform.html,
-"compute temp/drude"_compute_temp_drude.html,
-"pair_style thole"_pair_thole.html
+"fix langevin_drude"_fix_langevin_drude.html, "fix
+drude/transform"_fix_drude_transform.html, "compute
+temp/drude"_compute_temp_drude.html, "pair_style
+thole"_pair_thole.html
 
 [Default:] None
-
-:line
-
-
-

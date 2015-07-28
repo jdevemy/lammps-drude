@@ -55,19 +55,20 @@ fix 1 all langevin/drude 298.15 100.0 19377 5.0 10.0 83451 zero yes
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>Apply two Langevin thermostats as described in <A HREF = "#Jiang">(Jiang)</A> for 
+<P>Apply two Langevin thermostats as described in <A HREF = "#Jiang">(Jiang)</A> for
 thermalizing the reduced degrees of freedom of Drude oscillators.
+This link describes how to use the <A HREF = "tutorial_drude.html">thermalized Drude oscillator
+model</A> in LAMMPS and polarizable models in LAMMPS
+are discussed in <A HREF = "Section_howto.html#howto_25">this Section</A>.
 </P>
-Drude oscillators are a way to simulate polarizables atoms, by splitting
-them into a core and a Drude particle bound by a harmonic bond. 
-See <A HREF = "drude_oscillators.html">Drude oscillators</A> about how to use Drude 
-oscillators in LAMMPS.
-The thermalization works by transforming the particles degrees of freedom by: 
-<BR>
-<I>In these equations upper case denotes atomic or center of mass values and lower 
-case denotes Drude particle or dipole values. Primes denote the transformed 
-(reduced) values, while bare letters denote the original values.</I> 
-<BR>
+<P>Drude oscillators are a way to simulate polarizables atoms, by
+splitting them into a core and a Drude particle bound by a harmonic
+bond.  The thermalization works by transforming the particles degrees
+of freedom by these equations.  In these equations upper case denotes
+atomic or center of mass values and lower case denotes Drude particle
+or dipole values. Primes denote the transformed (reduced) values,
+while bare letters denote the original values.
+</P>
 Velocities:
 \begin{equation} V' = \frac {M\, V + m\, v} {M'} \end{equation}
 \begin{equation} v' = v - V \end{equation}
@@ -92,26 +93,27 @@ transform:
 \begin{equation} F = \frac M {M'}\, F' - f' \end{equation}
 \begin{equation} f = \frac m {M'}\, F' + f' \end{equation}
 </P>
-<P>This fix also thermostates non-polarizable atoms in the group at temperature 
-<I>Tcom</I>, as if they had a massless Drude partner.
-The Drude particles themselves need not be in the group. The center of mass and 
-the dipole are thermostated iff the core atom is in the group.
+<P>This fix also thermostates non-polarizable atoms in the group at
+temperature <I>Tcom</I>, as if they had a massless Drude partner.  The
+Drude particles themselves need not be in the group. The center of
+mass and the dipole are thermostated iff the core atom is in the
+group.
 </P>
-<P>Note that the thermostat effect of this fix is applied to only the translational
-degrees of freedom of the particles, which is an important
-consideration for finite-size particles, which have rotational degrees
-of freedom, are being thermostated. The translational degrees of
-freedom can also have a bias velocity removed from them before
-thermostating takes place; see the description below.
+<P>Note that the thermostat effect of this fix is applied to only the
+translational degrees of freedom of the particles, which is an
+important consideration if finite-size particles, which have
+rotational degrees of freedom, are being thermostated. The
+translational degrees of freedom can also have a bias velocity removed
+from them before thermostating takes place; see the description below.
 </P>
-<P>IMPORTANT NOTE: Like the <A HREF = "fix_langevin.html">fix langevin</A> command, this fix
-does NOT perform time integration. It only modifies forces to effect
-thermostating. Thus you must use a separate time integration fix,
-like <A HREF = "fix_nve.html">fix nve</A> or <A HREF = "fix_nh.html">fix nph</A> to actually update 
-the velocities and positions of atoms using the modified forces.  Likewise, 
-this fix should not normally be used on atoms that also have their temperature
-controlled by another fix - e.g. by <A HREF = "fix_nh.html">fix nvt</A> or <A HREF = "fix_temp_rescale.html">fix
-temp/rescale</A> commands.
+<P>IMPORTANT NOTE: Like the <A HREF = "fix_langevin.html">fix langevin</A> command,
+this fix does NOT perform time integration. It only modifies forces to
+effect thermostating. Thus you must use a separate time integration
+fix, like <A HREF = "fix_nve.html">fix nve</A> or <A HREF = "fix_nh.html">fix nph</A> to actually
+update the velocities and positions of atoms using the modified
+forces.  Likewise, this fix should not normally be used on atoms that
+also have their temperature controlled by another fix - e.g. by <A HREF = "fix_nh.html">fix
+nvt</A> or <A HREF = "fix_temp_rescale.html">fix temp/rescale</A> commands.
 </P>
 <P>See <A HREF = "Section_howto.html#howto_16">this howto section</A> of the manual for
 a discussion of different ways to compute temperature and perform
@@ -119,49 +121,58 @@ thermostating.
 </P>
 <HR>
 
-<P>This fix requires so that each atom knows whether it is a Drude particle or not.
-You must therefore use the fix <A HREF = "fix_drude.html">drude</A> to specify the Drude status of each atom type.
+<P>This fix requires each atom know whether it is a Drude particle or
+not.  You must therefore use the <A HREF = "fix_drude.html">fix drude</A> command to
+specify the Drude status of each atom type.
 </P>
-Ghost atoms need to know their velocity for this fix to act correctly.
-So you must use in addition the <I>comm_modify</I> command, like 
-<BR>
+<P>IMPORTANT NOTE: only the Drude core atoms need to be in the group
+specified for this fix. A Drude electron will be transformed together
+with its cores even if it is not itself in the group.  It is safe to
+include Drude electrons or non-polarizable atoms in the group. The
+non-polarizable atoms will simply not be thermostatted as if they had
+a massless Drude partner (electron).
+</P>
+<P>IMPORTANT NOTE: Ghost atoms need to know their velocity for this fix
+to act correctly.  You must use the <A HREF = "comm_modify.html">comm_modify</A>
+command to enable this, e.g.
+</P>
 <PRE>comm_modify vel yes 
 </PRE>
 <HR>
 
-<P><I>Tcom</I> is the target temperature of the centers of mass, which would be used to
-thermostate the non-polarizable atoms.
-<I>Tdrude</I> is the (normally low) target temperature of the core-Drude particle 
-pairs (dipoles).
-<I>Tcom</I> and <I>Tdrude</I> can be specified as an equal-style <A HREF = "variable.html">variable</A>.
-If the value is a variable, it should be specified as
-v_name, where name is the variable name. In this case, the variable
-will be evaluated each timestep, and its value used to determine the
-target temperature.
+<P><I>Tcom</I> is the target temperature of the centers of mass, which would
+be used to thermostate the non-polarizable atoms.  <I>Tdrude</I> is the
+(normally low) target temperature of the core-Drude particle pairs
+(dipoles).  <I>Tcom</I> and <I>Tdrude</I> can be specified as an equal-style
+<A HREF = "variable.html">variable</A>.  If the value is a variable, it should be
+specified as v_name, where name is the variable name. In this case,
+the variable will be evaluated each timestep, and its value used to
+determine the target temperature.
 </P>
 <P>Equal-style variables can specify formulas with various mathematical
 functions, and include <A HREF = "thermo_style.html">thermo_style</A> command
 keywords for the simulation box parameters and timestep and elapsed
 time.  Thus it is easy to specify a time-dependent temperature.
 </P>
-<P>Like other fixes that perform thermostating, this fix can be used
-with <A HREF = "compute.html">compute commands</A> that remove a "bias" from the
-atom velocities.  E.g. removing the center-of-mass velocity from a
-group of atoms.  This is not done by default, but only if the
+<P>Like other fixes that perform thermostating, this fix can be used with
+<A HREF = "compute.html">compute commands</A> that remove a "bias" from the atom
+velocities.  E.g. removing the center-of-mass velocity from a group of
+atoms.  This is not done by default, but only if the
 <A HREF = "fix_modify.html">fix_modify</A> command is used to assign a temperature
 compute to this fix that includes such a bias term.  See the doc pages
 for individual <A HREF = "compute.html">compute commands</A> to determine which ones
 include a bias.  In this case, the thermostat works in the following
 manner: bias is removed from each atom, thermostating is performed on
 the remaining thermal degrees of freedom, and the bias is added back
-in. -- NOT TESTED -- 
+in.  NOTE: this feature has not been tested.
 </P>
-<P>Note: The temperature thermostating the core-Drude particle pairs should be
-chosen low enough, so as to mimic as closely as possible the self-consistent
-minimization. It must however be high enough, so that the dipoles can follow 
-the local electric field exerted by the neighbouring atoms. The optimal value
-probably depends on the temperature of the centers of mass and on the mass of 
-the Drude particles.
+<P>Note: The temperature thermostating the core-Drude particle pairs
+should be chosen low enough, so as to mimic as closely as possible the
+self-consistent minimization. It must however be high enough, so that
+the dipoles can follow the local electric field exerted by the
+neighbouring atoms. The optimal value probably depends on the
+temperature of the centers of mass and on the mass of the Drude
+particles.
 </P>
 <P><I>damp_com</I> is the characteristic time for reaching thermal equilibrium
 of the centers of mass.  For example, a value of 100.0 means to relax
@@ -190,16 +201,17 @@ group. As a result, the total center of mass of a system with zero
 initial momentum will not drift over time.
 </P>
 <P>The actual temperatures of cores and Drude particles, in
-center-of-mass and relatice coordinates, respectively, can be
-calculated using <A HREF = "compute_temp_drude.html">compute temp/drude</A>.
+center-of-mass and relative coordinates, respectively, can be
+calculated using the <A HREF = "compute_temp_drude.html">compute temp/drude</A>
+command.
 </P>
 <HR>
 
-<P>Usage example: rigid bodies in the NPT ensemble
+<P>Usage example for rigid bodies in the NPT ensemble:
 </P>
 <PRE>comm_modify vel yes
-fix TEMP all langevin/drude 300.0 100 1256 1.0 50 13977 zero yes
-fix NPH ATOMS rigid/nph/small molecule iso 1.0 1.0 500
+fix TEMP all langevin/drude 300. 100. 1256 1. 20. 13977 zero yes
+fix NPH ATOMS rigid/nph/small molecule iso 1. 1. 500.
 fix NVE DRUDES nve
 compute TDRUDE all temp/drude
 thermo_style custom step cpu etotal ke pe ebond ecoul elong press vol temp c_TDRUDE[1] c_TDRUDE[2] 
@@ -210,31 +222,30 @@ thermo_style custom step cpu etotal ke pe ebond ecoul elong press vol temp c_TDR
 oscillators will be frozen and the system will lose its
 polarizability. 
 
-<LI>Option <I>zero yes</I> avoids a drift of the center
-of mass of the system, but is a bit slower. 
+<LI><I>zero yes</I> avoids a drift of the center of mass of
+the system, but is a bit slower. 
 
-<LI>Use two different
-random seeds to avoid unphysical correlations.  temperature is
-controlled by the fix <I>langevin/drude</I>, so the time-integration fixes
-do not thermostate. 
+<LI>Use two different random seeds to avoid unphysical correlations. 
 
-<LI>Don't forget to time-integrate both cores and
-Drude particles.  pressure is time-integrated only once by using <I>nve</I>
-for Drude particles and <I>nph</I> for atoms/cores (or vice versa). Do not
-use <I>nph</I> for both. 
+<LI>Temperature is controlled by the fix <I>langevin/drude</I>, so the
+time-integration fixes do not thermostate.  Don't forget to
+time-integrate both cores and Drude particles. 
 
-<LI>Contrary to the alternative thermostating using
-Nose-Hoover thermostat fix <I>npt</I> and fix <I>drude/transform</I>, the
+<LI>Pressure is time-integrated only once by using <I>nve</I> for Drude
+particles and <I>nph</I> for atoms/cores (or vice versa). Do not use <I>nph</I>
+for both. 
+
+<LI>The temperatures of cores and Drude particles are calculated by
+<A HREF = "compute_temp_drude.hrml">compute temp/drude</A> 
+
+<LI>Contrary to the alternative thermostating using Nose-Hoover thermostat
+fix <I>npt</I> and <A HREF = "fix_drude_transform.html">fix drude/transform</A>, the
 <I>fix_modify</I> command is not required here, because the fix <I>nph</I>
 computes the global pressure even if its group is <I>ATOMS</I>. This is
 what we want. If we thermostated <I>ATOMS</I> using <I>npt</I>, the pressure
 should be the global one, but the temperature should be only that of
 the cores. That's why the command <I>fix_modify</I> should be called in
 that case. 
-
-<LI>The temperatures of cores and Drude particles, in
-center-of-mass and relatice coordinates, are calculated using <A HREF = "compute_temp_drude.html">compute
-temp/drude</A> 
 </UL>
 <HR>
 
@@ -250,8 +261,8 @@ restarted simulation should produce the same behavior.
 <P>The <A HREF = "fix_modify.html">fix_modify</A> <I>temp</I> option is supported by this
 fix.  You can use it to assign a temperature <A HREF = "compute.html">compute</A>
 you have defined to this fix which will be used in its thermostating
-procedure, as described above. For consistency, the group used by the compute 
-should include the group of this fix and the Drude particles. -- NOT TESTED -- 
+procedure, as described above. For consistency, the group used by the
+compute should include the group of this fix and the Drude particles.
 </P>
 <P>This fix is not invoked during <A HREF = "minimize.html">energy minimization</A>.
 </P>
@@ -273,7 +284,7 @@ should include the group of this fix and the Drude particles. -- NOT TESTED --
 
 <A NAME = "Jiang"></A>
 
-<P><B>(Jiang)</B> Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux, 
- J Phys Chem Lett, 2, 87-92 (2011).
+<P><B>(Jiang)</B> Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux, J
+Phys Chem Lett, 2, 87-92 (2011).
 </P>
 </HTML>

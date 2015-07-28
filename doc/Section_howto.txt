@@ -2435,7 +2435,7 @@ core-shell model being normally used for ionic/crystalline materials,
 whereas the so-called Drude model is normally used for molecular
 systems and fluid states.
 
-The core-shell model is applicable to cristalline materials where the
+The core-shell model is applicable to crystalline materials where the
 high symmetry around each site leads to stable trajectories of the
 core-shell pairs. However, bonded atoms in molecules can be so close
 that a core would interact too strongly or even capture the Drude
@@ -2691,8 +2691,8 @@ is applied to the point charges composing the induced dipole (the
 charge of the Drude particle and the opposite charge on the core, not
 to the total charge of the core atom). :l,ule
 
-A detailed tutorial covering the usage of Drude induced dipoles is
-available "here."_tutorial_drude.html
+A detailed tutorial covering the usage of Drude induced dipoles in
+LAMMPS is "available here"_tutorial_drude.html.
 
 As with the core-shell model, the cores and Drude particles should
 appear in the data file as standard atoms. The same holds for the
@@ -2709,8 +2709,8 @@ group.
 There are two ways to thermostat the Drude particles at a low
 temperature: use either "fix langevin/drude"_fix_langevin_drude.html
 for a Langevin thermostat, or "fix
-drude/transform/..."_fix_drude_transform.html for a Nose-Hoover
-thermostat. The former requires to use the command "comm_modify vel
+drude/transform/*"_fix_drude_transform.html for a Nose-Hoover
+thermostat. The former requires use of the command "comm_modify vel
 yes"_comm_modify.html. The latter requires two separate integration
 fixes like {nvt} or {npt}. The correct temperatures of the reduced
 degrees of freedom can be calculated using the "compute
@@ -2723,7 +2723,6 @@ thole"_pair_thole.html in "pair_style hybrid/overlay"_pair_hybrid.html
 with a Coulomb pair style. It may be useful to use {coul/long/cs} or
 similar from the CORESHELL package if the core and Drude particle come
 too close, which can cause numerical issues.
-
 
 :line
 :line

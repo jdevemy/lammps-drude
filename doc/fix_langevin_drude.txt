@@ -41,17 +41,20 @@ fix 1 all langevin/drude 298.15 100.0 19377 5.0 10.0 83451 zero yes :pre
 
 [Description:]
 
-Apply two Langevin thermostats as described in "(Jiang)"_#Jiang for 
+Apply two Langevin thermostats as described in "(Jiang)"_#Jiang for
 thermalizing the reduced degrees of freedom of Drude oscillators.
+This link describes how to use the "thermalized Drude oscillator
+model"_tutorial_drude.html in LAMMPS and polarizable models in LAMMPS
+are discussed in "this Section"_Section_howto.html#howto_25.
 
-Drude oscillators are a way to simulate polarizables atoms, by splitting
-them into a core and a Drude particle bound by a harmonic bond. 
-See "Drude oscillators"_drude_oscillators.html about how to use Drude 
-oscillators in LAMMPS.
-The thermalization works by transforming the particles degrees of freedom by: :b
-{In these equations upper case denotes atomic or center of mass values and lower 
-case denotes Drude particle or dipole values. Primes denote the transformed 
-(reduced) values, while bare letters denote the original values.} :b
+Drude oscillators are a way to simulate polarizables atoms, by
+splitting them into a core and a Drude particle bound by a harmonic
+bond.  The thermalization works by transforming the particles degrees
+of freedom by these equations.  In these equations upper case denotes
+atomic or center of mass values and lower case denotes Drude particle
+or dipole values. Primes denote the transformed (reduced) values,
+while bare letters denote the original values.
+
 Velocities:
 \begin\{equation\} V' = \frac \{M\, V + m\, v\} \{M'\} \end\{equation\}
 \begin\{equation\} v' = v - V \end\{equation\}
@@ -74,26 +77,27 @@ transform:
 \begin\{equation\} F = \frac M \{M'\}\, F' - f' \end\{equation\}
 \begin\{equation\} f = \frac m \{M'\}\, F' + f' \end\{equation\}
 
-This fix also thermostates non-polarizable atoms in the group at temperature 
-{Tcom}, as if they had a massless Drude partner.
-The Drude particles themselves need not be in the group. The center of mass and 
-the dipole are thermostated iff the core atom is in the group.
+This fix also thermostates non-polarizable atoms in the group at
+temperature {Tcom}, as if they had a massless Drude partner.  The
+Drude particles themselves need not be in the group. The center of
+mass and the dipole are thermostated iff the core atom is in the
+group.
 
-Note that the thermostat effect of this fix is applied to only the translational
-degrees of freedom of the particles, which is an important
-consideration for finite-size particles, which have rotational degrees
-of freedom, are being thermostated. The translational degrees of
-freedom can also have a bias velocity removed from them before
-thermostating takes place; see the description below.
+Note that the thermostat effect of this fix is applied to only the
+translational degrees of freedom of the particles, which is an
+important consideration if finite-size particles, which have
+rotational degrees of freedom, are being thermostated. The
+translational degrees of freedom can also have a bias velocity removed
+from them before thermostating takes place; see the description below.
 
-IMPORTANT NOTE: Like the "fix langevin"_fix_langevin.html command, this fix
-does NOT perform time integration. It only modifies forces to effect
-thermostating. Thus you must use a separate time integration fix,
-like "fix nve"_fix_nve.html or "fix nph"_fix_nh.html to actually update 
-the velocities and positions of atoms using the modified forces.  Likewise, 
-this fix should not normally be used on atoms that also have their temperature
-controlled by another fix - e.g. by "fix nvt"_fix_nh.html or "fix
-temp/rescale"_fix_temp_rescale.html commands.
+IMPORTANT NOTE: Like the "fix langevin"_fix_langevin.html command,
+this fix does NOT perform time integration. It only modifies forces to
+effect thermostating. Thus you must use a separate time integration
+fix, like "fix nve"_fix_nve.html or "fix nph"_fix_nh.html to actually
+update the velocities and positions of atoms using the modified
+forces.  Likewise, this fix should not normally be used on atoms that
+also have their temperature controlled by another fix - e.g. by "fix
+nvt"_fix_nh.html or "fix temp/rescale"_fix_temp_rescale.html commands.
 
 See "this howto section"_Section_howto.html#howto_16 of the manual for
 a discussion of different ways to compute temperature and perform
@@ -101,48 +105,58 @@ thermostating.
 
 :line
 
-This fix requires so that each atom knows whether it is a Drude particle or not.
-You must therefore use the fix "drude"_fix_drude.html to specify the Drude status of each atom type.
+This fix requires each atom know whether it is a Drude particle or
+not.  You must therefore use the "fix drude"_fix_drude.html command to
+specify the Drude status of each atom type.
 
-Ghost atoms need to know their velocity for this fix to act correctly.
-So you must use in addition the {comm_modify} command, like :b
+IMPORTANT NOTE: only the Drude core atoms need to be in the group
+specified for this fix. A Drude electron will be transformed together
+with its cores even if it is not itself in the group.  It is safe to
+include Drude electrons or non-polarizable atoms in the group. The
+non-polarizable atoms will simply not be thermostatted as if they had
+a massless Drude partner (electron).
+
+IMPORTANT NOTE: Ghost atoms need to know their velocity for this fix
+to act correctly.  You must use the "comm_modify"_comm_modify.html
+command to enable this, e.g.
+
 comm_modify vel yes :pre
 
 :line
 
-{Tcom} is the target temperature of the centers of mass, which would be used to
-thermostate the non-polarizable atoms.
-{Tdrude} is the (normally low) target temperature of the core-Drude particle 
-pairs (dipoles).
-{Tcom} and {Tdrude} can be specified as an equal-style "variable"_variable.html.
-If the value is a variable, it should be specified as
-v_name, where name is the variable name. In this case, the variable
-will be evaluated each timestep, and its value used to determine the
-target temperature.
+{Tcom} is the target temperature of the centers of mass, which would
+be used to thermostate the non-polarizable atoms.  {Tdrude} is the
+(normally low) target temperature of the core-Drude particle pairs
+(dipoles).  {Tcom} and {Tdrude} can be specified as an equal-style
+"variable"_variable.html.  If the value is a variable, it should be
+specified as v_name, where name is the variable name. In this case,
+the variable will be evaluated each timestep, and its value used to
+determine the target temperature.
 
 Equal-style variables can specify formulas with various mathematical
 functions, and include "thermo_style"_thermo_style.html command
 keywords for the simulation box parameters and timestep and elapsed
 time.  Thus it is easy to specify a time-dependent temperature.
 
-Like other fixes that perform thermostating, this fix can be used
-with "compute commands"_compute.html that remove a "bias" from the
-atom velocities.  E.g. removing the center-of-mass velocity from a
-group of atoms.  This is not done by default, but only if the
+Like other fixes that perform thermostating, this fix can be used with
+"compute commands"_compute.html that remove a "bias" from the atom
+velocities.  E.g. removing the center-of-mass velocity from a group of
+atoms.  This is not done by default, but only if the
 "fix_modify"_fix_modify.html command is used to assign a temperature
 compute to this fix that includes such a bias term.  See the doc pages
 for individual "compute commands"_compute.html to determine which ones
 include a bias.  In this case, the thermostat works in the following
 manner: bias is removed from each atom, thermostating is performed on
 the remaining thermal degrees of freedom, and the bias is added back
-in. -- NOT TESTED -- 
+in.  NOTE: this feature has not been tested.
 
-Note: The temperature thermostating the core-Drude particle pairs should be
-chosen low enough, so as to mimic as closely as possible the self-consistent
-minimization. It must however be high enough, so that the dipoles can follow 
-the local electric field exerted by the neighbouring atoms. The optimal value
-probably depends on the temperature of the centers of mass and on the mass of 
-the Drude particles.
+Note: The temperature thermostating the core-Drude particle pairs
+should be chosen low enough, so as to mimic as closely as possible the
+self-consistent minimization. It must however be high enough, so that
+the dipoles can follow the local electric field exerted by the
+neighbouring atoms. The optimal value probably depends on the
+temperature of the centers of mass and on the mass of the Drude
+particles.
 
 {damp_com} is the characteristic time for reaching thermal equilibrium
 of the centers of mass.  For example, a value of 100.0 means to relax
@@ -171,16 +185,17 @@ group. As a result, the total center of mass of a system with zero
 initial momentum will not drift over time.
 
 The actual temperatures of cores and Drude particles, in
-center-of-mass and relatice coordinates, respectively, can be
-calculated using "compute temp/drude"_compute_temp_drude.html.
+center-of-mass and relative coordinates, respectively, can be
+calculated using the "compute temp/drude"_compute_temp_drude.html
+command.
 
 :line
 
-Usage example: rigid bodies in the NPT ensemble
+Usage example for rigid bodies in the NPT ensemble:
 
 comm_modify vel yes
-fix TEMP all langevin/drude 300.0 100 1256 1.0 50 13977 zero yes
-fix NPH ATOMS rigid/nph/small molecule iso 1.0 1.0 500
+fix TEMP all langevin/drude 300. 100. 1256 1. 20. 13977 zero yes
+fix NPH ATOMS rigid/nph/small molecule iso 1. 1. 500.
 fix NVE DRUDES nve
 compute TDRUDE all temp/drude
 thermo_style custom step cpu etotal ke pe ebond ecoul elong press vol temp c_TDRUDE\[1\] c_TDRUDE\[2\] :pre
@@ -190,27 +205,32 @@ Comments:
 Drude particles should not be in the rigid group, otherwise the Drude
 oscillators will be frozen and the system will lose its
 polarizability. :ulb,l
-Option {zero yes} avoids a drift of the center
-of mass of the system, but is a bit slower. :l
-Use two different
-random seeds to avoid unphysical correlations.  temperature is
-controlled by the fix {langevin/drude}, so the time-integration fixes
-do not thermostate. :l
-Don't forget to time-integrate both cores and
-Drude particles.  pressure is time-integrated only once by using {nve}
-for Drude particles and {nph} for atoms/cores (or vice versa). Do not
-use {nph} for both. :l
-Contrary to the alternative thermostating using
-Nose-Hoover thermostat fix {npt} and fix {drude/transform}, the
+
+{zero yes} avoids a drift of the center of mass of
+the system, but is a bit slower. :l
+
+Use two different random seeds to avoid unphysical correlations. :l
+
+Temperature is controlled by the fix {langevin/drude}, so the
+time-integration fixes do not thermostate.  Don't forget to
+time-integrate both cores and Drude particles. :l
+
+Pressure is time-integrated only once by using {nve} for Drude
+particles and {nph} for atoms/cores (or vice versa). Do not use {nph}
+for both. :l
+
+The temperatures of cores and Drude particles are calculated by
+"compute temp/drude"_compute_temp_drude.hrml :l
+
+Contrary to the alternative thermostating using Nose-Hoover thermostat
+fix {npt} and "fix drude/transform"_fix_drude_transform.html, the
 {fix_modify} command is not required here, because the fix {nph}
 computes the global pressure even if its group is {ATOMS}. This is
 what we want. If we thermostated {ATOMS} using {npt}, the pressure
 should be the global one, but the temperature should be only that of
 the cores. That's why the command {fix_modify} should be called in
-that case. :l
-The temperatures of cores and Drude particles, in
-center-of-mass and relatice coordinates, are calculated using "compute
-temp/drude"_compute_temp_drude.html :l,ule
+that case. :l,ule
+
 
 :line
 
@@ -226,8 +246,8 @@ restarted simulation should produce the same behavior.
 The "fix_modify"_fix_modify.html {temp} option is supported by this
 fix.  You can use it to assign a temperature "compute"_compute.html
 you have defined to this fix which will be used in its thermostating
-procedure, as described above. For consistency, the group used by the compute 
-should include the group of this fix and the Drude particles. -- NOT TESTED -- 
+procedure, as described above. For consistency, the group used by the
+compute should include the group of this fix and the Drude particles.
 
 This fix is not invoked during "energy minimization"_minimize.html.
 
@@ -248,8 +268,5 @@ The option defaults are zero = no.
 :line
 
 :link(Jiang)
-[(Jiang)] Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux, 
- J Phys Chem Lett, 2, 87-92 (2011).
-
-
-
+[(Jiang)] Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux, J
+Phys Chem Lett, 2, 87-92 (2011).

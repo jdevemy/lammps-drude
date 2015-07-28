@@ -20,31 +20,31 @@
 </H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>pair_style hybrid/overlay ... thole args 
+<PRE>pair_style thole damp cutoff 
 </PRE>
-<UL><LI>args = list of arguments for a particular style 
+<UL><LI>thole = style name
+<LI>damp = global damping parameter
+<LI>cutoff = global cutoff 
 </UL>
-<PRE>  <I>thole</I> args = thole cutoff
-    thole = global value for Thole damping parameter
-    cutoff = global cutoff
-
-</PRE>
 <P><B>Examples:</B>
 </P>
 <PRE>pair_style hybrid/overlay ... thole 2.6 12.0
-pair_coeff  1 1  thole  1.0
-pair_coeff  1 2  thole  1.0 2.6 10.0
-pair_coeff  * 2  thole  1.0 2.6
-
+pair_coeff 1 1 thole 1.0
+pair_coeff 1 2 thole 1.0 2.6 10.0
+pair_coeff * 2 thole 1.0 2.6 
 </PRE>
 <P><B>Description:</B>
 </P>
-<P>The <I>thole</I> pair styles and substyles are meant to be used with force
-fields that include explicit polarization through Drude dipoles. The
-<I>thole</I> substyle is designed as a sub-style to be used with
-<A HREF = "pair_hybrid.html">pair_hybrid/overlay</A> in conjunction with a main pair
-style including Coulomb interactions, basically any pair style
-containing <I>coul/cut</I> or <I>coul/long</I>.
+<P>The <I>thole</I> pair style is meant to be used with force fields that
+include explicit polarization through Drude dipoles.  This link
+describes how to use the <A HREF = "tutorial_drude.html">thermalized Drude oscillator
+model</A> in LAMMPS and polarizable models in LAMMPS
+are discussed in <A HREF = "Section_howto.html#howto_25">this Section</A>.
+</P>
+<P>The <I>thole</I> pair style should be used as a sub-style within in the
+<A HREF = "pair_hybrid.html">pair_hybrid/overlay</A> command, in conjunction with a
+main pair style including Coulomb interactions, i.e. any pair style
+containing <I>coul/cut</I> or <I>coul/long</I> in its style name.
 </P>
 <P>The <I>thole</I> pair style computes the Coulomb interaction damped at
 short distances by a function
@@ -83,21 +83,21 @@ Drude particles inherit the 1-2, 1-3 and 1-4 neighbor relations from
 their respective cores.
 </P>
 <P>The following coefficients must be defined for each pair of atoms
-types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the examples
+types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the example
 above.
 </P>
 <UL><LI>alpha (distance units^3)
-<LI>thole
+<LI>damp
 <LI>cutoff (distance units) 
 </UL>
 <P>The last two coefficients are optional.  If not specified the global
 Thole damping parameter or global cutoff specified in the pair_style
-command are used. In order to use a specific cutoff (third argument) a
-thole parameter (second argument) must also be given.
+command are used. In order to specify a cutoff (third argument) a damp
+parameter (second argument) must also be specified.
 </P>
 <P><B>Mixing</B>:
 </P>
-<P>The <I>thole</I> pair substyle does not support mixing.  Thus, coefficients
+<P>The <I>thole</I> pair style does not support mixing.  Thus, coefficients
 for all I,J pairs must be specified explicitly.
 </P>
 <P><B>Restrictions:</B>
@@ -107,15 +107,16 @@ enabled if LAMMPS was built with that package. See the <A HREF = "Section_start.
 LAMMPS</A> section for more info.
 </P>
 <P>This pair_style should currently not be used with the <A HREF = "dihedral_charmm.html">charmm dihedral
-style</A> if the latter has a non-zero 1-4 weighting 
-factor. This is because the <I>thole</I> pair substyle does not know which 
+style</A> if the latter non-zero 1-4 weighting
+factors. This is because the <I>thole</I> pair style does not know which
 pairs are 1-4 partners of which dihedrals.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "fix_special_drude.html">fix special/drude</A>,
-<A HREF = "fix_langevin_drude.html">fix langevin/drude</A>,
-<A HREF = "compute_temp_drude.html">compute temp/drude</A>
+<P><A HREF = "fix_drude.html">fix drude</A>, <A HREF = "fix_langevin_drude.html">fix
+langevin/drude</A>, <A HREF = "fix_drude_transform.html">fix
+drude/transform</A>, <A HREF = "compute_temp_drude.html">compute
+temp/drude</A>
 </P>
 <P><B>Default:</B> none
 </P>
