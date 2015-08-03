@@ -113,7 +113,7 @@ IMPORTANT NOTE: only the Drude core atoms need to be in the group
 specified for this fix. A Drude electron will be transformed together
 with its cores even if it is not itself in the group.  It is safe to
 include Drude electrons or non-polarizable atoms in the group. The
-non-polarizable atoms will simply not be thermostatted as if they had
+non-polarizable atoms will simply be thermostatted as if they had
 a massless Drude partner (electron).
 
 IMPORTANT NOTE: Ghost atoms need to know their velocity for this fix
@@ -220,7 +220,7 @@ particles and {nph} for atoms/cores (or vice versa). Do not use {nph}
 for both. :l
 
 The temperatures of cores and Drude particles are calculated by
-"compute temp/drude"_compute_temp_drude.hrml :l
+"compute temp/drude"_compute_temp_drude.html :l
 
 Contrary to the alternative thermostating using Nose-Hoover thermostat
 fix {npt} and "fix drude/transform"_fix_drude_transform.html, the

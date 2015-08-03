@@ -76,7 +76,7 @@ specify the Drude status of each atom type.
 
 IMPORTANT NOTE: only the Drude core atoms need to be in the group
 specified for this fix. A Drude electron will be transformed together
-with its cores even if it is not itself in the group.  It is safe to
+with its core even if it is not itself in the group.  It is safe to
 include Drude electrons or non-polarizable atoms in the group. The
 non-polarizable atoms will simply not be transformed.
 

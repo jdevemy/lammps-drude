@@ -17,7 +17,7 @@
 </PRE>
 <UL><LI>ID, group-ID are documented in <A HREF = "fix.html">fix</A> command
 <LI>drude = style name of this fix command
-<LI>tag = Drude flag for each atom type (1 to N) in the system 
+<LI>flag1 flag2 ... flagN = Drude flag for each atom type (1 to N) in the system 
 </UL>
 <P><B>Examples:</B>
 </P>
@@ -27,7 +27,7 @@ fix 1 all drude C C N C N D D D
 <P><B>Description:</B>
 </P>
 <P>Assign each atom type in the system to be one of 3 kinds of atoms
-within the Drude polarization model.  This compute is designed to be
+within the Drude polarization model. This fix is designed to be
 used with the <A HREF = "tutorial_drude.html">thermalized Drude oscillator
 model</A>.  Polarizable models in LAMMPS
 are described in <A HREF = "Section_howto.html#howto_25">this Section</A>.
@@ -43,14 +43,14 @@ or capital letter (N,C,D):
 </P>
 <P>This fix should be invoked before any other commands that implement
 the Drude oscillator model, such as <A HREF = "fix_langevin_drude.html">fix
-langevin_drude</A>, <A HREF = "fix_drude_transform.html">fix
+langevin/drude</A>, <A HREF = "fix_drude_transform.html">fix
 drude/transform</A>, <A HREF = "compute_temp_drude.html">compute
 temp/drude</A>, <A HREF = "pair_thole.html">pair_style
 thole</A>.
 </P>
 <P><B>Related commands:</B>
 </P>
-<P><A HREF = "fix_langevin_drude.html">fix langevin_drude</A>, <A HREF = "fix_drude_transform.html">fix
+<P><A HREF = "fix_langevin_drude.html">fix langevin/drude</A>, <A HREF = "fix_drude_transform.html">fix
 drude/transform</A>, <A HREF = "compute_temp_drude.html">compute
 temp/drude</A>, <A HREF = "pair_thole.html">pair_style
 thole</A>
