@@ -19,6 +19,8 @@
 #include "modify.h"
 #include "error.h"
 #include "memory.h"
+#include "molecule.h"
+#include "atom_vec.h"
 
 #include <set>
 #include <vector>
@@ -107,15 +109,40 @@ void FixDrude::build_drudeid(){
   std::vector<tagint> drude_vec; // list of my Drudes' tags
   std::vector<tagint> core_drude_vec;
   partner_set = new std::set<tagint>[nlocal]; // Temporary sets of bond partner tags
-  
+
   sptr = this;
-  // Build list of my atoms' bond partners
-  for (int i=0; i<nlocal; i++){
-    if (drudetype[type[i]] == NOPOL_TYPE) continue;
-    drudeid[i] = 0;
-    for (int k=0; k<atom->num_bond[i]; k++){
-      core_drude_vec.push_back(atom->tag[i]);
-      core_drude_vec.push_back(atom->bond_atom[i][k]);
+  if (atom->molecular == 1)
+  {
+    // Build list of my atoms' bond partners
+    for (int i=0; i<nlocal; i++){
+      if (drudetype[type[i]] == NOPOL_TYPE) continue;
+      drudeid[i] = 0;
+      for (int k=0; k<atom->num_bond[i]; k++){
+        core_drude_vec.push_back(atom->tag[i]);
+        core_drude_vec.push_back(atom->bond_atom[i][k]);
+      }
+    }
+  }
+  else
+  {
+    // Template case
+    class Molecule **atommols;
+    atommols = atom->avec->onemols;
+
+    // Build list of my atoms' bond partners
+    for (int i=0; i<nlocal; i++){
+      int imol = atom->molindex[i];
+      int iatom = atom->molatom[i];
+      tagint *batom = atommols[imol]->bond_atom[iatom];
+      tagint tagprev = atom->tag[i] - iatom - 1;
+      int nbonds = atommols[imol]->num_bond[iatom];
+
+      if (drudetype[type[i]] == NOPOL_TYPE) continue;
+      drudeid[i] = 0;
+      for (int k=0; k<nbonds; k++){
+        core_drude_vec.push_back(atom->tag[i]);
+        core_drude_vec.push_back(batom[k]+tagprev);
+      }
     }
   }
   // Loop on procs to fill my atoms' sets of bond partners
@@ -273,6 +300,9 @@ void FixDrude::rebuild_special(){
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
   int *type = atom->type;
+
+  if (atom->molecular != 1)
+    return;
 
   // Make sure that drude partners know each other
   //build_drudeid();
