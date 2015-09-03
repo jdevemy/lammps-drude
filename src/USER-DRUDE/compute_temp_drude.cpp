@@ -219,6 +219,7 @@ void ComputeTempDrude::compute_vector()
 
 double ComputeTempDrude::compute_scalar(){
     compute_vector();
-    return vector[0];
+    scalar = vector[0];
+    return scalar;
 }
 

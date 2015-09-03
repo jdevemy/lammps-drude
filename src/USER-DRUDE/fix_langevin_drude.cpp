@@ -44,12 +44,8 @@ FixLangevinDrude::FixLangevinDrude(LAMMPS *lmp, int narg, char **arg) :
 
   // Langevin thermostat should be applied every step
   nevery = 1;
-  vector_flag = 1;
   global_freq = nevery;
-  extvector = 0;
-  size_vector = 6;
   comm_reverse = 3;
-  //extscalar = 1;
   
   // core temperature
   tstr_core = NULL;
