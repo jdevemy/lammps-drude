@@ -170,7 +170,7 @@ void PairLJCutTholeLongOMP::eval(int iifrom, int iito, ThrData * const thr)
         r2inv = 1.0/rsq;
 
         if (rsq < cut_coulsq) {
-          const double qj = q[j];
+          qj = q[j];
           r = sqrt(rsq);
 
           if (!ncoultablebits || rsq <= tabinnersq) {
