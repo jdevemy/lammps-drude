@@ -18,14 +18,23 @@
 
 <H3>pair_style thole command 
 </H3>
+<H3>pair_style lj/cut/thole/long command 
+</H3>
 <P><B>Syntax:</B>
 </P>
-<PRE>pair_style thole damp cutoff 
+<PRE>pair_style style args 
 </PRE>
-<UL><LI>thole = style name
-<LI>damp = global damping parameter
-<LI>cutoff = global cutoff 
+<UL><LI>style = <I>thole</I> or <I>lj/cut/thole/long</I>
+<LI>args = list of arguments for a particular style 
 </UL>
+<PRE>  <I>thole</I> args = damp cutoff
+    damp = global damping parameter
+    cutoff = global cutoff (distance units)
+  <I>lj/cut/thole/long</I> args = damp cutoff (cutoff2)
+    damp = global damping parameter
+    cutoff = global cutoff for LJ (and Thole if only 1 arg) (distance units)
+    cutoff2 = global cutoff for Thole (optional) (distance units) 
+</PRE>
 <P><B>Examples:</B>
 </P>
 <PRE>pair_style hybrid/overlay ... thole 2.6 12.0
@@ -33,9 +42,11 @@ pair_coeff 1 1 thole 1.0
 pair_coeff 1 2 thole 1.0 2.6 10.0
 pair_coeff * 2 thole 1.0 2.6 
 </PRE>
+<PRE>pair_style lj/cut/thole/long 2.6 12.0 
+</PRE>
 <P><B>Description:</B>
 </P>
-<P>The <I>thole</I> pair style is meant to be used with force fields that
+<P>The <I>thole</I> pair styles are meant to be used with force fields that
 include explicit polarization through Drude dipoles.  This link
 describes how to use the <A HREF = "tutorial_drude.html">thermalized Drude oscillator
 model</A> in LAMMPS and polarizable models in LAMMPS
@@ -46,7 +57,17 @@ are discussed in <A HREF = "Section_howto.html#howto_25">this Section</A>.
 main pair style including Coulomb interactions, i.e. any pair style
 containing <I>coul/cut</I> or <I>coul/long</I> in its style name.
 </P>
-<P>The <I>thole</I> pair style computes the Coulomb interaction damped at
+<P>The <I>lj/cut/thole/long</I> pair style is equivalent to, but more convenient that
+the frequent combination <I>hybrid/overlay lj/cut/coul/long cutoff thole damp
+cutoff2</I>. It is not only a shorthand for this pair_style combination, but
+it also allows for mixing pair coefficients instead of listing them all.
+The <I>lj/cut/thole/long</I> pair style is also a bit faster because it avoids an
+overlay and can benefit from OMP acceleration. Moreover, it uses a more
+precise approximation of the direct Coulomb interaction at short range similar
+to <A HREF = "pair_coul_long_cs.html">coul/long/cs</A>, which stabilizes the temperature of
+Drude particles.
+</P>
+<P>The <I>thole</I> pair styles compute the Coulomb interaction damped at
 short distances by a function
 </P>
 <P>\begin{equation} T_{ij}(r_{ij}) = 1 - \left( 1 +
@@ -82,9 +103,9 @@ non-polarizable atoms are also subject to these weighting factors. The
 Drude particles inherit the 1-2, 1-3 and 1-4 neighbor relations from
 their respective cores.
 </P>
-<P>The following coefficients must be defined for each pair of atoms
-types via the <A HREF = "pair_coeff.html">pair_coeff</A> command as in the example
-above.
+<P>For pair_style <I>thole</I>, the following coefficients must be defined for
+each pair of atoms types via the <A HREF = "pair_coeff.html">pair_coeff</A> command 
+as in the example above.
 </P>
 <UL><LI>alpha (distance units^3)
 <LI>damp
@@ -95,10 +116,29 @@ Thole damping parameter or global cutoff specified in the pair_style
 command are used. In order to specify a cutoff (third argument) a damp
 parameter (second argument) must also be specified.
 </P>
+<P>For pair style <I>lj/cut/thole/long</I>, the following coefficients must be
+defined for each pair of atoms types via the <A HREF = "pair_coeff.html">pair_coeff</A>
+command.
+</P>
+<UL><LI>epsilon (energy units)
+<LI>sigma (length units)
+<LI>alpha (distance units^3)
+<LI>damps
+<LI>LJ cutoff (distance units) 
+</UL>
+<P>The last two coefficients are optional and default to the global values from
+the <I>pair_style</I> command line.
+</P>
 <P><B>Mixing</B>:
 </P>
 <P>The <I>thole</I> pair style does not support mixing.  Thus, coefficients
 for all I,J pairs must be specified explicitly.
+</P>
+<P>The <I>lj/cut/thole/long</I> pair style does support mixing. Mixed coefficients
+are defined using
+</P>
+<P>\begin{equation} \alpha_{ij} = \sqrt{\alpha_i\alpha_j}\end{equation}
+\begin{equation} a_{ij} = \frac 1 2 (a_i + a_j)\end{equation}
 </P>
 <P><B>Restrictions:</B>
 </P>
@@ -111,12 +151,17 @@ style</A> if the latter has non-zero 1-4 weighting
 factors. This is because the <I>thole</I> pair style does not know which
 pairs are 1-4 partners of which dihedrals.
 </P>
+<P>The <I>lj/cut/thole/long</I> pair style should be used with a <A HREF = "kspace_style.html">Kspace solver</A>
+like PPPM or Ewald, which is only enabled if LAMMPS was built with the kspace
+package.
+</P>
 <P><B>Related commands:</B>
 </P>
 <P><A HREF = "fix_drude.html">fix drude</A>, <A HREF = "fix_langevin_drude.html">fix
 langevin/drude</A>, <A HREF = "fix_drude_transform.html">fix
 drude/transform</A>, <A HREF = "compute_temp_drude.html">compute
 temp/drude</A>
+<A HREF = "pair_lj_cut_coul_long">pair_style lj/cut/coul/long</A>
 </P>
 <P><B>Default:</B> none
 </P>
