@@ -638,8 +638,8 @@ class Data(object):
         print("")
 
         print("# ATTENTION!")
-        print("#  * special_bonds may need 'extra' keyword, LAMMPS will exit "
-              "with a message.")
+        print("#  * read_data may need 'extra/special/per/atom' keyword, "
+              "LAMMPS will exit with a message.")
         print("#  * If using fix shake the group-ID must not include "
               "Drude particles.")
         print("#    Use group ATOMS for example.")

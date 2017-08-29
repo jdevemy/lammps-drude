@@ -167,12 +167,12 @@ the atom types 6 to 8 are the newly created DPs.
 DC-DP pairs and will treat DP as equivalent to their DC in the
 <I>special bonds</I> relations.  It may be necessary to extend the space
 for storing such special relations.  In this case extra space should
-be reserved by using the <I>extra</I> keyword of the <I>special_bonds</I>
-command.  With our phenol, there is 1 more special neighbor for which
-space is required.  Otherwise LAMMPS crashes and gives the required
-value.
+be reserved by using the <I>extra/special/per/atom</I> keyword of the
+<I>read_data</I> command.  With our phenol, there is 1 more special neighbor
+for which space is required.  Otherwise LAMMPS crashes and gives the
+required value.
 </P>
-<PRE>special_bonds lj/coul 0.0 0.0 0.5 extra 1 
+<PRE>read_data data.lmp extra/special/per/atom 1 
 </PRE>
 <P>Let us assume we want to run a simple NVT simulation at 300 K.  Note
 that Drude oscillators need to be thermalized at a low temperature in
