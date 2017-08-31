@@ -5,6 +5,14 @@
   MathJax.Hub.Config({ TeX: { equationNumbers: {autoNumber: "AMS"} } });
 </script>
 
+"LAMMPS WWW Site"_lws - "LAMMPS Documentation"_ld - "LAMMPS Commands"_lc :c
+
+:link(lws,http://lammps.sandia.gov)
+:link(ld,Manual.html)
+:link(lc,Section_commands.html#comm)
+
+:line
+
 Tutorial for Thermalized Drude oscillators in LAMMPS :h3
 
 This tutorial explains how to use Drude oscillators in LAMMPS to
@@ -25,7 +33,7 @@ created by the surrounding particles.  Drude oscillators represent
 these dipoles by two fixed charges: the core (DC) and the Drude
 particle (DP) bound by a harmonic potential. The Drude particle can be
 thought of as the electron cloud whose center can be displaced from
-the position of the the corresponding nucleus.
+the position of the corresponding nucleus.
 
 The sum of the masses of a core-Drude pair should be the mass of the
 initial (unsplit) atom, \(m_C + m_D = m\).  The sum of their charges
@@ -44,38 +52,38 @@ stiffness of the harmonic bond should be large, so that the Drude
 particle remains close ot the core. The values of Drude mass, Drude
 charge, and force constant can be chosen following different
 strategies, as in the following examples of polarizable force
-fields.
+fields:
 
-"Lamoureux and Roux"_#Lamoureux suggest adopting a global
-half-stiffness, \(K_D\) = 500 kcal/(mol &Aring;<sup>2</sup>) &mdash;
-which corresponds to a force constant \(k_D\) = 4184 kJ/(mol
-&Aring;<sup>2</sup>) &mdash; for all types of core-Drude bond, a
-global mass \(m_D\) = 0.4 g/mol (or u) for all types of Drude
-particle, and to calculate the Drude charges for individual atom types
-from the atom polarizabilities using equation (1). This choice is
-followed in the polarizable CHARMM force field. :ulb,l
+"Lamoureux and Roux"_#Lamoureux2 suggest adopting a global half-stiffness, \
+\(K_D\) = 500 kcal/(mol Ang \(\{\}^2\)) - which corresponds to a force \
+constant \(k_D\) = 4184 kJ/(mol Ang \(\{\}^2\)) - for all types of \
+core-Drude bond, a global mass \(m_D\) = 0.4 g/mol (or u) for all types \
+of Drude particles, and to calculate the Drude charges for individual \
+atom types from the atom polarizabilities using equation (1). This \
+choice is followed in the polarizable CHARMM force field. :ulb,l
+Alternately "Schroeder and Steinhauser"_#Schroeder suggest adopting a global \
+charge \(q_D\) = -1.0e and a global mass \(m_D\) = 0.1 g/mol (or u) \
+for all Drude particles, and to calculate the force constant for each \
+type of core-Drude bond from equation (1). The timesteps used by these \
+authors are between 0.5 and 2 fs, with the degrees of freedom of the \
+Drude oscillators kept cold at 1 K. :l
+In both these force fields hydrogen atoms are treated as non-polarizable. :l
+:ule
 
-"Schroeder and Steinhauser"_#Schroeder suggest adopting a global
-charge \(q_D\) = -1.0e and a global mass \(m_D\) = 0.1 g/mol (or u)
-for all Drude particles, and to calculate the force constant for each
-type of core-Drude bond from equation (1). The timesteps used by these
-authors are between 0.5 and 2 fs, with the degrees of freedom of the
-Drude oscillators kept cold at 1 K. In both these force fields
-hydrogen atoms are treated as non-polarizable. :ule,l
 
 The motion of of the Drude particles can be calculated by minimizing
-the energy of the induced dipoles at each timestep, by an interative,
+the energy of the induced dipoles at each timestep, by an iterative,
 self-consistent procedure. The Drude particles can be massless and
 therefore do not contribute to the kinetic energy. However, the
-relaxed method is computationall slow. An extended-lagrangian method
+relaxed method is computational slow. An extended-lagrangian method
 can be used to calculate the positions of the Drude particles, but
 this requires them to have mass. It is important in this case to
 decouple the degrees of freedom associated with the Drude oscillators
 from those of the normal atoms. Thermalizing the Drude dipoles at
 temperatures comparable to the rest of the simulation leads to several
 problems (kinetic energy transfer, very short timestep, etc.), which
-can be remediated by the "cold Drude" technique ("Lamoureux and
-Roux"_#Lamoureux).
+can be remediate by the "cold Drude" technique ("Lamoureux and
+Roux"_#Lamoureux2).
 
 Two closely related models are used to represent polarization through
 "charges on a spring": the core-shell model and the Drude
@@ -87,18 +95,18 @@ are such that the core-shell model is sufficiently stable. But to be
 applicable to molecular/covalent systems the Drude model includes two
 important features:
 
-The possibility to thermostat the additional degrees of freedom
-associated with the induced dipoles at very low temperature, in terms
-of the reduced coordinates of the Drude particles with respect to
-their cores. This makes the trajectory close to that of relaxed
+The possibility to thermostat the additional degrees of freedom \
+associated with the induced dipoles at very low temperature, in terms \
+of the reduced coordinates of the Drude particles with respect to \
+their cores. This makes the trajectory close to that of relaxed \
 induced dipoles. :olb,l
-
-The Drude dipoles on covalently bonded atoms interact too strongly
-due to the short distances, so an atom may capture the Drude particle
-(shell) of a neighbor, or the induced dipoles within the same molecule
-may align too much.  To avoid this, damping at short of the
-interactions between the point charges composing the induced dipole
-can be done by "Thole"_#Thole functions. :ole,l
+The Drude dipoles on covalently bonded atoms interact too strongly \
+due to the short distances, so an atom may capture the Drude particle \
+(shell) of a neighbor, or the induced dipoles within the same molecule \
+may align too much.  To avoid this, damping at short of the \
+interactions between the point charges composing the induced dipole \
+can be done by "Thole"_#Thole2 functions. :l
+:ole
 
 
 :line
@@ -113,7 +121,7 @@ You can use the {polarizer} tool (Python script distributed with the
 USER-DRUDE package) to convert a non-polarizable data file (here
 {data.102494.lmp}) to a polarizable data file ({data-p.lmp})
 
-polarizer -q -f phenol.dff data.102494.lmp data-p.lmp :pre 
+polarizer -q -f phenol.dff data.102494.lmp data-p.lmp :pre
 
 This will automatically insert the new atoms and bonds.
 The masses and charges of DCs and DPs are computed
@@ -168,12 +176,13 @@ By recognizing the fix {drude}, LAMMPS will find and store matching
 DC-DP pairs and will treat DP as equivalent to their DC in the
 {special bonds} relations.  It may be necessary to extend the space
 for storing such special relations.  In this case extra space should
-be reserved by using the {extra/special/per/atom} keyword of the
-{read_data} command.  With our phenol, there is 1 more special neighbor
-for which space is required.  Otherwise LAMMPS crashes and gives the
-required value.
+be reserved by using the {extra/special/per/atom} keyword of either
+the "read_data"_read_data.html or "create_box"_create_box.html
+command.  With our phenol, there is 1 more special neighbor for which
+space is required.  Otherwise LAMMPS crashes and gives the required
+value.
 
-read_data data.lmp extra/special/per/atom 1 :pre
+read_data data-p.lmp extra/special/per/atom 1 :pre
 
 Let us assume we want to run a simple NVT simulation at 300 K.  Note
 that Drude oscillators need to be thermalized at a low temperature in
@@ -219,8 +228,8 @@ invoked after the fix {langevin/drude} for more accuracy.
 
 fix SHAKE ATOMS shake 0.0001 20 0 t 4 5 :pre
 
-IMPORTANT NOTE: The group of the fix {shake} must not include the DPs.
-If the group {ATOMS} is defined by non-DPs atom types, you could use
+NOTE: The group of the fix {shake} must not include the DPs.  If the
+group {ATOMS} is defined by non-DPs atom types, you could use
 
 Since the fix {langevin/drude} does not perform time integration (just
 modification of forces but no position/velocity updates), the fix
@@ -262,7 +271,7 @@ be stable, for example if the atomic polarizability is too high for
 instance, a DP can escape from its DC and be captured by another DC,
 which makes the force and energy diverge and the simulation
 crash. Even without reaching this extreme case, the correlation
-between nearby dipoles on the same molecule may be exagerated.  Often,
+between nearby dipoles on the same molecule may be exaggerated.  Often,
 special bond relations prevent bonded neighboring atoms to see the
 charge of each other's DP, so that the problem does not always appear.
 It is possible to use screened dipole dipole interactions by using the
@@ -276,7 +285,7 @@ pair_style hybrid/overlay lj/cut/coul/long 10.0 thole 2.6 10.0 :pre
 
 This tells LAMMPS that we are using two pair_styles.  The first one is
 as above ({lj/cut/coul/long 10.0}).  The second one is a {thole}
-pair_style with default screening factor 2.6 ("Noskov"_#Noskov) and
+pair_style with default screening factor 2.6 ("Noskov"_#Noskov2) and
 cutoff 10.0.
 
 Since {hybrid/overlay} does not support mixing rules, the interaction
@@ -319,13 +328,13 @@ pair_coeff    7    7 thole   1.360   2.510
 pair_coeff    7    8 thole   0.926   1.590
 pair_coeff    8    8 thole   0.630   0.670 :pre
 
-For the {thole} pair style the coefficients are 
+For the {thole} pair style the coefficients are
 
 the atom polarizability in units of cubic length :olb,l
 the screening factor of the Thole function (optional, default value
 specified by the pair_style command) :l
-the cutoff (optional, default value defined by the pair_style command)
-:l,ole
+the cutoff (optional, default value defined by the pair_style command) :l
+:ole
 
 The special neighbors have charge-charge and charge-dipole
 interactions screened by the {coul} factors of the {special_bonds}
@@ -373,7 +382,7 @@ group DRUDES type 6 7 8     # DPs :pre
 Note that with the fixes {drude/transform}, it is not required to
 specify {comm_modify vel yes} because the fixes do it anyway (several
 times and for the forces also).  To avoid the flying ice cube artifact
-"(Lamoureux)"_#Lamoureux, where the atoms progressively freeze and the
+"(Lamoureux)"_#Lamoureux2, where the atoms progressively freeze and the
 center of mass of the whole system drifts faster and faster, the {fix
 momentum} can be used. For instance:
 
@@ -440,21 +449,21 @@ fix INVERSE all drude/transform/inverse :pre
 
 :line
 
-:link(Lamoureux)
+:link(Lamoureux2)
 [(Lamoureux)] Lamoureux and Roux, J Chem Phys, 119, 3025-3039 (2003)
 
 :link(Schroeder)
-[(Schroeder)]  Schr&ouml;der and Steinhauser, J Chem Phys, 133,
+[(Schroeder)]  Schroeder and Steinhauser, J Chem Phys, 133,
 154511 (2010).
 
-:link(Jiang)
-[(Jiang)] Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux, 
+:link(Jiang2)
+[(Jiang)] Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux,
  J Phys Chem Lett, 2, 87-92 (2011).
 
-:link(Thole)
+:link(Thole2)
 [(Thole)] Chem Phys, 59, 341 (1981).
 
-:link(Noskov)
+:link(Noskov2)
 [(Noskov)] Noskov, Lamoureux and Roux, J Phys Chem B, 109, 6705 (2005).
 
 :link(SWM4-NDP)

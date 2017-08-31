@@ -32,7 +32,7 @@ fix 1 all drude/transform/inverse :pre
 
 Transform the coordinates of Drude oscillators from real to reduced
 and back for thermalizing the Drude oscillators as described in
-"(Lamoureux)"_#Lamoureux using a Nose-Hoover thermostat.  This fix is
+"(Lamoureux)"_#Lamoureux1 using a Nose-Hoover thermostat.  This fix is
 designed to be used with the "thermalized Drude oscillator
 model"_tutorial_drude.html.  Polarizable models in LAMMPS are
 described in "this Section"_Section_howto.html#howto_25.
@@ -61,12 +61,12 @@ Velocities: \begin\{equation\} V' = \frac \{M\, V + m\, v\} \{M'\}
 Forces: \begin\{equation\} F' = F + f \end\{equation\}
 \begin\{equation\} f' = \frac \{ M\, f - m\, F\} \{M'\}
 \end\{equation\}
- 
+
 This transform conserves the total kinetic energy
-\begin\{equation\} \frac 1 2 \, (M\, V^2\ + m\, v^2) 
+\begin\{equation\} \frac 1 2 \, (M\, V^2\ + m\, v^2)
 = \frac 1 2 \, (M'\, V'^2\ + m'\, v'^2) \end\{equation\}
 and the virial defined with absolute positions
-\begin\{equation\} X\, F + x\, f = X'\, F' + x'\, f' \end\{equation\} 
+\begin\{equation\} X\, F + x\, f = X'\, F' + x'\, f' \end\{equation\}
 
 :line
 
@@ -74,11 +74,11 @@ This fix requires each atom know whether it is a Drude particle or
 not.  You must therefore use the "fix drude"_fix_drude.html command to
 specify the Drude status of each atom type.
 
-IMPORTANT NOTE: only the Drude core atoms need to be in the group
-specified for this fix. A Drude electron will be transformed together
-with its core even if it is not itself in the group.  It is safe to
-include Drude electrons or non-polarizable atoms in the group. The
-non-polarizable atoms will simply not be transformed.
+NOTE: only the Drude core atoms need to be in the group specified for
+this fix. A Drude electron will be transformed together with its core
+even if it is not itself in the group.  It is safe to include Drude
+electrons or non-polarizable atoms in the group. The non-polarizable
+atoms will simply not be transformed.
 
 :line
 
@@ -90,10 +90,9 @@ atoms.  In order to thermalize the reduced degrees of freedom at
 different temperatures, two Nose-Hoover thermostats must be defined,
 acting on two distinct groups.
 
-IMPORTANT NOTE: The {fix drude/transform/direct} command must appear
-before any Nose-Hoover thermostating fixes.  The {fix
-drude/transform/inverse} command must appear after any Nose-Hoover
-thermostating fixes.
+NOTE: The {fix drude/transform/direct} command must appear before any
+Nose-Hoover thermostating fixes.  The {fix drude/transform/inverse}
+command must appear after any Nose-Hoover thermostating fixes.
 
 Example:
 
@@ -161,5 +160,5 @@ files"_restart.html.
 
 :line
 
-:link(Lamoureux)
+:link(Lamoureux1)
 [(Lamoureux)] Lamoureux and Roux, J Chem Phys, 119, 3025-3039 (2003).
